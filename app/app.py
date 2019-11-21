@@ -34,7 +34,7 @@ def engine_queue():
     key = req.get("key")
 
     if request.method == "POST":
-        if key not in engine_queues:
+        if engine_queues.get(key) == None:
             # Perist key in database
             database.sadd(ENGINE_QUEUE_KEYS, key)
             print(key)
@@ -102,6 +102,7 @@ def main():
     # Load any engine queue keys on restart
     keys = database.smembers(ENGINE_QUEUE_KEYS)
     for key in keys:
+        key = key.decode("utf-8")
         engine_queues[key] = EngineQueue(key, database)
 
     app.run(host="127.0.0.1", port="5000", debug=True)
