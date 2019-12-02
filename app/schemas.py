@@ -1,7 +1,7 @@
 import validators
 import dateutil.parser
 from croniter import croniter
-from schema import And, Optional, Or, Schema, Use
+from schema import And, Optional, Or, Schema
 
 AnalyzeSchema = Schema(
     Or(

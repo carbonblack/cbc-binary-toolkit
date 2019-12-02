@@ -34,10 +34,9 @@ def engine_queue():
     key = req.get("key")
 
     if request.method == "POST":
-        if engine_queues.get(key) == None:
+        if engine_queues.get(key) is None:
             # Perist key in database
             database.sadd(ENGINE_QUEUE_KEYS, key)
-            print(key)
         engine_queues[key] = EngineQueue(key, database)
         return jsonify(success=True)
 
@@ -83,13 +82,13 @@ def process_hashes(hashes):
         downloads = cbth.select(threathunter.Downloads, hashes)
 
         for download in downloads.found:
-            binary = download._info
-            binary_meta = cbth.select(threathunter.Binary, download.sha256)
-            if isinstance(binary_meta, threathunter.Binary):
-                binary.update(binary_meta._info)
+            binary_meta_data = download._info
+            binary = cbth.select(threathunter.Binary, download.sha256)
+            if isinstance(binary, threathunter.Binary):
+                binary_meta_data.update(binary._info)
 
             for key in engine_queues:
-                engine_queues[key].enqueue(binary)
+                engine_queues[key].enqueue(binary_meta_data)
 
     except Exception as e:  # noqa
         log.error(f"CbTH responded with an error: {e}")

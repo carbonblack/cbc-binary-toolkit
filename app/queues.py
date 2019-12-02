@@ -12,9 +12,9 @@ class EngineQueue:
         self.db = connection
 
 
-    def enqueue(self, binary):
-        if isinstance(binary, dict):
-            self.db.rpush(self.key, json.dumps(binary))
-            log.debug('Binary {} added to queue {}'.format(binary["sha256"], self.key))
+    def enqueue(self, binary_meta_data):
+        if isinstance(binary_meta_data, dict):
+            self.db.rpush(self.key, json.dumps(binary_meta_data))
+            log.debug('Binary {} added to queue {}'.format(binary_meta_data["sha256"], self.key))
         else:
-            raise TypeError('Binary must be of type dict')
+            raise TypeError('EngineQueue method enqueue only accepts type dict')
