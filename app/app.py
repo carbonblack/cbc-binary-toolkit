@@ -83,9 +83,9 @@ def process_hashes(hashes):
 
         for download in downloads.found:
             binary_meta_data = download._info
-            binary = cbth.select(threathunter.Binary, download.sha256)
-            if isinstance(binary, threathunter.Binary):
-                binary_meta_data.update(binary._info)
+            th_binary = cbth.select(threathunter.Binary, download.sha256)
+            if isinstance(th_binary, threathunter.Binary):
+                binary_meta_data.update(th_binary._info)
 
             for key in engine_queues:
                 engine_queues[key].enqueue(binary_meta_data)
