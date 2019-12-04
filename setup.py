@@ -1,24 +1,19 @@
 #!/usr/bin/env python3
-
+import os
 from setuptools import setup
 
-
-def requirements():
-    with open("requirements.txt") as requirements:
-        return requirements.read().splitlines()
-
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(
     name="cb-binary-analysis",
-    version="0.0.1",
+    version=read("VERSION"),
     url="https://developer.carbonblack.com/",
     license="MIT",
     author="Carbon Black",
     author_email="dev-support@carbonblack.com",
     description="Carbon Black Binary Analysis",
     long_description=__doc__,
-    # packages=["cb.psc.integration"],
-    # package_dir={"": "app"},
     platforms="any",
     classifiers=[
         "Intended Audience :: Developers",
@@ -26,5 +21,6 @@ setup(
         "Programming Language :: Python",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
-    install_requires=requirements(),
+    install_requires=read("requirements.txt").splitlines(),
+    tests_require=read("tests/requirements.txt").splitlines()
 )
