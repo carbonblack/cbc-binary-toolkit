@@ -1,25 +1,18 @@
 import logging
-import redis
 
-import cbapi.psc.threathunter as threathunter
-from flask import Flask, abort, jsonify, request
-from queues import EngineQueue
+from app import *
+
+from flask import abort, jsonify, request
 from schema import SchemaError
-from schemas import (
+
+from utils.queues import EngineQueue
+from utils.schemas import (
     AnalyzeSchema,
     QueueSchema
 )
 
-log = logging.getLogger()
+log = logging.getLogger(__name__)
 log.setLevel(level=logging.DEBUG)
-
-app = Flask(__name__)
-
-cbth = threathunter.CbThreatHunterAPI(profile="sony-custom")
-database = redis.Redis.from_url("redis://127.0.0.1:6379")
-engine_queues = {}
-
-ENGINE_QUEUE_KEYS = "engine_keys"
 
 @app.route("/queues", methods=["POST", "DELETE"])
 def engine_queue():
@@ -34,15 +27,15 @@ def engine_queue():
     key = req.get("key")
 
     if request.method == "POST":
-        if engine_queues.get(key) is None:
+        if app.config["engine_queues"].get(key) is None:
             # Perist key in database
             database.sadd(ENGINE_QUEUE_KEYS, key)
-        engine_queues[key] = EngineQueue(key, database)
+        app.config["engine_queues"][key] = EngineQueue(key, database)
         return jsonify(success=True)
 
     elif request.method == "DELETE":
-        if key in engine_queues:
-            del engine_queues[key]
+        if key in app.config["engine_queues"]:
+            del app.config["engine_queues"][key]
 
             # Clear queue from database
             database.srem(ENGINE_QUEUE_KEYS, key)
@@ -59,7 +52,7 @@ def analyze():
     except SchemaError as e:
         abort(400, str(e))
 
-    if len(engine_queues.keys()) == 0:
+    if len(app.config["engine_queues"].keys()) == 0:
         return { "message": "No queues have been configured" }, 424
 
     if "hashes" in req:
@@ -87,25 +80,9 @@ def process_hashes(hashes):
             if isinstance(th_binary, threathunter.Binary):
                 binary_meta_data.update(th_binary._info)
 
-            for key in engine_queues:
-                engine_queues[key].enqueue(binary_meta_data)
+            for key in app.config["engine_queues"]:
+                app.config["engine_queues"][key].enqueue(binary_meta_data)
 
     except Exception as e:  # noqa
         log.error(f"CbTH responded with an error: {e}")
         abort(500)
-
-def main():
-    # Ping database for confirm connection
-    database.ping()
-
-    # Load any engine queue keys on restart
-    keys = database.smembers(ENGINE_QUEUE_KEYS)
-    for key in keys:
-        key = key.decode("utf-8")
-        engine_queues[key] = EngineQueue(key, database)
-
-    app.run(host="127.0.0.1", port="5000", debug=True)
-
-
-if __name__ == "__main__":
-    main()

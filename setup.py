@@ -22,5 +22,5 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
     install_requires=read("requirements.txt").splitlines(),
-    tests_require=read("tests/requirements.txt").splitlines()
+    tests_require=read("srrc/tests/requirements.txt").splitlines()
 )
