@@ -14,6 +14,10 @@ from utils.schemas import (
 log = logging.getLogger(__name__)
 log.setLevel(level=logging.DEBUG)
 
+@app.errorhandler(404)
+def object_not_found(e):
+    return {"success": False, "message": "Object not found"}, 404
+
 @app.route("/queues", methods=["POST", "DELETE"])
 def engine_queue():
     req = request.get_json(force=True)
@@ -53,7 +57,7 @@ def analyze():
         abort(400, str(e))
 
     if len(app.config["engine_queues"].keys()) == 0:
-        return { "message": "No queues have been configured" }, 424
+        return { "success": False, "message": "No queues have been configured" }, 424
 
     if "hashes" in req:
         hashes = req.get("hashes")
