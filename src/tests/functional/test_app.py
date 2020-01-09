@@ -22,7 +22,7 @@ def test_queue_post(app):
         "key": "test"
     }
 
-    res = app.post("/queues", json=body)
+    res = app.post("/engines", json=body)
     assert res.status_code == 200
     assert json.loads(res.data)["success"] is True
 
@@ -40,7 +40,7 @@ def test_queue_delete(app):
         "key": "test"
     }
 
-    res = app.delete("/queues", json=body)
+    res = app.delete("/engines", json=body)
     assert res.status_code == 204
     assert res.data is b''
 
@@ -49,6 +49,6 @@ def test_queue_delete_missing(app):
         "key": "test"
     }
 
-    res = app.delete("/queues", json=body)
+    res = app.delete("/engines", json=body)
     assert res.status_code == 404
     assert json.loads(res.data)["success"] is False

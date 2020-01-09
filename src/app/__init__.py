@@ -5,10 +5,6 @@ import cbapi.psc.threathunter as threathunter
 from flask import Flask
 
 from utils.queues import EngineQueue
-from utils.schemas import (
-    AnalyzeSchema,
-    QueueSchema
-)
 
 log = logging.getLogger(__name__)
 log.setLevel(level=logging.DEBUG)

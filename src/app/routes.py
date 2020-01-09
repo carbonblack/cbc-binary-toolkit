@@ -18,10 +18,10 @@ log.setLevel(level=logging.DEBUG)
 def object_not_found(e):
     return {"success": False, "message": "Object not found"}, 404
 
-@app.route("/queues", methods=["POST", "DELETE"])
+@app.route("/engines", methods=["POST", "DELETE"])
 def engine_queue():
     req = request.get_json(force=True)
-    log.debug(f"/queue: {req!r}")
+    log.debug(f"/engines: {req!r}")
 
     try:
         req = QueueSchema.validate(req)
