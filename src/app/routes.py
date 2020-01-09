@@ -1,6 +1,7 @@
 import logging
 
 from app import *
+import pdb
 
 from flask import abort, jsonify, request
 from schema import SchemaError
@@ -31,20 +32,36 @@ def engine_queue():
     key = req.get("key")
 
     if request.method == "POST":
+        if new_engine(key):
+            return jsonify(success=True)
+
+    elif request.method == "DELETE":
+        if delete_engine(key):
+            return jsonify(success=True), 204
+
+def new_engine(key):
+    try:
         if app.config["engine_queues"].get(key) is None:
             # Perist key in database
             database.sadd(ENGINE_QUEUE_KEYS, key)
         app.config["engine_queues"][key] = EngineQueue(key, database)
-        return jsonify(success=True)
+    except Exception as e:
+        log.error("new_engine: Error creating engine queue {}".format(e))
+        abort(500)
+    return True
 
-    elif request.method == "DELETE":
+def delete_engine(key):
+    try:
         if key in app.config["engine_queues"]:
             del app.config["engine_queues"][key]
 
             # Clear queue from database
             database.srem(ENGINE_QUEUE_KEYS, key)
-            return jsonify(success=True), 204
-        abort(404)
+            return True
+    except Exception as e:
+        log.error("delete_engine: Error deleting engine queue {}".format(e))
+        abort(500)
+    abort(404)
 
 @app.route("/analyze", methods=["POST"])
 def analyze():
@@ -61,9 +78,11 @@ def analyze():
 
     if "hashes" in req:
         hashes = req.get("hashes")
+        log.debug("Analyze: {} hash(s)".format(len(hashes)))
         process_hashes(hashes)
     else:
-        log.debug("query")
+        query = req.get("query")
+        log.debug("Analyze: query \{{}\}".format(query))
         # TODO: Determine best method for processing query
         #           Long processing time for a large amount of processes what limits to impose?
         #processes = cbth().select(threathunter.Process).where(query)
