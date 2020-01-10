@@ -1,7 +1,6 @@
 import logging
 
 from app import *
-import pdb
 
 from flask import abort, jsonify, request
 from schema import SchemaError

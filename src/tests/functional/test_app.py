@@ -1,6 +1,9 @@
 import pytest
 import json
 
+import os
+os.environ['FUNCTIONAL_TEST'] = 'true'
+
 from app import app as base
 
 @pytest.fixture
