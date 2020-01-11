@@ -1,5 +1,6 @@
 import pytest
 
+
 class CBAPIMock:
     def __init__(self, monkeypatch, api):
         self.mocks = {}
@@ -10,7 +11,6 @@ class CBAPIMock:
         monkeypatch.setattr(api, "post_object", self._self_post_object())
         monkeypatch.setattr(api, "put_object", self._self_put_object())
         monkeypatch.setattr(api, "delete_object", self._self_delete_object())
-
 
     class StubResponse(object):
         def __init__(self, contents, scode=200):
@@ -24,7 +24,7 @@ class CBAPIMock:
         return "{}:{}".format(verb, url)
 
     def mock_request(self, verb, url, body):
-        if verb is "GET" or verb is "RAW_GET":
+        if verb == "GET" or verb == "RAW_GET":
             self.mocks["{}:{}".format(verb, url)] = body
         else:
             self.mocks["{}:{}".format(verb, url)] = self.StubResponse(body)

@@ -10,4 +10,4 @@ Make sure whatever key name you submit you replace the key below
 
 while True:
     data = r.blpop(['test'])
-    print (data)
+    print(json.load(data.decode()))

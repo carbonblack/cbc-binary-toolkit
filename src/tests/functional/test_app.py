@@ -1,15 +1,14 @@
 import pytest
 import json
 
-import os
-os.environ['FUNCTIONAL_TEST'] = 'true'
-
 from app import app as base
+
 
 @pytest.fixture
 def app():
     base.debug = True
     return base.test_client()
+
 
 def test_analyze_no_queues(app):
     body = {
@@ -20,6 +19,7 @@ def test_analyze_no_queues(app):
     assert res.status_code == 424
     assert json.loads(res.data)["success"] is False
 
+
 def test_queue_post(app):
     body = {
         "key": "test"
@@ -28,6 +28,7 @@ def test_queue_post(app):
     res = app.post("/engines", json=body)
     assert res.status_code == 200
     assert json.loads(res.data)["success"] is True
+
 
 def test_analyze_success(app):
     body = {
@@ -38,6 +39,7 @@ def test_analyze_success(app):
     assert res.status_code == 200
     assert json.loads(res.data)["success"] is True
 
+
 def test_queue_delete(app):
     body = {
         "key": "test"
@@ -45,7 +47,8 @@ def test_queue_delete(app):
 
     res = app.delete("/engines", json=body)
     assert res.status_code == 204
-    assert res.data is b''
+    assert res.data == b''
+
 
 def test_queue_delete_missing(app):
     body = {

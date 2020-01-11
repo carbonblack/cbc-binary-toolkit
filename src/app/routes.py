@@ -14,9 +14,11 @@ from utils.schemas import (
 log = logging.getLogger(__name__)
 log.setLevel(level=logging.DEBUG)
 
+
 @app.errorhandler(404)
 def object_not_found(e):
     return {"success": False, "message": "Object not found"}, 404
+
 
 @app.route("/engines", methods=["POST", "DELETE"])
 def engine_queue():
@@ -38,6 +40,7 @@ def engine_queue():
         if delete_engine(key):
             return jsonify(success=True), 204
 
+
 def new_engine(key):
     try:
         if app.config["engine_queues"].get(key) is None:
@@ -48,6 +51,7 @@ def new_engine(key):
         log.error("new_engine: Error creating engine queue {}".format(e))
         abort(500)
     return True
+
 
 def delete_engine(key):
     try:
@@ -62,6 +66,7 @@ def delete_engine(key):
         abort(500)
     abort(404)
 
+
 @app.route("/analyze", methods=["POST"])
 def analyze():
     req = request.get_json(force=True)
@@ -73,7 +78,7 @@ def analyze():
         abort(400, str(e))
 
     if len(app.config["engine_queues"].keys()) == 0:
-        return { "success": False, "message": "No queues have been configured" }, 424
+        return {"success": False, "message": "No queues have been configured"}, 424
 
     if "hashes" in req:
         hashes = req.get("hashes")
@@ -81,12 +86,13 @@ def analyze():
         process_hashes(hashes)
     else:
         query = req.get("query")
-        log.debug("Analyze: query \{{}\}".format(query))
+        log.debug("Analyze: query '{}'}".format(query))
         # TODO: Determine best method for processing query
         #           Long processing time for a large amount of processes what limits to impose?
-        #processes = cbth().select(threathunter.Process).where(query)
+        # processes = cbth().select(threathunter.Process).where(query)
 
     return jsonify(success=True)
+
 
 def process_hashes(hashes):
     if not isinstance(hashes, list) or len(hashes) < 1:
