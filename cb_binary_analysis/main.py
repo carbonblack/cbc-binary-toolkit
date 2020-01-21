@@ -16,10 +16,8 @@ logging.basicConfig(level=logging.DEBUG)  # Needs converted to configuration pro
 log = logging.getLogger(__name__)
 
 
-def main():
-    """Entry point"""
-    log.debug("Started: {}".format(datetime.now().microsecond))
-
+def parse_args(args):
+    """Create argparser"""
     parser = argparse.ArgumentParser()
 
     commands = parser.add_subparsers(help="Binary analysis commands", dest="command_name", required=True)
@@ -32,8 +30,14 @@ def main():
 
     # Clear command parser
     analyze_command = commands.add_parser("clear", help="Clear cache of analyzed hashes")
+    return parser.parse_args(args)
 
-    args = parser.parse_args()
+
+def main():
+    """Entry point"""
+    log.debug("Started: {}".format(datetime.now().microsecond))
+
+    args = parse_args(sys.argv[1:])
     if args.command_name == "analyze":
         log.debug("Analyzing hashes")
     elif args.command_name == "clear":
