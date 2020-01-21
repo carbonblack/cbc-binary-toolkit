@@ -1,0 +1,8 @@
+# Configuration for Binary Analysis SDK
+id: cb-binary-analysis
+version: 0.0.1
+carbonblackcloud:
+  url: https://defense-dev01.cbdtest.io
+  apitoken: ABCDEFGHIJKLMNOPQRSTUVWXYZ/1234567890
+  orgkey: abcdefgh
+  ssl_verify: True
