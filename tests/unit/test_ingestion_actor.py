@@ -3,14 +3,16 @@
 """Unit tests for the ingestion actor"""
 
 import pytest
-from thespian.actors import ActorSystem
+from thespian.actors import ActorSystem, ActorExitRequest
 from cb_binary_analysis.ingestion_actor import IngestionActor
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def actor():
     """Creates actor to unit test"""
-    return ActorSystem().createActor(IngestionActor)
+    actor = ActorSystem().createActor(IngestionActor)
+    yield actor
+    ActorSystem().ask(actor, ActorExitRequest())
 
 
 def test_receiveMessage_ask(actor):
