@@ -6,3 +6,8 @@ carbonblackcloud:
   apitoken: ABCDEFGHIJKLMNOPQRSTUVWXYZ/1234567890
   orgkey: abcdefgh
   ssl_verify: True
+database:
+  _provider: classname
+  url:
+  username:
+  password:

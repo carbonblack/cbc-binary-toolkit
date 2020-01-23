@@ -108,3 +108,7 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# Local configuration
+config/binary-analysis-config.yaml
+
