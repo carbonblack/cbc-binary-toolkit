@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-[]
+Functions to read input received from file or command line, and output formatted JSON for the UBS to retrieve binaries
 """
 
 import csv
@@ -18,10 +18,10 @@ def read_csv(filename: str) -> List[Dict]:
     Args:
         filename (str): The filename given as input to the function.
     Raises:
-        AssertionError: incorrect number of hashes or length of a hash
+        AssertionError: incorrect length of a hash, or empty file
         OSError: File could not be found or read.
     Returns:
-        []
+        List of dictionaries containing up to 100 hashes each, formatted for UBS
     """
 
     json_dict_list: (List[Dict]) = []
@@ -36,7 +36,6 @@ def read_csv(filename: str) -> List[Dict]:
                     raise AssertionError(f'Hash should be 64 chars, instead is {len(hash)} chars: {hash}')
                 if hash not in hash_list:
                     hash_list.append(hash)
-        # csv_list = list(filter(lambda elem: len(elem) >= PATH_SIZE, csv_dict.values())) #wtf
         if not hash_list:
             raise AssertionError(f'There are no hashes in File {filename}')
 
@@ -58,7 +57,7 @@ def read_json(json_string: str) -> List[Dict]:  # Assuming input = '{ "hashes": 
         AssertionError: the input hashes array is empty.
         ValueError: malformed data in file.
     Returns:
-        []
+        List of dictionaries containing up to 100 hashes each, formatted for UBS
     """
     # limit of 100 hashes per call to UBS -- must return a list of dictionaries of up to 100 hashes each
 
@@ -67,7 +66,7 @@ def read_json(json_string: str) -> List[Dict]:  # Assuming input = '{ "hashes": 
         json_dict = json.loads(json_string)
 
         if 'hashes' not in json_dict:
-            raise KeyError('There is no hashes array in JSON object received from command line')
+            raise KeyError("There is no hashes array in JSON object received from command line")
 
         all_hashes = json_dict['hashes']
         num_hashes = len(all_hashes)
@@ -97,16 +96,14 @@ def build_json_dicts_from_list(hash_list: List[str]) -> List[Dict]:
     Function to read in a list of strings and return a JSON object of hashes formatted for UBS
 
     Args:
-        hash_list List[str]: The JSON string received from the command line, to be parsed
-    Raises:
-        []
+        hash_list (List[str]): The JSON string received from the command line, to be parsed and split if > 100 hashes
     Returns:
-        []
+        List of dictionaries containing up to 100 hashes each, formatted for UBS
     """
     json_dict_list: (List[Dict]) = []
     num_hashes = len(hash_list)
 
-    if num_hashes > 100:  # UBS has a limit of 100 hashes per POST request to 	<psc-hostname>/ubs/<versionId>/orgs/<org_key>/file/_download
+    if num_hashes > 100:  # UBS has a limit of 100 hashes per POST request to <psc-hostname>/ubs/<versionId>/orgs/<org_key>/file/_download
         num_dicts_req = ceil(num_hashes / 100)
 
         logging.info(f'The hashes array contains {num_hashes} hashes. Creating {num_dicts_req} JSON objects to send to UBS')
