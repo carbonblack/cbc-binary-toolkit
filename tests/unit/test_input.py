@@ -72,7 +72,7 @@ class TestInputFunctions(unittest.TestCase):
         self.assertEqual(str(context.exception), msg)
 
     @parameterized.expand([
-        (KeyError, WRONG_KEY_JSON, "'There is no hashes array in JSON object received from command line'"),
+        (KeyError, WRONG_KEY_JSON, "'There is no sha256 array in JSON object received from command line'"),
         (AssertionError, EMPTY_HASHES_DICT_JSON, "Hashes array contains no hashes"),
         (AssertionError, BASIC_JSON_WRONG_HASHLEN, "Found hash with 63 chars instead of 64 chars for hash: zhfsxqdiovvniajycvnnluubnsgdrqdczzarsxjoozfdbolnovnqacbtelxcnve"),
         (JSONDecodeError, BASIC_JSON_MALFORMED_FILE, "Expecting ':' delimiter: line 1 column 13 (char 12)")

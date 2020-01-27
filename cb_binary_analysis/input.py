@@ -16,16 +16,16 @@ def read_csv(filename: str) -> List[Dict]:
     Function to read in a csv and return a JSON object of hashes
 
     Args:
-        filename (str): The filename given as input to the function.
+        filename (str): The filename given as input to the function
     Raises:
         AssertionError: incorrect length of a hash, or empty file
-        OSError: File could not be found or read.
+        OSError: File could not be found or read
     Returns:
         List of dictionaries containing up to 100 hashes each, formatted for UBS
     """
 
     json_dict_list: (List[Dict]) = []
-    hash_list: (List[str]) = []
+    hash_dict: (Dict) = {}
 
     try:
         with open(filename) as csvfile:
@@ -34,11 +34,12 @@ def read_csv(filename: str) -> List[Dict]:
                 hash = row[0]
                 if len(hash) != 64:
                     raise AssertionError(f'Hash should be 64 chars, instead is {len(hash)} chars: {hash}')
-                if hash not in hash_list:
-                    hash_list.append(hash)
-        if not hash_list:
+                if hash not in hash_dict:
+                    hash_dict[hash] = 1
+        if not hash_dict:
             raise AssertionError(f'There are no hashes in File {filename}')
 
+        hash_list = [key for key, val in hash_dict.items()]
         json_dict_list = build_json_dicts_from_list(hash_list)
         return json_dict_list
 
@@ -47,15 +48,16 @@ def read_csv(filename: str) -> List[Dict]:
         raise
 
 
-def read_json(json_string: str) -> List[Dict]:  # Assuming input = '{ "hashes": ["one","two"] }'
+def read_json(json_string: str) -> List[Dict]:  # Assuming input = '{ "sha256": ["one","two"] }'
     """
     Function to read in a JSON string and return a JSON object of hashes
 
     Args:
         json_string (str): The JSON string received from the command line, to be parsed
     Raises:
-        AssertionError: the input hashes array is empty.
-        ValueError: malformed data in file.
+        AssertionError: the input hashes array is empty, or there is an incorrect sha256 hash length
+        KeyError: no "sha256" key in JSON input
+        ValueError: malformed data in file
     Returns:
         List of dictionaries containing up to 100 hashes each, formatted for UBS
     """
@@ -65,10 +67,10 @@ def read_json(json_string: str) -> List[Dict]:  # Assuming input = '{ "hashes": 
     try:
         json_dict = json.loads(json_string)
 
-        if 'hashes' not in json_dict:
-            raise KeyError("There is no hashes array in JSON object received from command line")
+        if 'sha256' not in json_dict:
+            raise KeyError("There is no sha256 array in JSON object received from command line")
 
-        all_hashes = json_dict['hashes']
+        all_hashes = json_dict['sha256']
         num_hashes = len(all_hashes)
 
         if num_hashes == 0:
@@ -115,10 +117,10 @@ def build_json_dicts_from_list(hash_list: List[str]) -> List[Dict]:
             else:
                 end_index = begin_index + 100
 
-            json_dict_list.append({"hashes": hash_list[begin_index:end_index], "expiration_seconds": 3600})
+            json_dict_list.append({"sha256": hash_list[begin_index:end_index], "expiration_seconds": 3600})
 
     else:
-        smaller_hash_dict = {"hashes": hash_list, "expiration_seconds": 3600}
+        smaller_hash_dict = {"sha256": hash_list, "expiration_seconds": 3600}
         json_dict_list.append(smaller_hash_dict)
 
     return json_dict_list
