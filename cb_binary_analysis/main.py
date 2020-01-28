@@ -12,6 +12,8 @@ import sys
 
 from datetime import datetime
 
+from cb_binary_analysis.config.model import Config
+
 logging.basicConfig(level=logging.DEBUG)  # Needs converted to configuration property
 log = logging.getLogger(__name__)
 
@@ -19,6 +21,8 @@ log = logging.getLogger(__name__)
 def parse_args(args):
     """Create argparser"""
     parser = argparse.ArgumentParser()
+    parser.add_argument("-C", "--config", type=str, default=Config.default_location,
+                        help="Location of the configuration file (default {0})".format(Config.default_location))
 
     commands = parser.add_subparsers(help="Binary analysis commands", dest="command_name", required=True)
 
@@ -38,6 +42,9 @@ def main():
     log.debug("Started: {}".format(datetime.now().microsecond))
 
     args = parse_args(sys.argv[1:])
+
+    # XXX config = Config.load_file(args.config) - uncomment this when we're ready to use it
+
     if args.command_name == "analyze":
         log.debug("Analyzing hashes")
     elif args.command_name == "clear":

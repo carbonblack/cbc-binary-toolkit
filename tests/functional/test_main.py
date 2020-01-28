@@ -8,6 +8,12 @@ This tests the input from the users experience
 
 import pytest
 import subprocess
+import sys
+
+if sys.platform.startswith("win32"):
+    pycommand = "python"
+else:
+    pycommand = "python3"
 
 LOG_FILE = "tests/functional/log.txt"
 
@@ -22,11 +28,11 @@ class TestUserHandling:
     def test_analyze(self):
         """Test analyze command"""
         with open(LOG_FILE, "a+") as log:
-            subprocess.call(['python3', 'cb-binary-analysis/main.py', 'analyze', '-l ["test"]'], stdout=log, stderr=log)
+            subprocess.call([pycommand, 'cb-binary-analysis/main.py', 'analyze', '-l ["test"]'], stdout=log, stderr=log)
             pass
 
     def test_clear(self):
         """Test clear command"""
         with open(LOG_FILE, "a+") as log:
-            subprocess.call(['python3', 'cb-binary-analysis/main.py', 'clear'], stdout=log, stderr=log)
+            subprocess.call([pycommand, 'cb-binary-analysis/main.py', 'clear'], stdout=log, stderr=log)
             pass

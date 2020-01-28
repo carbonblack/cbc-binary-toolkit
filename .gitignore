@@ -98,8 +98,17 @@ venv.bak/
 # Rope project settings
 .ropeproject
 
+# Eclipse/PyDev
+/.project
+/.pydevproject
+/.settings
+
 # mkdocs documentation
 /site
 
 # mypy
 .mypy_cache/
+
+# Local configuration
+config/binary-analysis-config.yaml
+
