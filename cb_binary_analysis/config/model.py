@@ -27,10 +27,10 @@ class Config:
         try:
             mydata = yaml.safe_load(data)
             if isinstance(mydata, dict):
-                s = mydata.get('id', None)
-                if s != Config._required_id:
+                validation = mydata.get('id', None)
+                if validation != Config._required_id:
                     raise ConfigError('Invalid configuration ID')
-                s = mydata.get('version', None)
+                validation = mydata.get('version', None)
                 # TODO: do some sort of version check here
                 return Config(mydata)
             else:
