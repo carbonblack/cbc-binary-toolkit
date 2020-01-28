@@ -8,17 +8,21 @@ This tests the functionality of each segment of the code
 
 import pytest
 from cb_binary_analysis.main import parse_args
+from cb_binary_analysis.config.model import Config
 
 
-@pytest.mark.parametrize("command,expected", [
-    (['analyze', '-l', '["test"]'], 'analyze'),
-    (['analyze', '--file', 'VERSION'], 'analyze'),
-    (['clear'], 'clear')
+@pytest.mark.parametrize("command,expected,expected_config", [
+    (['analyze', '-l', '["test"]'], 'analyze', Config.default_location),
+    (['analyze', '--file', 'VERSION'], 'analyze', Config.default_location),
+    (['--config', 'myfile.yaml', 'analyze', '--file', 'VERSION'], 'analyze', 'myfile.yaml'),
+    (['-C', 'bummer.yaml', 'analyze', '--file', 'VERSION'], 'analyze', 'bummer.yaml'),
+    (['clear'], 'clear', Config.default_location)
 ])
-def test_parse_args_valid(command, expected):
+def test_parse_args_valid(command, expected, expected_config):
     """Test arg parser configuration with valid inputs"""
     args = parse_args(command)
     assert args.command_name == expected
+    assert args.config == expected_config
 
 
 @pytest.mark.parametrize("command, expected", [
