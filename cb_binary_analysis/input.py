@@ -14,6 +14,8 @@ from math import ceil
 from typing import List, Dict
 from io import TextIOWrapper
 
+log = logging.getLogger(__name__)
+
 
 def read_csv(file: TextIOWrapper) -> List[Dict]:
     """
@@ -48,7 +50,7 @@ def read_csv(file: TextIOWrapper) -> List[Dict]:
         return json_dict_list
 
     except (AssertionError, OSError) as err:
-        logging.exception(err)
+        log.exception(err)
         raise
 
 
@@ -91,10 +93,10 @@ def read_json(json_string: str) -> List[Dict]:  # Assuming input = '{ "sha256": 
         return json_dict_list
 
     except (AssertionError, KeyError) as err:
-        logging.exception(err)
+        log.exception(err)
         raise
     except json.decoder.JSONDecodeError as err:
-        logging.exception(f'Malformed JSON input received: {err} for input {json_string}')
+        log.exception(f'Malformed JSON input received: {err} for input {json_string}')
         raise
 
 
@@ -115,8 +117,8 @@ def build_json_dicts_from_list(hash_list: List[str]) -> List[Dict]:
     if num_hashes > 100:
         num_dicts_req = ceil(num_hashes / 100)
 
-        logging.info(f"The hashes array contains {num_hashes} hashes."
-                     f" Creating {num_dicts_req} JSON objects to send to UBS")
+        log.info(f"The hashes array contains {num_hashes} hashes."
+                 f" Creating {num_dicts_req} JSON objects to send to UBS")
 
         for i in range(num_dicts_req):
             begin_index = i * 100
