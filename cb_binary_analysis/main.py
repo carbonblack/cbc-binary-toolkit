@@ -13,6 +13,7 @@ import sys
 from datetime import datetime
 
 from cb_binary_analysis.config.model import Config
+from cb_binary_analysis import input
 
 logging.basicConfig(level=logging.DEBUG)  # Needs converted to configuration property
 log = logging.getLogger(__name__)
@@ -39,7 +40,7 @@ def parse_args(args):
 
 def main():
     """Entry point"""
-    log.debug("Started: {}".format(datetime.now().microsecond))
+    log.debug("Started: {}".format(datetime.now()))
 
     args = parse_args(sys.argv[1:])
 
@@ -47,6 +48,13 @@ def main():
 
     if args.command_name == "analyze":
         log.debug("Analyzing hashes")
+        if args.file is not None:
+            hashes = input.read_csv(args.file)
+        else:
+            hashes = input.read_json(args.list)
+
+        print(hashes)
+
     elif args.command_name == "clear":
         log.debug("Clear cache")
 
