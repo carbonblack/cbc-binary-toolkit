@@ -38,5 +38,8 @@ def test_receiveMessage_tell(actor, input):
     """Test receiveMessage"""
     for item in input:
         ActorSystem().tell(actor, item)
+
     completion = ActorSystem().listen()
-    assert "Completed" in completion
+    while completion is not None:
+        assert "Completed" in completion
+        completion = ActorSystem().listen()
