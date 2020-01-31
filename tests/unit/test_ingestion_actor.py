@@ -15,14 +15,28 @@ def actor():
     ActorSystem().ask(actor, ActorExitRequest())
 
 
-def test_receiveMessage_ask(actor):
+@pytest.mark.parametrize("input", [
+    [],
+    [{'sha256': ['405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4'], 'expiration_seconds': 3600}],
+    [{'sha256': ['405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4'], 'expiration_seconds': 3600},
+     {'sha256': ['405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4'], 'expiration_seconds': 3600}],
+])
+def test_receiveMessage_ask(actor, input):
     """Test receiveMessage"""
-    greeting = ActorSystem().ask(actor, 'Hello', 1)
-    assert greeting == "Hello World"
+    for item in input:
+        completion = ActorSystem().ask(actor, item, 10)
+        assert "Completed" in completion
 
 
-def test_receiveMessage_tell(actor):
+@pytest.mark.parametrize("input", [
+    [],
+    [{'sha256': ['405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4'], 'expiration_seconds': 3600}],
+    [{'sha256': ['405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4'], 'expiration_seconds': 3600},
+     {'sha256': ['405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4'], 'expiration_seconds': 3600}],
+])
+def test_receiveMessage_tell(actor, input):
     """Test receiveMessage"""
-    ActorSystem().tell(actor, 'Hello')
-    greeting = ActorSystem().listen()
-    assert greeting == "Hello World"
+    for item in input:
+        ActorSystem().tell(actor, item)
+    completion = ActorSystem().listen()
+    assert "Completed" in completion
