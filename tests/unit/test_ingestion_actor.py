@@ -43,3 +43,15 @@ def test_receiveMessage_tell(actor, input):
     while completion is not None:
         assert "Completed" in completion
         completion = ActorSystem().listen()
+
+
+@pytest.mark.parametrize("input", [
+    "INVALID",
+    None,
+    True,
+    {"msg": "INVALID"},
+])
+def test_receiveMessage_invalid_messages(actor, input):
+    """Test invalid messages"""
+    response = ActorSystem().ask(actor, input, 1)
+    assert "Invalid message format expected" in response

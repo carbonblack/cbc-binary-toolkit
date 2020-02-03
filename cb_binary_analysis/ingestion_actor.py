@@ -65,11 +65,14 @@ class IngestionActor(Actor):
             sender (address): The address to send result too
 
         Expected Format:
-            [{"sha256": [str, ...], "expiration_seconds": int }]
+            {"sha256": [str, ...], "expiration_seconds": int }
 
         """
         if isinstance(message, ActorExitRequest):
             self._clean_up()
+            return
+        elif not isinstance(message, dict) or not isinstance(message.get("sha256", None), list):
+            self.send(sender, 'Invalid message format expected: {"sha256": [str, ...], "expiration_seconds": int }')
             return
 
         # Download binaries from UBS
