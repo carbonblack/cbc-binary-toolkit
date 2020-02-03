@@ -32,7 +32,14 @@ def worker(queue: Queue, func: MethodType):
 
 
 class IngestionActor(Actor):
-    """IngestionActor"""
+    """
+    IngestionActor
+
+    Description:
+        Manages the fetching of the binary's metadata to send to the analysis engine(s)
+        Hashes are only processed if they are not present in the cache
+
+    """
 
     num_worker_threads = 8
 
@@ -74,6 +81,8 @@ class IngestionActor(Actor):
         elif not isinstance(message, dict) or not isinstance(message.get("sha256", None), list):
             self.send(sender, 'Invalid message format expected: {"sha256": [str, ...], "expiration_seconds": int }')
             return
+
+        # Check previously seen hashes
 
         # Download binaries from UBS
         found = []

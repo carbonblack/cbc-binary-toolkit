@@ -68,6 +68,7 @@ def main():
     """Entry point"""
     log.info("Started: {}".format(datetime.now()))
 
+    actorsys = ActorSystem(logDefs=logcfg)
     args = parse_args(sys.argv[1:])
 
     # XXX config = Config.load_file(args.config) - uncomment this when we're ready to use it
@@ -79,13 +80,12 @@ def main():
         else:
             hash_group = input.read_json(args.list)
 
-        actorsys = ActorSystem(logDefs=logcfg)
-
         actor = actorsys.createActor(IngestionActor)
         for group in hash_group:
             completion = actorsys.ask(actor, group, 1)
             log.info(completion)
 
+        # Clean up actor
         actorsys.ask(actor, ActorExitRequest())
     elif args.command_name == "clear":
         log.info("Clear cache")
