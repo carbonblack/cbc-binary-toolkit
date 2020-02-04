@@ -13,7 +13,7 @@ from importlib import import_module
 def dynamic_load(full_class_name):
     """
     Loads a Python class object given its fully-qualified class name.
-    
+
     :param full_class_name str: The class name of the object to be loaded.
     :return: The class object.
     """
@@ -28,7 +28,7 @@ def dynamic_load(full_class_name):
 def dynamic_create(full_class_name):
     """
     Creates a Python object given its fully-qualified class name.
-    
+
     :param full_class_name str: The class name of the object to be created.
     :return: A new instance of that object.
     """

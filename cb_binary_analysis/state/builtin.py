@@ -1,21 +1,129 @@
+# -*- coding: utf-8 -*-
+
+"""Default implementation of the persistor that uses SQLite."""
 
 
 import sqlite3
 
 
 class SQLiteBasedPersistor:
+    """
+    Default implementation of the persistor that uses SQLite to store information.
+    """
     def __init__(self, conn):
         self._conn = conn
-        
+
     def get_file_state(self, hashval):
-        pass
-    
-    def set_file_state(self, hashval, attrs):
-        pass
+        """
+        Get the stored file state for a specified hash value.
+
+        :param hashval str: The hash value to look up in the database.
+        :return: A dict containing the file information, or None if not found.
+        """
+        cursor = self._conn.cursor()
+        stmt = """
+        SELECT rowid, file_size, file_name, os_type, engine_name, time_sent, time_returned, time_published
+            FROM run_state
+            WHERE file_hash = ?
+            ORDER BY max(julianday(time_sent), julianday(coalesce(time_returned, time_sent)),
+                         julianday(coalesce(time_published, time_returned, time_sent))) DESC;
+        """
+        cursor.execute(stmt, (hashval,))
+        row = cursor.fetchone()
+        if not row:
+            return None
+        value = {'rowid': row[0], 'file_hash': hashval, 'file_size': row[1], 'file_name': row[2], 'os_type': row[3],
+                 'engine_name': row[4]}
+        if row[5]:
+            value['time_sent'] = row[5]
+        if row[6]:
+            value['time_returned'] = row[6]
+        if row[7]:
+            value['time_published'] = row[7]
+        return value
+
+    def set_file_state(self, hashval, attrs, rowid=None):
+        """
+        Set the stored file state for a specified hash value.
+
+        :param hashval str: The hash value to set in the database.
+        :param attrs dict: The attributes to set as part of the hash value entry.
+        :param rowid int: The row ID of the existing record we're modifying (optional).
+        :return: The row ID of the database row, either new or existing.
+        """
+        cursor = self._conn.cursor()
+        if rowid:
+            stmt = """
+            UPDATE run_state
+                SET time_sent = ifnull(?, time_sent), time_returned = ifnull(?, time_returned),
+                    time_published = ifnull(?, time_published)
+                WHERE rowid = ? AND file_hash = ?;
+            """
+            cursor.execute(stmt, (attrs.get('time_sent', None), attrs.get('time_returned', None),
+                                  attrs.get('time_published', None), rowid, hashval))
+            return rowid
+        else:
+            stmt = """
+            INSERT INTO run_state(file_hash, file_size, file_name, os_type, engine_name, time_sent,
+                                  time_returned, time_published)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+            """
+            cursor.execute(stmt, (hashval, attrs['file_size'], attrs['file_name'], attrs['os_type'],
+                                  attrs['engine_name'], attrs.get('time_sent', None),
+                                  attrs.get('time_returned', None), attrs.get('time_published', None)))
+            return cursor.lastrowid
+
+    def prune(self, timestamp):
+        """
+        Erases all entries from the database older than a specified time.
+
+        :param timestamp str: The basic timestamp. Everything older than this will be erased.
+        """
+        cursor = self._conn.cursor()
+        stmt = """
+        DELETE FROM run_state
+            WHERE max(julianday(time_sent), julianday(coalesce(time_returned, time_sent)),
+                      julianday(coalesce(time_published, time_returned, time_sent))) < julianday(?);
+        """
+        cursor.execute(stmt, (timestamp, ))
+        cursor.close()
+        self._conn.commit()
+        self._conn.execute("VACUUM;")
 
 
 class Persistor:
+    """
+    Default implementation of the persistor factory that uses SQLite to store information.
+    """
     def create_persistor(self, config):
+        """
+        Creates a new persistor object.
+
+        :param config Config: The configuration section for the persistence parameters.
+        :return: The new persistor object.
+        """
         location = config.string('location')
         conn = sqlite3.connect(location)
+        self._setup_database(conn)
         return SQLiteBasedPersistor(conn)
+
+    def _setup_database(self, conn):
+        """
+        Internal: Sets up the database correctly.
+
+        :param conn Connection: The database connection object.
+        """
+        cursor = conn.cursor()
+        stmt = """
+        CREATE TABLE IF NOT EXISTS run_state (
+            file_hash TEXT NOT NULL,
+            file_size INTEGER NOT NULL,
+            file_name TEXT NOT NULL,
+            os_type TEXT NOT NULL,
+            engine_name TEXT NOT NULL,
+            time_sent TEXT,
+            time_returned TEXT,
+            time_published TEXT
+        );
+        """
+        cursor.execute(stmt)

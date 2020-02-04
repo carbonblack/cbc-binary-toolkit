@@ -14,8 +14,8 @@ def test_dynamic_load():
     assert class1 == TestClassForLoad
     with pytest.raises(ImportError):
         dynamic_load('bogus_package.bogus_class')
-        
-        
+
+
 def test_dynamic_create():
     obj1 = dynamic_create('test_loader.TestClassForLoad')
     assert obj1
