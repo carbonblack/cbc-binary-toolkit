@@ -4,36 +4,48 @@
 
 
 import sqlite3
+from .manager import BasePersistor, BasePersistorFactory
 
 
-class SQLiteBasedPersistor:
+class SQLiteBasedPersistor(BasePersistor):
     """
     Default implementation of the persistor that uses SQLite to store information.
     """
     def __init__(self, conn):
         self._conn = conn
 
-    def get_file_state(self, hashval):
+    def get_file_state(self, binary_hash, engine=None):
         """
         Get the stored file state for a specified hash value.
 
-        :param hashval str: The hash value to look up in the database.
+        :param binary_hash str: The hash value to look up in the database.
+        :param engine str: (Optional) The engine value to look up in the database.
         :return: A dict containing the file information, or None if not found.
         """
         cursor = self._conn.cursor()
-        stmt = """
-        SELECT rowid, file_size, file_name, os_type, engine_name, time_sent, time_returned, time_published
-            FROM run_state
-            WHERE file_hash = ?
-            ORDER BY max(julianday(time_sent), julianday(coalesce(time_returned, time_sent)),
-                         julianday(coalesce(time_published, time_returned, time_sent))) DESC;
-        """
-        cursor.execute(stmt, (hashval,))
+        if engine:
+            stmt = """
+            SELECT rowid, file_size, file_name, os_type, engine_name, time_sent, time_returned, time_published
+                FROM run_state
+                WHERE file_hash = ? AND engine_name = ?
+                ORDER BY max(julianday(time_sent), julianday(coalesce(time_returned, time_sent)),
+                             julianday(coalesce(time_published, time_returned, time_sent))) DESC;
+            """
+            cursor.execute(stmt, (binary_hash, engine))
+        else:
+            stmt = """
+            SELECT rowid, file_size, file_name, os_type, engine_name, time_sent, time_returned, time_published
+                FROM run_state
+                WHERE file_hash = ?
+                ORDER BY max(julianday(time_sent), julianday(coalesce(time_returned, time_sent)),
+                             julianday(coalesce(time_published, time_returned, time_sent))) DESC;
+            """
+            cursor.execute(stmt, (binary_hash,))
         row = cursor.fetchone()
         if not row:
             return None
-        value = {'rowid': row[0], 'file_hash': hashval, 'file_size': row[1], 'file_name': row[2], 'os_type': row[3],
-                 'engine_name': row[4]}
+        value = {'persist_id': row[0], 'file_hash': binary_hash, 'file_size': row[1], 'file_name': row[2],
+                 'os_type': row[3], 'engine_name': row[4]}
         if row[5]:
             value['time_sent'] = row[5]
         if row[6]:
@@ -42,17 +54,17 @@ class SQLiteBasedPersistor:
             value['time_published'] = row[7]
         return value
 
-    def set_file_state(self, hashval, attrs, rowid=None):
+    def set_file_state(self, binary_hash, attrs, persist_id=None):
         """
         Set the stored file state for a specified hash value.
 
-        :param hashval str: The hash value to set in the database.
+        :param binary_hash str: The hash value to set in the database.
         :param attrs dict: The attributes to set as part of the hash value entry.
-        :param rowid int: The row ID of the existing record we're modifying (optional).
-        :return: The row ID of the database row, either new or existing.
+        :param persist_id int: The persistence ID of the existing record we're modifying (optional).
+        :return: The persistence ID of the database row, either new or existing.
         """
         cursor = self._conn.cursor()
-        if rowid:
+        if persist_id:
             stmt = """
             UPDATE run_state
                 SET time_sent = ifnull(?, time_sent), time_returned = ifnull(?, time_returned),
@@ -60,15 +72,15 @@ class SQLiteBasedPersistor:
                 WHERE rowid = ? AND file_hash = ?;
             """
             cursor.execute(stmt, (attrs.get('time_sent', None), attrs.get('time_returned', None),
-                                  attrs.get('time_published', None), rowid, hashval))
-            return rowid
+                                  attrs.get('time_published', None), persist_id, binary_hash))
+            return persist_id
         else:
             stmt = """
             INSERT INTO run_state(file_hash, file_size, file_name, os_type, engine_name, time_sent,
                                   time_returned, time_published)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?);
             """
-            cursor.execute(stmt, (hashval, attrs['file_size'], attrs['file_name'], attrs['os_type'],
+            cursor.execute(stmt, (binary_hash, attrs['file_size'], attrs['file_name'], attrs['os_type'],
                                   attrs['engine_name'], attrs.get('time_sent', None),
                                   attrs.get('time_returned', None), attrs.get('time_published', None)))
             return cursor.lastrowid
@@ -91,7 +103,7 @@ class SQLiteBasedPersistor:
         self._conn.execute("VACUUM;")
 
 
-class Persistor:
+class Persistor(BasePersistorFactory):
     """
     Default implementation of the persistor factory that uses SQLite to store information.
     """

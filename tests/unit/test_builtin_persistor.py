@@ -27,7 +27,7 @@ def test_file_state_create_and_alter(local_config):
     cookie = manager.set_file_state("ABCDEFGH", {"file_size": 2000000, "file_name": "blort.exe",
                                                  "os_type": "WINDOWS", "engine_name": "default"})
     state1 = manager.lookup("ABCDEFGH")
-    assert state1["rowid"] == cookie
+    assert state1["persist_id"] == cookie
     assert state1["file_size"] == 2000000
     assert state1["file_name"] == "blort.exe"
     assert state1["file_hash"] == "ABCDEFGH"
@@ -40,7 +40,7 @@ def test_file_state_create_and_alter(local_config):
                                                   "time_returned": "2020-02-01T04:05:00"}, cookie)
     assert cookie2 == cookie
     state2 = manager.lookup("ABCDEFGH")
-    assert state2["rowid"] == cookie
+    assert state2["persist_id"] == cookie
     assert state2["file_size"] == 2000000
     assert state2["file_name"] == "blort.exe"
     assert state2["file_hash"] == "ABCDEFGH"
@@ -64,17 +64,43 @@ def test_file_state_newest_selected(local_config):
                                         "time_returned": "2020-01-14T12:05:00",
                                         "time_published": "2020-01-14T12:05:01"})
     state = manager.lookup("ABCDEFGH")
-    assert state["rowid"] == cookie1
+    assert state["persist_id"] == cookie1
     assert state["engine_name"] == "default"
     assert state["time_sent"] == "2020-01-15T12:00:00"
     assert state["time_returned"] == "2020-01-15T12:05:00"
     assert state["time_published"] == "2020-01-15T12:05:01"
 
 
+def test_file_state_multi_engine(local_config):
+    manager = StateManager(local_config)
+    cookie1 = manager.set_file_state("ABCDEFGH", {"file_size": 2000000, "file_name": "blort.exe",
+                                                  "os_type": "WINDOWS", "engine_name": "default",
+                                                  "time_sent": "2020-01-15T12:00:00",
+                                                  "time_returned": "2020-01-15T12:05:00",
+                                                  "time_published": "2020-01-15T12:05:01"})
+    cookie2 = manager.set_file_state("ABCDEFGH", {"file_size": 2000000, "file_name": "blort.exe",
+                                                  "os_type": "WINDOWS", "engine_name": "another",
+                                                  "time_sent": "2020-01-14T12:00:00",
+                                                  "time_returned": "2020-01-14T12:05:00",
+                                                  "time_published": "2020-01-14T12:05:01"})
+    state = manager.lookup("ABCDEFGH", "default")
+    assert state["persist_id"] == cookie1
+    assert state["engine_name"] == "default"
+    assert state["time_sent"] == "2020-01-15T12:00:00"
+    assert state["time_returned"] == "2020-01-15T12:05:00"
+    assert state["time_published"] == "2020-01-15T12:05:01"
+    state = manager.lookup("ABCDEFGH", "another")
+    assert state["persist_id"] == cookie2
+    assert state["engine_name"] == "another"
+    assert state["time_sent"] == "2020-01-14T12:00:00"
+    assert state["time_returned"] == "2020-01-14T12:05:00"
+    assert state["time_published"] == "2020-01-14T12:05:01"
+
+
 def test_file_state_not_found(local_config):
     manager = StateManager(local_config)
     state = manager.lookup("QRSTUVWXYZ")
-    assert not state
+    assert state is None
 
 
 def test_file_state_prune(local_config):
@@ -91,7 +117,7 @@ def test_file_state_prune(local_config):
                                         "time_published": "2020-01-10T12:05:01"})
     manager.prune("2020-01-12T00:00:00")
     state = manager.lookup("EFGHIJKM")
-    assert not state
+    assert state is None
     state = manager.lookup("ABCDEFGH")
-    assert state["rowid"] == cookie1
+    assert state["persist_id"] == cookie1
     assert state["file_name"] == "blort.exe"
