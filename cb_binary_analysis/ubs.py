@@ -7,7 +7,7 @@ Functions to retrieve binaries from UBS
 
 from cbapi.psc.threathunter.models import Binary, Downloads
 from cbapi.psc.threathunter import CbThreatHunterAPI
-from config.model import Config
+from .config.model import Config
 import logging
 from time import sleep
 
@@ -16,7 +16,11 @@ log = logging.getLogger(__name__)
 
 def _create_cbth(args):
     """Generates a CbThreatHunterAPI object to use in other functions"""
-    cbth = CbThreatHunterAPI(url=args['url'], token=args['apitoken'], ssl_verify=args['ssl_verify'], org_key=args['orgkey'])
+    try:
+        cbth = CbThreatHunterAPI(url=args['url'], token=args['apitoken'], ssl_verify=args['ssl_verify'], org_key=args['orgkey'])
+    except Exception as err:
+        log.error(f"Failed to create a CbThreatHunterAPI object. Exiting. {err}")
+        raise
     return cbth
 
 
@@ -93,7 +97,7 @@ def _check_download(cbth, download, attempt_num):
 
 def download(hashes):
     """Initiates download of hashes and their metadata"""
-    config = Config.load_file('../config/binary-analysis-config.yaml')
+    config = Config.load_file('/Users/llyon/reno/dev/cb-binary-analysis/config/binary-analysis-config.yaml')
 
     cbth = _create_cbth(config._data['carbonblackcloud'])
 
@@ -119,4 +123,4 @@ def download(hashes):
     return metadata
 
 
-download(["6c4eb3c9e0f478b2d19a329687d113ba92c90a17d0caa6c40247a5afff31f0cd", "0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc"])
+# download(["6c4eb3c9e0f478b2d19a329687d113ba92c90a17d0caa6c40247a5afff31f0cd", "0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc"])
