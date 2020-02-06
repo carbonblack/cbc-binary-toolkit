@@ -89,7 +89,6 @@ def _check_download(cbth, download, attempt_num):
 
         if retry_check:
             return download, retry
-        # this needs to be tested
 
     if download:
         return download
@@ -105,6 +104,10 @@ def download(hashes):
 
     found_hashes = _check_download(cbth, downloaded_hashes, attempt_num=1)
 
+    if not found_hashes:
+        log.error("Unable to retrieve hashes and metadata.")
+        return
+
     metadata = []
 
     if isinstance(found_hashes, tuple):
@@ -118,7 +121,7 @@ def download(hashes):
 
     else:
         # log.debug("No hashes errored out while downloading.")
-        metadata.append(_download_hash_metadata(cbth, found_hashes.found)[0])
+        metadata.append(_download_hash_metadata(cbth, found_hashes.found))
     print(f"len {len(metadata)} Metadata from input: {metadata}")
     return metadata
 
