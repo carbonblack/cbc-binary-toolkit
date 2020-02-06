@@ -2,6 +2,7 @@
 argparse
 python-dateutil
 pyyaml
+schema
 thespian
 
 # Dev dependencies
