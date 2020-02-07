@@ -48,7 +48,7 @@ def test_create_cbth_invalid(args):
 )
 def test_download_hashes(hashes):
     th = create_cbth_object(config_data._data['carbonblackcloud'])
-    hash_dl = _download_hashes(th, hashes)
+    hash_dl = _download_hashes(th, hashes, 60)
     assert len(hash_dl.found) == 1
     assert len(hash_dl.not_found) == 1
     assert len(hash_dl.error) == 0
@@ -59,8 +59,8 @@ def test_download_hashes(hashes):
 )
 def test_download_hash_metadata(hashes):
     th = create_cbth_object(config_data._data['carbonblackcloud'])
-    hash_dl = _download_hashes(th, hashes)
-    check_hash_dl = _check_download(th, hash_dl, attempt_num=1)
+    hash_dl = _download_hashes(th, hashes, 60)
+    check_hash_dl = _check_download(th, hash_dl, 1, 60)
     metadata = _download_hash_metadata(th, check_hash_dl.found)
     assert type(metadata[0]) == dict
     assert type(metadata) == list
@@ -73,8 +73,8 @@ def test_download_hash_metadata(hashes):
 )
 def test_download_hash_metadata_invalid(hashes):
     th = create_cbth_object(config_data._data['carbonblackcloud'])
-    hash_dl = _download_hashes(th, hashes)
-    check_hash_dl = _check_download(th, hash_dl, attempt_num=1)
+    hash_dl = _download_hashes(th, hashes, 60)
+    check_hash_dl = _check_download(th, hash_dl, 1, 60)
     try_meta = _download_hash_metadata(th, check_hash_dl)
     assert hash_dl is None
     assert check_hash_dl is None
@@ -87,7 +87,7 @@ def test_download_hash_metadata_invalid(hashes):
 )
 def test_retry_download(hashes, attempt_num):
     th = create_cbth_object(config_data._data['carbonblackcloud'])
-    retry, attempt = _retry_download(th, hashes, attempt_num)
+    retry, attempt = _retry_download(th, hashes, attempt_num, 60)
     assert attempt == attempt_num + 1
     if attempt_num > 5:
         assert retry == []
@@ -101,7 +101,7 @@ def test_retry_download(hashes, attempt_num):
 )
 def test_retry_download_invalid(hashes, attempt_num):
     th = create_cbth_object(config_data._data['carbonblackcloud'])
-    retry, attempt = _retry_download(th, hashes, attempt_num)
+    retry, attempt = _retry_download(th, hashes, attempt_num, 60)
     assert retry is None
     assert attempt == attempt_num + 1
 
@@ -112,8 +112,8 @@ def test_retry_download_invalid(hashes, attempt_num):
 )
 def test_check_download(hashes, attempt_num):
     th = create_cbth_object(config_data._data['carbonblackcloud'])
-    hash_dl = _download_hashes(th, hashes)
-    check_hash_dl = _check_download(th, hash_dl, attempt_num)
+    hash_dl = _download_hashes(th, hashes, 60)
+    check_hash_dl = _check_download(th, hash_dl, attempt_num, 60)
     assert len(check_hash_dl.found) == 1
     assert len(check_hash_dl.not_found) == 1
     assert len(check_hash_dl.error) == 0
@@ -125,8 +125,8 @@ def test_check_download(hashes, attempt_num):
 )
 def test_check_download_invalid(hashes, attempt_num):
     th = create_cbth_object(config_data._data['carbonblackcloud'])
-    hash_dl = _download_hashes(th, hashes)
-    check_hash_dl = _check_download(th, hash_dl, attempt_num)
+    hash_dl = _download_hashes(th, hashes, 60)
+    check_hash_dl = _check_download(th, hash_dl, attempt_num, 60)
     assert check_hash_dl is None
 
 
