@@ -152,6 +152,10 @@ def download(hashes, expiration_seconds=3600):
             downloading was successful first try, or two lists of dictionaries if
             re-downloading was tried and successful.
         None if no hashes could be downloaded.
+
+    Examples:
+        >>> download(["0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc"])
+        {'sha256': '0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc', 'url': [...], 'architecture':...}
     """
     config = Config.load_file('/Users/llyon/reno/dev/cb-binary-analysis/config/binary-analysis-config.yaml')
 
