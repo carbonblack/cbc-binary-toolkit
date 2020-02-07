@@ -10,7 +10,8 @@ IOCV2Schema = Schema(
         "match_type": And(str, lambda type: type in ["query", "equality", "regex"]),
         "values": And([str], len),
         Optional("field"): And(str, len),
-        Optional("link"): And(str, len)
+        Optional("link"): And(str, len),
+        "severity": And(int, lambda n: n > 0 and n < 11)  # Needs stripped before sent to CBC
     }
 )
 
@@ -33,7 +34,6 @@ EngineResponseSchema = Schema(
     {
         "iocs": And([IOCV2Schema], len),
         "engine_name": And(str, len),
-        "binary_hash": And(str, len),
-        "severity": And(int, lambda n: n > 0 and n < 11)
+        "binary_hash": And(str, len)
     }
 )
