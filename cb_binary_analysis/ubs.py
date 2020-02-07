@@ -181,5 +181,3 @@ def download(hashes, expiration_seconds=3600):
         metadata.append(_download_hash_metadata(cbth, found_hashes.found)[0])
     print(f"len {len(metadata)} Metadata from input: {metadata}")
     return metadata
-
-download(["0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc"])
