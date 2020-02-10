@@ -9,7 +9,6 @@ from cbapi.psc.threathunter.models import Binary, Downloads
 from cbapi.psc.threathunter import CbThreatHunterAPI
 from config.model import Config
 import logging
-from time import sleep
 
 log = logging.getLogger(__name__)
 
@@ -46,32 +45,32 @@ def _download_hashes(cbth, hashes, expiration_seconds):
         return
 
 
-def _download_hash_metadata(cbth, downloads):
-    """Retrieve metadata for each found hash.
+def _download_binary_metadata(cbth, found_binary):
+    """Retrieve metadata for a binary found in the UBS.
 
     Args:
         cbth (CbThreatHunterAPI): CB ThreatHunter object.
-        downloads (List[ThreatHunter.models.Downloads.FoundItem]): Hashes to get metadata for.
+        found_binary (ThreatHunter.models.Downloads): Binary to get metadata for.
 
     Returns:
-        metadata_list (List[Dict]): List of metadata dictionaries downloaded
-            from UBS, one dictionary for each hash.
-        None if metadata downloads for all hashes failed.
+        metadata_list (Dict): Metadata dictionary downloaded from UBS.
+        None if metadata download for binary metadata failed.
     """
-    metadata_list = []
-    try:
-        log.debug("Downloading metadata information")
-        for download in downloads:
-            binary_metadata = download._info
-            th_binary = cbth.select(Binary, download.sha256)
+    if found_binary:
+        try:
+            log.debug("Downloading metadata information")
+            binary_metadata = found_binary._info
+            binary_metadata.pop('not_found')
+            binary_metadata.pop('error')
+            th_binary = cbth.select(Binary, found_binary.found[0].sha256)
             if isinstance(th_binary, Binary):
                 binary_metadata.update(th_binary._info)
-
-            metadata_list.append(binary_metadata)
-        return metadata_list
-    except Exception as err:
-        log.error(f"Error downloading hash metadata from UBS: {err}")
-    return
+            return binary_metadata
+        except Exception as err:
+            log.error(f"Error downloading binary metadata from UBS: {err}")
+            return
+    else:
+        return
 
 
 def _retry_download(cbth, hashes_with_download_errors, attempt_num, expiration_seconds):
@@ -89,7 +88,7 @@ def _retry_download(cbth, hashes_with_download_errors, attempt_num, expiration_s
         (downloaded_hashes, attempt_num+1) if the hashes were successfully re-downloaded.
         (None, attempt_num+1) if the hashes couldn't be re-downloaded.
     """
-    downloaded_hashes = []
+    downloaded_hashes = None
     if attempt_num > 5:
         log.debug("Reached retry limit for downloading hashes that experienced an error during download")
     else:
@@ -111,9 +110,8 @@ def _check_download(cbth, download, attempt_num, expiration_seconds):
         expiration_seconds (int): Desired timeout for AWS links to binaries.
 
     Returns:
-        download: Downloads object that may have found, not_found, and/or error attributes
-        (download, retry): A tuple of Downloads objects. This happens if there were
-            hashes that errored during download, and were successfully re-downloaded.
+        (download, retry): A tuple of Downloads objects. Value of retry is None
+            if there were no hashes to re-download, or re-downloading timed out.
         None if no hashes were successfully downloaded.
     """
     if not download:
@@ -123,39 +121,34 @@ def _check_download(cbth, download, attempt_num, expiration_seconds):
     if download.not_found:
         log.warning(f"{len(download.not_found)} hashes were not found in the Universal Binary Store: {download.not_found}")
 
+    retry = None
     if download.error:
         log.warning(f"{len(download.error)} hashes experienced an error while downloading: {download.error}. Retrying download.")
 
         retry, attempt = _retry_download(cbth, download.error, attempt_num, expiration_seconds)
-        sleep(2)
 
-        retry_check = _check_download(cbth, retry, attempt, expiration_seconds)
-
-        if retry_check:
-            return download, retry
-        # this needs to be tested
+        while retry.error and attempt < 5:
+            retry, attempt = _retry_download(cbth, retry.error, attempt_num, expiration_seconds)
+            attempt_num += 1
 
     if download:
-        return download
+        return download, retry
 
 
-def download(hashes, expiration_seconds=3600):
-    """Initiates download of hashes and their metadata
+def download_hashes(hashes, expiration_seconds=3600):
+    """Initiates download of hashes.
 
     Args:
         hashes (List[str]): hashes to be downloaded from UBS.
         expiration_seconds (int, optional): Desired timeout for AWS links to binaries.
 
     Returns:
-        metadata (List[List[Dict]]): Metadata downloaded from UBS for any hashes
-            downloaded or re-downloaded. Will contain one list of dictionaries if
-            downloading was successful first try, or two lists of dictionaries if
-            re-downloading was tried and successful.
-        None if no hashes could be downloaded.
+        checked_hashes, retry: A tuple of Downloads objects. Value of retry is None
+            if there were no hashes to re-download, or re-downloading timed out.
+        None if no binaries could be found or downloaded.
 
     Examples:
         >>> download(["0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc"])
-        {'sha256': '0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc', 'url': [...], 'architecture':...}
     """
     config = Config.load_file('/Users/llyon/reno/dev/cb-binary-analysis/config/binary-analysis-config.yaml')
 
@@ -163,21 +156,29 @@ def download(hashes, expiration_seconds=3600):
 
     downloaded_hashes = _download_hashes(cbth, hashes, expiration_seconds)
 
-    found_hashes = _check_download(cbth, downloaded_hashes, 1, expiration_seconds)
+    checked_hashes, retry = _check_download(cbth, downloaded_hashes, 1, expiration_seconds)
 
-    metadata = []
+    if not checked_hashes:
+        log.error("Unable to retrieve binaries from the UBS.")
 
-    if isinstance(found_hashes, tuple):
-        log.debug("Successfully re-downloaded hashes that errored out during download.")
-        for item in found_hashes:
-            try:
-                hash_metadata = _download_hash_metadata(cbth, item.found)
-                metadata.append(hash_metadata[0])
-            except Exception as err:
-                log.error(f"Failed to download metadata for {item.found[0].sha256}: {err}")
+    return checked_hashes, retry
 
-    else:
-        # log.debug("No hashes errored out while downloading.")
-        metadata.append(_download_hash_metadata(cbth, found_hashes.found)[0])
-    print(f"len {len(metadata)} Metadata from input: {metadata}")
+
+def get_metadata(cbth, binary):
+    """Initiates download of binary metadata from UBS
+
+    Args:
+        cbth (CbThreatHunterAPI): CB ThreatHunter object.
+        binary (ThreatHunter.Downloads): Should contain found, may also contain not_found, and error attributes.
+
+    Returns:
+        metadata (Dict): Dictionary containing hash, download URL, and metadata for given binary.
+    """
+
+    metadata = None
+    try:
+        metadata = _download_binary_metadata(cbth, binary)
+    except Exception as err:
+        log.error(f"Failed to download metadata for {binary.found[0].sha256}: {err}")
+
     return metadata

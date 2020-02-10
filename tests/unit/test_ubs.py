@@ -3,8 +3,9 @@
 
 import pytest
 from cb_binary_analysis.ubs import (_create_cbth, _download_hashes,
-                                    _download_hash_metadata, _retry_download,
-                                    _check_download, download)
+                                    _download_binary_metadata, _retry_download,
+                                    _check_download, download_hashes,
+                                    get_metadata)
 from cb_binary_analysis.config.model import Config
 from cbapi.psc.threathunter import CbThreatHunterAPI
 
@@ -23,7 +24,6 @@ def create_cbth_object(args):
 
 hashes = ["6c4eb3c9e0f478b2d19a329687d113ba92c90a17d0caa6c40247a5afff31f0cd", "0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc"]
 not_found_hashes = ["6c4eb3c9e0f478b2d19a329687d113ba92c90a17d0caa6c40247a5afff31f0cd"]
-# cbth = create_cbth_object(config_data._data['carbonblackcloud'])
 
 
 @pytest.mark.parametrize("args", [
@@ -57,25 +57,26 @@ def test_download_hashes(hashes):
 @pytest.mark.parametrize("hashes", [
     hashes]
 )
-def test_download_hash_metadata(hashes):
+def test_download_binary_metadata(hashes):
     th = create_cbth_object(config_data._data['carbonblackcloud'])
     hash_dl = _download_hashes(th, hashes, 60)
-    check_hash_dl = _check_download(th, hash_dl, 1, 60)
-    metadata = _download_hash_metadata(th, check_hash_dl.found)
-    assert type(metadata[0]) == dict
-    assert type(metadata) == list
+    checked_hash_dl, retry = _check_download(th, hash_dl, 1, 60)
+    metadata = _download_binary_metadata(th, checked_hash_dl)
+    assert type(metadata) == dict
     for key in metadata_valid.keys():
-        assert key in metadata[0]
+        assert key in metadata
+    for key in metadata.keys():
+        assert key in metadata_valid
 
 
 @pytest.mark.parametrize("hashes", [
     not_found_hashes]
 )
-def test_download_hash_metadata_invalid(hashes):
+def test_download_binary_metadata_invalid(hashes):
     th = create_cbth_object(config_data._data['carbonblackcloud'])
     hash_dl = _download_hashes(th, hashes, 60)
     check_hash_dl = _check_download(th, hash_dl, 1, 60)
-    try_meta = _download_hash_metadata(th, check_hash_dl)
+    try_meta = _download_binary_metadata(th, check_hash_dl)
     assert hash_dl is None
     assert check_hash_dl is None
     assert try_meta is None
@@ -90,11 +91,12 @@ def test_retry_download(hashes, attempt_num):
     retry, attempt = _retry_download(th, hashes, attempt_num, 60)
     assert attempt == attempt_num + 1
     if attempt_num > 5:
-        assert retry == []
+        assert retry is None
     else:
         assert len(retry.found) == 1
         assert len(retry.not_found) == 1
         assert len(retry.error) == 0
+
 
 @pytest.mark.parametrize("hashes, attempt_num", [
     ([], 1)]
@@ -113,7 +115,7 @@ def test_retry_download_invalid(hashes, attempt_num):
 def test_check_download(hashes, attempt_num):
     th = create_cbth_object(config_data._data['carbonblackcloud'])
     hash_dl = _download_hashes(th, hashes, 60)
-    check_hash_dl = _check_download(th, hash_dl, attempt_num, 60)
+    check_hash_dl, retry = _check_download(th, hash_dl, attempt_num, 60)
     assert len(check_hash_dl.found) == 1
     assert len(check_hash_dl.not_found) == 1
     assert len(check_hash_dl.error) == 0
@@ -133,10 +135,25 @@ def test_check_download_invalid(hashes, attempt_num):
 @pytest.mark.parametrize("hashes", [
     hashes]
 )
-def test_download(hashes):
-    metadata = download(hashes)
-    assert isinstance(metadata, list)
-    assert isinstance(metadata[0], list)
-    for item in metadata[0]:
-        for key in metadata_valid.keys():
-            assert key in item
+def test_download_metadata(hashes):
+    th = create_cbth_object(config_data._data['carbonblackcloud'])
+    binary, retry = download_hashes(hashes)
+    metadata = _download_binary_metadata(th, binary)
+    assert isinstance(metadata, dict)
+    for key in metadata_valid.keys():
+        assert key in metadata
+    for key in metadata.keys():
+        assert key in metadata_valid
+
+
+@pytest.mark.parametrize("hashes", [
+    hashes]
+)
+def test_get_metadata(hashes):
+    th = create_cbth_object(config_data._data['carbonblackcloud'])
+    binary, retry = download_hashes(hashes)
+    metadata = get_metadata(th, binary)
+    for key in metadata_valid.keys():
+        assert key in metadata
+    for key in metadata.keys():
+        assert key in metadata_valid
