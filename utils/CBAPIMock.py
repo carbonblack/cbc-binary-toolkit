@@ -6,6 +6,7 @@ import pytest
 import re
 import copy
 
+
 class CBAPIMock:
     """Mock framework for unit tests that need to fetch Carbon Black Cloud data"""
     def __init__(self, monkeypatch, api):
