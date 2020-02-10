@@ -2,4 +2,4 @@
 set -e
 coverage run -m pytest
 coverage report -m
-coveralls
+# coveralls  => Currently working on this
