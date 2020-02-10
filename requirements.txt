@@ -1,7 +1,12 @@
+# Package dependencies
 argparse
 python-dateutil
 pyyaml
 thespian
+
+# Dev dependencies
 flake8
 coverage
 coveralls
+pytest
+parameterized
