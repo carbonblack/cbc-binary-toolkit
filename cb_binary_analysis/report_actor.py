@@ -94,6 +94,18 @@ class ReportActor(ActorTypeDispatcher):
         """
         return
 
+    def receiveUnrecognizedMessage(self, message, sender):
+        """
+        Unrecognized message handler
+
+        Args:
+            message (?): Any message type not explicitly handled
+            sender (address): The address to send result too
+
+        """
+        log.error(f"Unrecognized message type: {type(message)}")
+        self.send(sender, False)
+
     def receiveMsg_tuple(self, message, sender):
         """
         Command handler

@@ -56,6 +56,12 @@ def cbapi_mock(monkeypatch, cb_threat_hunter):
         "match_type": "equality",
         "values": ["app.exe"],
         "severity": 10,
+    },
+        {
+        "id": "0kdl4uf9",
+        "match_type": "regex",
+        "values": [".*google.*"],
+        "severity": 3,
     }],
 ])
 def test_receiveMessage_ask(actor, cbapi_mock, input):
@@ -98,6 +104,12 @@ def test_receiveMessage_ask(actor, cbapi_mock, input):
         "match_type": "equality",
         "values": ["app.exe"],
         "severity": 10,
+    },
+        {
+        "id": "0kdl4uf9",
+        "match_type": "regex",
+        "values": [".*google.*"],
+        "severity": 3,
     }],
 ])
 def test_receiveMessage_tell(actor, cbapi_mock, input):
@@ -124,3 +136,43 @@ def test_receiveMessage_tell(actor, cbapi_mock, input):
                 SENT = True
                 break
         assert SENT
+
+
+@pytest.mark.parametrize("input", [
+    None,
+    {},
+    "INVALID",
+    {
+        "match_type": "equality",
+        "values": ["127.0.0.1"],
+        "severity": 1,
+    },
+    {
+        "id": "slkf038",
+        "match_type": "equality",
+        "values": ["127.0.0.1"],
+        "severity": 20,
+    },
+    {
+        "id": "slkf038",
+        "match_type": "equality",
+        "values": ["127.0.0.1"],
+        "severity": -5,
+    },
+    {
+        "id": "slkf038",
+        "match_type": "UNKNOWN",
+        "values": ["127.0.0.1"],
+        "severity": 10,
+    },
+    {
+        "id": "slkf038",
+        "match_type": "regex",
+        "values": "127.0.0.1",
+        "severity": 10,
+    }
+])
+def test_receiveMessage_invalid(actor, cbapi_mock, input):
+    """Test receiveMessage"""
+    valid = ActorSystem().ask(actor, input, 1)
+    assert valid is False
