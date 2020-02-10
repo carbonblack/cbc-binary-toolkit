@@ -11,11 +11,38 @@ import logging
 import sys
 
 from datetime import datetime
+from thespian.actors import ActorSystem, ActorExitRequest
 
 from cb_binary_analysis.config.model import Config
+from cb_binary_analysis import input
+from cb_binary_analysis.ingestion_actor import IngestionActor
 
-logging.basicConfig(level=logging.DEBUG)  # Needs converted to configuration property
+LOG_LEVEL = logging.INFO
+logging.basicConfig(level=LOG_LEVEL)  # Needs converted to configuration property
 log = logging.getLogger(__name__)
+
+logcfg = {
+    "version": 1,
+    "formatters": {
+        "default": {
+            "format": "%(levelname)s:%(name)s:%(message)s"
+        }
+    },
+    "handlers": {
+        "stdout": {
+            "class": "logging.StreamHandler",
+            "stream": sys.stdout,
+            "formatter": "default"
+        }
+    },
+    "loggers": {
+        "": {
+            "handlers": ["stdout"],
+            "level": LOG_LEVEL
+        }
+    },
+    'disable_existing_loggers': False,
+}
 
 
 def parse_args(args):
@@ -39,16 +66,29 @@ def parse_args(args):
 
 def main():
     """Entry point"""
-    log.debug("Started: {}".format(datetime.now().microsecond))
+    log.info("Started: {}".format(datetime.now()))
 
+    actorsys = ActorSystem(logDefs=logcfg)
     args = parse_args(sys.argv[1:])
 
     # XXX config = Config.load_file(args.config) - uncomment this when we're ready to use it
 
     if args.command_name == "analyze":
-        log.debug("Analyzing hashes")
+        log.info("Analyzing hashes")
+        if args.file is not None:
+            hash_group = input.read_csv(args.file)
+        else:
+            hash_group = input.read_json(args.list)
+
+        actor = actorsys.createActor(IngestionActor)
+        for group in hash_group:
+            completion = actorsys.ask(actor, group, 1)
+            log.info(completion)
+
+        # Clean up actor
+        actorsys.ask(actor, ActorExitRequest())
     elif args.command_name == "clear":
-        log.debug("Clear cache")
+        log.info("Clear cache")
 
 
 if __name__ == '__main__':

@@ -9,4 +9,3 @@ flake8
 coverage
 coveralls
 pytest
-parameterized
