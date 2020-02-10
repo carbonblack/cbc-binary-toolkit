@@ -184,12 +184,3 @@ def get_metadata(cbth, binary):
             log.error(f"Failed to download metadata for {binary.sha256}: {err}")
 
     return metadata_list
-
-
-
-config = Config.load_file('/Users/llyon/reno/dev/cb-binary-analysis/config/binary-analysis-config.yaml')
-
-cbth = _create_cbth(config._data['carbonblackcloud'])
-dl, re = download_hashes(["0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc"])
-m = get_metadata(cbth, dl)
-print(m)
