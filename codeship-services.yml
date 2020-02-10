@@ -1,0 +1,5 @@
+testing:
+  build:
+    dockerfile: Dockerfile
+  encrypted_env-file:
+    - env.encrypted

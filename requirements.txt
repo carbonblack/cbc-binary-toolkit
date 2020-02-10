@@ -2,3 +2,6 @@ argparse
 python-dateutil
 pyyaml
 thespian
+flake8
+coverage
+coveralls

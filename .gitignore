@@ -112,3 +112,6 @@ venv.bak/
 # Local configuration
 config/binary-analysis-config.yaml
 
+.coverage
+codeship.aes
+env

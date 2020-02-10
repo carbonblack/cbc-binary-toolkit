@@ -96,6 +96,7 @@ def read_json(json_string: str) -> List[Dict]:  # Assuming input = '{ "sha256": 
 def build_json_dicts_from_list(hash_list: List[str]) -> List[Dict]:
     """
     Function to read in a list of strings and return a JSON object of hashes formatted for UBS
+    UBS has a limit of 100 hashes per POST request to <psc-hostname>/ubs/<versionId>/orgs/<org_key>/file/_download
 
     Args:
         hash_list (List[str]): The JSON string received from the command line, to be parsed and split if > 100 hashes
@@ -105,10 +106,12 @@ def build_json_dicts_from_list(hash_list: List[str]) -> List[Dict]:
     json_dict_list: (List[Dict]) = []
     num_hashes = len(hash_list)
 
-    if num_hashes > 100:  # UBS has a limit of 100 hashes per POST request to <psc-hostname>/ubs/<versionId>/orgs/<org_key>/file/_download
+    if num_hashes > 100:
         num_dicts_req = ceil(num_hashes / 100)
 
-        logging.info(f'The hashes array contains {num_hashes} hashes. Creating {num_dicts_req} JSON objects to send to UBS')
+        logging.info(
+            f'The hashes array contains {num_hashes} hashes. Creating {num_dicts_req} JSON objects to send to UBS'
+        )
 
         for i in range(num_dicts_req):
             begin_index = i * 100
