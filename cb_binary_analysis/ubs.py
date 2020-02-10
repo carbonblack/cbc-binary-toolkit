@@ -7,7 +7,7 @@ Functions to retrieve binaries from UBS
 
 from cbapi.psc.threathunter.models import Binary, Downloads
 from cbapi.psc.threathunter import CbThreatHunterAPI
-from config.model import Config
+from .config.model import Config
 import logging
 
 log = logging.getLogger(__name__)
@@ -50,19 +50,17 @@ def _download_binary_metadata(cbth, found_binary):
 
     Args:
         cbth (CbThreatHunterAPI): CB ThreatHunter object.
-        found_binary (ThreatHunter.models.Downloads): Binary to get metadata for.
+        found_binary (ThreatHunter.models.Downloads.FoundItem): Binary to get metadata for.
 
     Returns:
-        metadata_list (Dict): Metadata dictionary downloaded from UBS.
-        None if metadata download for binary metadata failed.
+        binary_metadata (Dict): Metadata dictionary downloaded from UBS.
+        None if download for binary metadata failed.
     """
     if found_binary:
         try:
             log.debug("Downloading metadata information")
             binary_metadata = found_binary._info
-            binary_metadata.pop('not_found')
-            binary_metadata.pop('error')
-            th_binary = cbth.select(Binary, found_binary.found[0].sha256)
+            th_binary = cbth.select(Binary, found_binary.sha256)
             if isinstance(th_binary, Binary):
                 binary_metadata.update(th_binary._info)
             return binary_metadata
@@ -165,20 +163,33 @@ def download_hashes(hashes, expiration_seconds=3600):
 
 
 def get_metadata(cbth, binary):
-    """Initiates download of binary metadata from UBS
+    """Initiates download of binary metadata from UBS.
 
     Args:
         cbth (CbThreatHunterAPI): CB ThreatHunter object.
         binary (ThreatHunter.Downloads): Should contain found, may also contain not_found, and error attributes.
 
     Returns:
-        metadata (Dict): Dictionary containing hash, download URL, and metadata for given binary.
+        metadata (List[Dict]): Dictionaries containing hash, download URL, and metadata for binaries in given
+            Downloads parameter.
     """
 
-    metadata = None
-    try:
-        metadata = _download_binary_metadata(cbth, binary)
-    except Exception as err:
-        log.error(f"Failed to download metadata for {binary.found[0].sha256}: {err}")
+    metadata_list = []
+    found_binaries = binary.found
+    for binary in found_binaries:
+        try:
+            metadata = _download_binary_metadata(cbth, binary)
+            metadata_list.append(metadata)
+        except Exception as err:
+            log.error(f"Failed to download metadata for {binary.sha256}: {err}")
 
-    return metadata
+    return metadata_list
+
+
+
+config = Config.load_file('/Users/llyon/reno/dev/cb-binary-analysis/config/binary-analysis-config.yaml')
+
+cbth = _create_cbth(config._data['carbonblackcloud'])
+dl, re = download_hashes(["0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc"])
+m = get_metadata(cbth, dl)
+print(m)

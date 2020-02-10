@@ -61,7 +61,7 @@ def test_download_binary_metadata(hashes):
     th = create_cbth_object(config_data._data['carbonblackcloud'])
     hash_dl = _download_hashes(th, hashes, 60)
     checked_hash_dl, retry = _check_download(th, hash_dl, 1, 60)
-    metadata = _download_binary_metadata(th, checked_hash_dl)
+    metadata = _download_binary_metadata(th, checked_hash_dl.found[0])
     assert type(metadata) == dict
     for key in metadata_valid.keys():
         assert key in metadata
@@ -138,7 +138,7 @@ def test_check_download_invalid(hashes, attempt_num):
 def test_download_metadata(hashes):
     th = create_cbth_object(config_data._data['carbonblackcloud'])
     binary, retry = download_hashes(hashes)
-    metadata = _download_binary_metadata(th, binary)
+    metadata = _download_binary_metadata(th, binary.found[0])
     assert isinstance(metadata, dict)
     for key in metadata_valid.keys():
         assert key in metadata
@@ -153,7 +153,8 @@ def test_get_metadata(hashes):
     th = create_cbth_object(config_data._data['carbonblackcloud'])
     binary, retry = download_hashes(hashes)
     metadata = get_metadata(th, binary)
+    assert isinstance(metadata, list)
     for key in metadata_valid.keys():
-        assert key in metadata
-    for key in metadata.keys():
+        assert key in metadata[0]
+    for key in metadata[0].keys():
         assert key in metadata_valid
