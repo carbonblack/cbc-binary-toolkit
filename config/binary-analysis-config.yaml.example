@@ -7,7 +7,5 @@ carbonblackcloud:
   orgkey: abcdefgh
   ssl_verify: True
 database:
-  _provider: classname
-  url:
-  username:
-  password:
+  _provider: cb_binary_analysis.state.builtin.Persistor
+  location: cb-binary-analysis.db
