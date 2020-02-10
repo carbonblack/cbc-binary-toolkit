@@ -4,7 +4,7 @@
 
 import pytest
 import re
-
+import copy
 
 class CBAPIMock:
     """Mock framework for unit tests that need to fetch Carbon Black Cloud data"""
@@ -14,6 +14,7 @@ class CBAPIMock:
         self.monkeypatch = monkeypatch
         self.api = api
         self._last_request_data = None
+        self._all_request_data = list()
         monkeypatch.setattr(api, "get_object", self._self_get_object())
         monkeypatch.setattr(api, "get_raw_data", self._self_get_raw_data())
         monkeypatch.setattr(api, "post_object", self._self_post_object())
@@ -44,6 +45,10 @@ class CBAPIMock:
                 return key
         return None
 
+    def _capture_data(self, data):
+        self._all_request_data.append(data)
+        self._last_request_data = data
+
     def mock_request(self, verb, url, body):
         """
         Mocks the VERB + URL by defining the response for that particular request
@@ -67,7 +72,7 @@ class CBAPIMock:
     """
     def _self_get_object(self):
         def _get_object(url, params=None, default=None):
-            self._last_request_data = params
+            self._capture_data(params)
             matched = self.match_key(self.get_mock_key("GET", url))
             if matched:
                 return self.mocks[matched]
@@ -76,7 +81,7 @@ class CBAPIMock:
 
     def _self_post_object(self):
         def _post_object(url, body, **kwargs):
-            self._last_request_data = body
+            self._capture_data(body)
             matched = self.match_key(self.get_mock_key("POST", url))
             if matched:
                 return self.mocks[matched]
@@ -85,7 +90,7 @@ class CBAPIMock:
 
     def _self_get_raw_data(self):
         def _get_raw_data(url, query_params, **kwargs):
-            self._last_request_data = query_params
+            self._capture_data(query_params)
             matched = self.match_key(self.get_mock_key("RAW_GET", url))
             if matched:
                 return self.mocks[matched]
@@ -94,18 +99,20 @@ class CBAPIMock:
 
     def _self_put_object(self):
         def _put_object(url, body, **kwargs):
-            self._last_request_data = body
+            self._capture_data(body)
             matched = self.match_key(self.get_mock_key("PUT", url))
             if matched:
-                if self.mocks[matched]._contents is None:
-                    self.mocks[matched]._contents = body
-                return self.mocks[matched]
+                response = self.mocks[matched]
+                if response._contents is None:
+                    response = copy.deepcopy(self.mocks[matched])
+                    response._contents = body
+                return response
             pytest.fail("PUT called for %s when it shouldn't be" % url)
         return _put_object
 
     def _self_delete_object(self):
         def _delete_object(url):
-            self._last_request_data = None
+            self._capture_data(None)
             matched = self.match_key(self.get_mock_key("DELETE", url))
             if matched:
                 return self.mocks[matched]
