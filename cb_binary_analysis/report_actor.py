@@ -24,7 +24,21 @@ class InitializationError(Exception):
 
 @initializing_messages([("cbth", CbThreatHunterAPI), ("engine_name", str)], initdone='_verify_init')
 class ReportActor(ActorTypeDispatcher):
-    """ReportActor"""
+    """
+    ReportActor
+
+    Require Properties:
+        cbth (CbThreatHunterAPI): CBAPI ThreatHunter API to push reports to Carbon Black Cloud
+        engine_name (str): The name of the engine that the report actor is attached too
+
+    Description:
+        Validates and manages IOCs (Threat Inteligence) from the Analysis Engines
+        Supports command(s) to send reports to Carbon Black Cloud
+
+    Note:
+        IOCs are grouped by severity to increase performance on Carbon Black Cloud
+
+    """
     def __init__(self):
         """
         Report Actor Constructor
@@ -38,14 +52,7 @@ class ReportActor(ActorTypeDispatcher):
         self.iocs = list(list() for i in range(SEVERITY_RANGE))
 
     def _verify_init(self):
-        """
-        Initializes the actor
-
-        Args:
-            cbth (CbThreatHunterAPI): CBAPI ThreatHunter API to push reports to Carbon Black Cloud
-            engine_name (str): The name of the engine that the report actor is attached too
-
-        """
+        """Verifies that the actor has the necessary properties to initialize"""
         if not isinstance(self.cbth, CbThreatHunterAPI) or \
            not isinstance(self.engine_name, str):
             raise InitializationError
