@@ -200,11 +200,11 @@ def get_metadata(cbth, binary):
     metadata = None
     if not binary:
         log.error("Received empty binary object.")
-        raise
+        return
     else:
         try:
             metadata = _download_binary_metadata(cbth, binary)
         except Exception as err:
-            log.error(f"Failed to download metadata for {binary['sha256']}: {err}")
+            log.error(f"Failed to download metadata: {err}")
             raise
     return metadata

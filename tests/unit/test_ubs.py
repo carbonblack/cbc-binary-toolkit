@@ -168,5 +168,5 @@ def test_get_metadata_invalid():
     with pytest.raises(KeyError):
         get_metadata(th, found_hashes)
     empty_dict = {}
-    with pytest.raises(Exception):
-        get_metadata(th, empty_dict)
+    metadata = get_metadata(th, empty_dict)
+    assert metadata is None
