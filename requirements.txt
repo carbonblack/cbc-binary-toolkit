@@ -3,6 +3,7 @@ argparse
 python-dateutil
 pyyaml
 thespian
+cbapi
 
 # Dev dependencies
 flake8

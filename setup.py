@@ -13,7 +13,8 @@ install_reqs = [
     "argparse",
     "python-dateutil",
     "pyyaml",
-    "thespian"
+    "thespian",
+    "cbapi"
 ]
 
 setup(
