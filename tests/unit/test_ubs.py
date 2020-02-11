@@ -32,7 +32,7 @@ not_found_hashes = ["6c4eb3c9e0f478b2d19a329687d113ba92c90a17d0caa6c40247a5afff3
 ])
 def test_create_cbth(args):
     """Test creating a CBTH object (excluding the location in memory with [:-13])"""
-    assert str(_create_cbth(args))[:-13] == "<cbapi.psc.threathunter.rest_api.CbThreatHunterAPI object at"
+    assert str(_create_cbth(args))[:60] == "<cbapi.psc.threathunter.rest_api.CbThreatHunterAPI object at"
 
 
 @pytest.mark.parametrize("args", [
