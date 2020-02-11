@@ -172,7 +172,7 @@ def download_hashes(hashes, expiration_seconds=3600):
     Examples:
         >>> download_hashes(["0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc"])
     """
-    
+
     config_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../config/binary-analysis-config.yaml")
     config = Config.load_file(config_path)
 
@@ -208,14 +208,3 @@ def get_metadata(cbth, binary):
     except Exception as err:
         log.error(f"Failed to download metadata for {binary.sha256}: {err}")
     return metadata
-
-
-
-# config = Config.load_file('/Users/llyon/reno/dev/cb-binary-analysis/config/binary-analysis-config.yaml')
-#
-# cbth = _create_cbth(config._data['carbonblackcloud'])
-#
-# x = download_hashes(["0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc"])
-# print(x)
-# # meta = get_metadata(cbth, x[1])
-# # print(meta)
