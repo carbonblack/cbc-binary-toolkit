@@ -1,5 +1,5 @@
 testing:
   build:
     dockerfile: Dockerfile
-  encrypted_env-file:
+  encrypted_env_file:
     - env.encrypted
