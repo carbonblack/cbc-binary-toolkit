@@ -11,7 +11,7 @@ from cbapi.psc.threathunter import CbThreatHunterAPI
 from tests.unit.ubs_fixtures.metadata import metadata_valid
 import os
 
-config_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../config/binary-analysis-config.yaml")
+config_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "ubs_fixtures/binary-analysis-config.yaml")
 config_data = Config.load_file(config_path)
 
 
