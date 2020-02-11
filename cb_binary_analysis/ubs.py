@@ -8,7 +8,6 @@ Functions to retrieve binaries from UBS
 from cbapi.psc.threathunter.models import Binary, Downloads
 from cbapi.psc.threathunter import CbThreatHunterAPI
 import logging
-import os
 
 log = logging.getLogger(__name__)
 
