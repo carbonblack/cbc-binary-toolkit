@@ -125,7 +125,7 @@ def test_validate_download_invalid(hashes, attempt_num):
 )
 def test_download_metadata(hashes):
     th = create_cbth_object(config_data._data['carbonblackcloud'])
-    found_hashes = download_hashes(hashes)
+    found_hashes = download_hashes(config_data, hashes)
     metadata = _download_binary_metadata(th, found_hashes[0])
     assert isinstance(metadata, dict)
     for key in metadata_valid.keys():
@@ -139,7 +139,7 @@ def test_download_metadata(hashes):
 )
 def test_get_metadata(hashes):
     th = create_cbth_object(config_data._data['carbonblackcloud'])
-    found_hashes = download_hashes(hashes)
+    found_hashes = download_hashes(config_data, hashes)
     metadata = get_metadata(th, found_hashes[0])
     assert isinstance(metadata, dict)
     for key in metadata_valid.keys():

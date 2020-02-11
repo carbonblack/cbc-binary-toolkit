@@ -7,7 +7,6 @@ Functions to retrieve binaries from UBS
 
 from cbapi.psc.threathunter.models import Binary, Downloads
 from cbapi.psc.threathunter import CbThreatHunterAPI
-from .config.model import Config
 import logging
 import os
 
@@ -158,10 +157,11 @@ def _validate_download(cbth, download, attempt_num, expiration_seconds):
     return download_found, redownload
 
 
-def download_hashes(hashes, expiration_seconds=3600):
+def download_hashes(config, hashes, expiration_seconds=3600):
     """Initiates download of hashes.
 
     Args:
+        config (cb_binary_analysis.config.model.config): Config details for CBTH.
         hashes (List[str]): hashes to be downloaded from UBS.
         expiration_seconds (int, optional): Desired timeout for AWS links to binaries.
 
@@ -172,10 +172,6 @@ def download_hashes(hashes, expiration_seconds=3600):
     Examples:
         >>> download_hashes(["0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc"])
     """
-
-    config_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../config/binary-analysis-config.yaml")
-    config = Config.load_file(config_path)
-
     cbth = _create_cbth(config._data['carbonblackcloud'])
 
     download = _download_hashes(cbth, hashes, expiration_seconds)
