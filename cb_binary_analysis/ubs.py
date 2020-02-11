@@ -103,13 +103,14 @@ def _download_binary_metadata(cbth, found_binary):
     if found_binary:
         try:
             log.debug("Downloading metadata information")
-            binary_metadata = {"url": found_binary["url"]}   # was JSON in _initial_data or _info
+            binary_metadata = {"url": found_binary["url"]}
             th_binary = cbth.select(Binary, found_binary["sha256"])
             if isinstance(th_binary, Binary):
                 binary_metadata.update(th_binary._info)
             return binary_metadata
-        except Exception as err:
+        except (KeyError, Exception) as err:
             log.error(f"Error downloading binary metadata from UBS: {err}")
+            raise
             return
     else:
         return
@@ -131,11 +132,11 @@ def _validate_download(cbth, download, attempt_num, expiration_seconds):
         (download_found, redownload.found) (List[str], List[str]): A tuple of lists.
             Second return value may be none if there were no hashes to re-download,
             or re-downloading timed out.
-        None if no hashes were successfully downloaded.
+        None, None if no hashes were successfully downloaded and re-downloaded.
     """
     if not download:
         log.error("No hashes were found in the Universal Binary Store.")
-        return
+        return None, None
 
     if download.not_found:
         log.warning(f"{len(download.not_found)} hashes were not found in the"
@@ -196,10 +197,14 @@ def get_metadata(cbth, binary):
     Returns:
         metadata (Dict): Dictionary containing hash, download URL, and metadata.
     """
-
     metadata = None
-    try:
-        metadata = _download_binary_metadata(cbth, binary)
-    except Exception as err:
-        log.error(f"Failed to download metadata for {binary.sha256}: {err}")
+    if not binary:
+        log.error("Received empty binary object.")
+        raise
+    else:
+        try:
+            metadata = _download_binary_metadata(cbth, binary)
+        except Exception as err:
+            log.error(f"Failed to download metadata for {binary['sha256']}: {err}")
+            raise
     return metadata

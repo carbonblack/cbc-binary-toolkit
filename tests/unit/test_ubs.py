@@ -55,6 +55,11 @@ def test_download_hashes(hashes):
     assert len(hash_dl.error) == 0
 
 
+def test_download_hashes_invalid():
+    found_hashes = download_hashes(config_data, [])
+    assert found_hashes is None
+
+
 @pytest.mark.parametrize("hashes", [
     hashes]
 )
@@ -76,11 +81,19 @@ def test_download_binary_metadata(hashes):
 def test_download_binary_metadata_invalid(hashes):
     th = create_cbth_object(config_data._data['carbonblackcloud'])
     hash_dl = _download_hashes(th, hashes, 60)
-    check_hash_dl = _validate_download(th, hash_dl, 1, 60)
+    check_hash_dl, retry = _validate_download(th, hash_dl, 1, 60)
     try_meta = _download_binary_metadata(th, check_hash_dl)
     assert hash_dl is None
     assert check_hash_dl is None
     assert try_meta is None
+    assert retry is None
+
+
+def test_download_binary_metadata_invalid_1():
+    th = create_cbth_object(config_data._data['carbonblackcloud'])
+    found_binary = {"not": "something"}
+    with pytest.raises(KeyError):
+        _download_binary_metadata(th, found_binary)
 
 
 @pytest.mark.parametrize("hashes", [
@@ -116,8 +129,9 @@ def test_validate_download(hashes, attempt_num):
 def test_validate_download_invalid(hashes, attempt_num):
     th = create_cbth_object(config_data._data['carbonblackcloud'])
     hash_dl = _download_hashes(th, hashes, 60)
-    check_hash_dl = _validate_download(th, hash_dl, attempt_num, 60)
+    check_hash_dl, retry = _validate_download(th, hash_dl, attempt_num, 60)
     assert check_hash_dl is None
+    assert retry is None
 
 
 @pytest.mark.parametrize("hashes", [
@@ -146,3 +160,13 @@ def test_get_metadata(hashes):
         assert key in metadata
     for key in metadata.keys():
         assert key in metadata_valid
+
+
+def test_get_metadata_invalid():
+    th = create_cbth_object(config_data._data['carbonblackcloud'])
+    found_hashes = {"something": "wedontwant"}
+    with pytest.raises(KeyError):
+        get_metadata(th, found_hashes)
+    empty_dict = {}
+    with pytest.raises(Exception):
+        get_metadata(th, empty_dict)
