@@ -9,6 +9,13 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 
+install_reqs = [
+    "argparse",
+    "python-dateutil",
+    "pyyaml",
+    "thespian"
+]
+
 setup(
     name="cb-binary-analysis",
     version=read("VERSION"),
@@ -25,6 +32,6 @@ setup(
         "Programming Language :: Python",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
-    install_requires=read("requirements.txt").splitlines(),
-    tests_require=read("tests/requirements.txt").splitlines()
+    install_requires=install_reqs,
+    packages=["cb_binary_analysis"]
 )
