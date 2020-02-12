@@ -12,7 +12,7 @@ import logging
 log = logging.getLogger(__name__)
 
 
-class redownloadHashes:
+class RedownloadHashes:
     """Values and function to redownload any hashes that experienced an error
     during the initial download attempt.
 
@@ -23,6 +23,8 @@ class redownloadHashes:
     """
 
     urlobject = "/ubs/v1/orgs/{}/file/_download"
+
+    RETRY_LIMIT = 5
 
     def __init__(self, cbth, shas, expiration_seconds):
         self.cb = cbth
@@ -44,16 +46,16 @@ class redownloadHashes:
             self.found = download["found"]
 
         attempt_num = 1
-        while download["error"] and attempt_num < 5:
+        while download["error"] and attempt_num < self.RETRY_LIMIT:
             body["sha256"] = download["error"]
             download = self.cb.post_object(url, body).json()
 
             if download["found"]:
-                self.found.append(download["found"])
+                self.found.extend(download["found"])
 
             attempt_num += 1
 
-        if attempt_num == 5 and download["error"]:
+        if attempt_num == self.RETRY_LIMIT and download["error"]:
             log.error(f"Reached retry limit for redownloading {len(download['error'])} hashes.")
 
 
@@ -100,7 +102,7 @@ def _download_binary_metadata(cbth, found_binary):
         binary_metadata (Dict): Metadata dictionary downloaded from UBS.
         None if download for binary metadata failed.
     """
-    if found_binary:
+    if isinstance(found_binary, dict):
         try:
             log.debug("Downloading metadata information")
             binary_metadata = {"url": found_binary["url"]}
@@ -113,10 +115,12 @@ def _download_binary_metadata(cbth, found_binary):
             raise
             return
     else:
-        return
+        log.error("found_binary input to _download_binary_metadata must be a Dictionary with url and sha256 keys")
+        raise ValueError
+        return None
 
 
-def _validate_download(cbth, download, attempt_num, expiration_seconds):
+def _validate_download(cbth, download, expiration_seconds):
     """
     Verifies the presence of Downloads.FoundItem. Retries downloading
     if there are errors during download.
@@ -124,15 +128,13 @@ def _validate_download(cbth, download, attempt_num, expiration_seconds):
     Args:
         cbth (CbThreatHunterAPI): CB ThreatHunter object.
         download (ThreatHunter.Downloads): May contain found, not_found, and error attributes.
-        attempt_num (int): Number of times we've tried downloading these hashes.
-            Limit is set to 5 times.
         expiration_seconds (int): Desired timeout for AWS links to binaries.
 
     Returns:
-        (download_found, redownload.found) (List[str], List[str]): A tuple of lists.
-            Second return value may be none if there were no hashes to re-download,
+        (download_found, redownload.found) (List[dict], List[dict]): A tuple of downloaded and
+            redownloaded hashes. Second return value may be none if there were no hashes to re-download,
             or re-downloading timed out.
-        None, None if no hashes were successfully downloaded and re-downloaded.
+        (None, None) if no hashes were successfully downloaded and re-downloaded.
     """
     if not download:
         log.error("No hashes were found in the Universal Binary Store.")
@@ -148,7 +150,7 @@ def _validate_download(cbth, download, attempt_num, expiration_seconds):
         log.warning(f"{len(download.error)} hashes experienced an error while"
                     f" downloading: {download.error}. Retrying download.")
 
-        redownload = redownloadHashes(cbth, download.error, expiration_seconds)
+        redownload = RedownloadHashes(cbth, [download.error], expiration_seconds)
 
         redownload.redownload()
 
@@ -170,13 +172,13 @@ def download_hashes(config, hashes, expiration_seconds=3600):
         None if an error occurred during download.
 
     Examples:
-        >>> download_hashes(["0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc"])
+        >>> download_hashes(config, ["0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc"])
     """
     cbth = _create_cbth(config._data['carbonblackcloud'])
 
     download = _download_hashes(cbth, hashes, expiration_seconds)
 
-    checked_download, retried_download = _validate_download(cbth, download, 1, expiration_seconds)
+    checked_download, retried_download = _validate_download(cbth, download, expiration_seconds)
 
     if not checked_download:
         log.error("Unable to retrieve binaries from the UBS.")

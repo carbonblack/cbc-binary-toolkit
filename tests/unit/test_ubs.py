@@ -5,7 +5,7 @@ import pytest
 from cb_binary_analysis.ubs import (_create_cbth, _download_hashes,
                                     _download_binary_metadata,
                                     _validate_download, download_hashes,
-                                    get_metadata, redownloadHashes)
+                                    get_metadata, RedownloadHashes)
 from cb_binary_analysis.config.model import Config
 from cbapi.psc.threathunter import CbThreatHunterAPI
 from tests.unit.ubs_fixtures.metadata import metadata_valid
@@ -66,7 +66,7 @@ def test_download_hashes_invalid():
 def test_download_binary_metadata(hashes):
     th = create_cbth_object(config_data._data['carbonblackcloud'])
     hash_dl = _download_hashes(th, hashes, 60)
-    found_hashes, redownload_found_hashes = _validate_download(th, hash_dl, 1, 60)
+    found_hashes, redownload_found_hashes = _validate_download(th, hash_dl, 60)
     metadata = _download_binary_metadata(th, found_hashes[0])
     assert type(metadata) == dict
     for key in metadata_valid.keys():
@@ -78,22 +78,40 @@ def test_download_binary_metadata(hashes):
 @pytest.mark.parametrize("hashes", [
     not_found_hashes]
 )
-def test_download_binary_metadata_invalid(hashes):
+def test_download_binary_metadata_not_found(hashes):
     th = create_cbth_object(config_data._data['carbonblackcloud'])
     hash_dl = _download_hashes(th, hashes, 60)
-    check_hash_dl, retry = _validate_download(th, hash_dl, 1, 60)
-    try_meta = _download_binary_metadata(th, check_hash_dl)
+    check_hash_dl, retry = _validate_download(th, hash_dl, 60)
+    with pytest.raises(ValueError):
+        try_meta = _download_binary_metadata(th, check_hash_dl)
+        assert try_meta is None
     assert hash_dl is None
     assert check_hash_dl is None
-    assert try_meta is None
     assert retry is None
 
 
-def test_download_binary_metadata_invalid_1():
+@pytest.mark.parametrize("input", [
+    {"not": "something"},
+    {"url": "missingthesha256key"},
+    {"sha256": "missingtheurlkey"},
+    True,
+    None,
+    ["alist"],
+    ["url", "sha256"]]
+)
+def test_download_binary_metadata_invalid(input):
     th = create_cbth_object(config_data._data['carbonblackcloud'])
-    found_binary = {"not": "something"}
-    with pytest.raises(KeyError):
-        _download_binary_metadata(th, found_binary)
+    if isinstance(input, dict):
+        with pytest.raises(KeyError):
+            _download_binary_metadata(th, input)
+    else:
+        with pytest.raises(ValueError):
+            assert _download_binary_metadata(th, input) is None
+    # elif isinstance(input, list):
+    #     with pytest.raises(TypeError):
+    #         _download_binary_metadata(th, input)
+    # else:
+    #     assert _download_binary_metadata(th, input) is None
 
 
 @pytest.mark.parametrize("hashes", [
@@ -101,7 +119,7 @@ def test_download_binary_metadata_invalid_1():
 )
 def test_redownloadHashes(hashes):
     th = create_cbth_object(config_data._data['carbonblackcloud'])
-    redownload = redownloadHashes(th, hashes, 60)
+    redownload = RedownloadHashes(th, hashes, 60)
     assert redownload.cb == th
     assert redownload.shas == hashes
     assert redownload.expiration_seconds == 60
@@ -110,26 +128,24 @@ def test_redownloadHashes(hashes):
     assert len(redownload.found) == 1
 
 
-@pytest.mark.parametrize("hashes, attempt_num", [
-    (hashes, 1),
-    (hashes, 6)]
+@pytest.mark.parametrize("hashes", [
+    hashes]
 )
-def test_validate_download(hashes, attempt_num):
+def test_validate_download(hashes):
     th = create_cbth_object(config_data._data['carbonblackcloud'])
     hash_dl = _download_hashes(th, hashes, 60)
-    found_hashes, redownload_found_hashes = _validate_download(th, hash_dl, attempt_num, 60)
+    found_hashes, redownload_found_hashes = _validate_download(th, hash_dl, 60)
     assert len(found_hashes) == 1
     assert redownload_found_hashes is None
 
 
-@pytest.mark.parametrize("hashes, attempt_num", [
-    (not_found_hashes, 1),
-    (not_found_hashes, 6)]
+@pytest.mark.parametrize("hashes", [
+    not_found_hashes]
 )
-def test_validate_download_invalid(hashes, attempt_num):
+def test_validate_download_not_found(hashes):
     th = create_cbth_object(config_data._data['carbonblackcloud'])
     hash_dl = _download_hashes(th, hashes, 60)
-    check_hash_dl, retry = _validate_download(th, hash_dl, attempt_num, 60)
+    check_hash_dl, retry = _validate_download(th, hash_dl, 60)
     assert check_hash_dl is None
     assert retry is None
 
