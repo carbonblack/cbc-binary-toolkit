@@ -103,6 +103,7 @@ def read_json(json_string: str) -> List[Dict]:  # Assuming input = '{ "sha256": 
 def build_json_dicts_from_list(hash_list: List[str]) -> List[Dict]:
     """
     Function to read in a list of strings and return a JSON object of hashes formatted for UBS
+
     UBS has a limit of 100 hashes per POST request to <psc-hostname>/ubs/<versionId>/orgs/<org_key>/file/_download
 
     Args:

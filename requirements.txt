@@ -1,7 +1,9 @@
 # Package dependencies
 argparse
+cbapi
 python-dateutil
 pyyaml
+schema
 thespian
 
 # Dev dependencies
