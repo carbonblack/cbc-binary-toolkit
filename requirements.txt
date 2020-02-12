@@ -5,6 +5,7 @@ python-dateutil
 pyyaml
 schema
 thespian
+cbapi
 
 # Dev dependencies
 flake8
