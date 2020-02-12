@@ -9,13 +9,15 @@ This tests the input from the users experience
 import pytest
 import subprocess
 import sys
+import os
 
 if sys.platform.startswith("win32"):
     pycommand = "python"
 else:
     pycommand = "python3"
 
-LOG_FILE = "tests/functional/log.txt"
+LOG_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), "log.txt")
+
 
 # Clear log file for each run
 open(LOG_FILE, "w").close()
