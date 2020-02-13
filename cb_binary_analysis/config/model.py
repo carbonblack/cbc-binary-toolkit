@@ -74,6 +74,8 @@ class Config:
             else:
                 cur = self._data
             elt = s
+        if suppress_exceptions:
+            return cur.get(elt, None)
         return cur[elt]
 
     def string(self, path):
@@ -87,6 +89,19 @@ class Config:
         if isinstance(v, str):
             return v
         raise ConfigError('value not string type: ' + path)
+
+    def string_default(self, path, defaultval=None):
+        """
+        Returns a string configuration value from the configuration data, defaulting it if it isn't specified.
+
+        :param path: The path to the configuration variable (with components separated by '.')
+        :param defaultval: The default value to use if the configuration value isn't specified (default None).
+        :return: The value (perhaps defaulted).
+        """
+        v = self._seek_path(path, True)
+        if v is not None and isinstance(v, str):
+            return v
+        return defaultval
 
     def section(self, path):
         """

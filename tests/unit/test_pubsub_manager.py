@@ -15,27 +15,27 @@ class TestQueue(BaseQueue):
             self._p = self._p + 1
         else:
             self._p = 1
-        
+
     def get(self):
         if hasattr(self, "_g"):
             self._g = self._g + 1
         else:
             self._g = 1
         return {"foo": "bar"}
-    
-    
+
+
 class TestProvider(BaseProvider):
     def create_queue(self, queue_name):
         q = TestQueue()
         q._name = queue_name
         return q
-    
-    
+
+
 class TestProviderFactory(BaseProviderFactory):
     def create_pubsub_provider(self, config):
         assert config.string("is_test") == "True"
         return TestProvider()
-    
+
 
 @pytest.fixture
 def local_config():
@@ -49,8 +49,8 @@ def local_config():
       _provider: test_pubsub_manager.TestProviderFactory
       is_test: "True"
     """)
-    
-    
+
+
 def test_get(local_config):
     manager = PubSubManager(local_config)
     queue = manager.create_queue("blort")
@@ -59,8 +59,8 @@ def test_get(local_config):
     assert result["foo"] == "bar"
     assert getattr(queue, "_g", 0) == 1
     assert getattr(queue, "_p", 0) == 0
-    
-    
+
+
 def test_put(local_config):
     manager = PubSubManager(local_config)
     queue = manager.create_queue("blort")
