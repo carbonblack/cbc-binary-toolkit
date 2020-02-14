@@ -88,6 +88,7 @@ def _download_hashes(cbth, hashes, expiration_seconds):
         return downloads
     except Exception as err:
         log.error(f"Error downloading hashes from UBS: {err}")
+        raise
         return
 
 
@@ -159,11 +160,11 @@ def _validate_download(cbth, download, expiration_seconds):
     return download_found, redownload
 
 
-def download_hashes(config, hashes, expiration_seconds=3600):
+def download_hashes(cbth, hashes, expiration_seconds=3600):
     """Initiates download of hashes.
 
     Args:
-        config (cb_binary_analysis.config.model.config): Config details for CBTH.
+        cbth (CbThreatHunterAPI): CB ThreatHunter object.
         hashes (List[str]): hashes to be downloaded from UBS.
         expiration_seconds (int, optional): Desired timeout for AWS links to binaries.
 
@@ -172,10 +173,11 @@ def download_hashes(config, hashes, expiration_seconds=3600):
         None if an error occurred during download.
 
     Examples:
-        >>> download_hashes(config, ["0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc"])
+        >>> download_hashes(cbth, ["0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc"])
     """
-    cbth = _create_cbth(config._data['carbonblackcloud'])
-
+    if not hashes:
+        log.error("No hashes supplied to download_hashes.")
+        return
     download = _download_hashes(cbth, hashes, expiration_seconds)
 
     checked_download, retried_download = _validate_download(cbth, download, expiration_seconds)
