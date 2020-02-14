@@ -15,14 +15,14 @@ from tests.unit.ubs_fixtures.metadata import hash_metadata
 
 @pytest.fixture(scope="session")
 def config():
-    """
-    Configuration for all the test cases in this module.
-    """
+    """Configuration for all the test cases in this module."""
     return Config.load("""
     id: cb-binary-analysis
     version: 0.0.1
     database:
       _provider: persistor_fixtures.mock_persistor.MockPersistorFactory
+    engine:
+      name: TEST_ENGINE
     """)
 
 
@@ -51,6 +51,7 @@ def actor(cb_threat_hunter, config, state_manager):
     yield actor
     ActorSystem().ask(actor, ActorExitRequest())
 
+
 def mock_downloads(url, body, **kwargs):
     """Mocks the ubs _downloads route"""
     response = {
@@ -60,11 +61,11 @@ def mock_downloads(url, body, **kwargs):
     }
 
     for hash in body["sha256"]:
-        response["found"].append(hash)
+        response["found"].append({"sha256": hash, "url": "AWS_FAKE_URL"})
     return response
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def cbapi_mock(monkeypatch, cb_threat_hunter):
     """Mocks CBAPI for unit tests"""
     cbapi_mock = CBAPIMock(monkeypatch, cb_threat_hunter)
@@ -75,9 +76,9 @@ def cbapi_mock(monkeypatch, cb_threat_hunter):
     ]
 
     for hash in hashes:
-        cbapi_mock.mock("GET", f"/ubs/v1/orgs/WNEXFKQ7/sha256/{hash}/metadata", hash_metadata[hash])
+        cbapi_mock.mock_request("GET", f"/ubs/v1/orgs/test/sha256/{hash}/metadata", hash_metadata[hash])
 
-    cbapi_mock.mock("POST", f"/ubs/v1/orgs/WNEXFKQ7/file/_download", mock_downloads)
+    cbapi_mock.mock_request("POST", f"/ubs/v1/orgs/test/file/_download", mock_downloads)
     return cbapi_mock
 
 
@@ -87,7 +88,7 @@ def cbapi_mock(monkeypatch, cb_threat_hunter):
     [{'sha256': ['405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4'], 'expiration_seconds': 3600},
      {'sha256': ['0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc'], 'expiration_seconds': 3600}],
 ])
-def test_receiveMessage_ask(actor, input):
+def test_receiveMessage_ask(actor, cbapi_mock, input):
     """Test receiveMessage"""
     for item in input:
         completion = ActorSystem().ask(actor, item, 10)
@@ -100,7 +101,7 @@ def test_receiveMessage_ask(actor, input):
     [{'sha256': ['405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4'], 'expiration_seconds': 3600},
      {'sha256': ['0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc'], 'expiration_seconds': 3600}],
 ])
-def test_receiveMessage_tell(actor, input):
+def test_receiveMessage_tell(actor, cbapi_mock, input):
     """Test receiveMessage"""
     for item in input:
         ActorSystem().tell(actor, item)

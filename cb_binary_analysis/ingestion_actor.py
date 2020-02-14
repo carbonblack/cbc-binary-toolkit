@@ -3,6 +3,7 @@
 """Base for ingestion actor"""
 
 import logging
+import traceback
 
 from thespian.actors import Actor, ActorExitRequest
 from thespian.initmsgs import initializing_messages
@@ -68,18 +69,21 @@ class IngestionActor(Actor):
     def _work(self, item):
         """Fetches each binary metadata and publishes metadata to channel"""
         log.debug(f"Worker received: {item}")
-        metadata = get_metadata(self.cbth, item)
+        try:
+            metadata = get_metadata(self.cbth, item)
 
-        # Save hash entry to state manager
-        self.state_manager.set_file_state(item["sha256"],
-                                          {
-                                          "file_size": metadata["file_size"],
-                                          "file_name": metadata["file_name"],
-                                          "os_type": metadata["os_type"],
-                                          "engine_name": metadata[self.config.string("engine.name")],
-                                          "time_sent": datetime.now()
-                                          })
-        # Send to Pub/Sub
+            # Save hash entry to state manager
+            self.state_manager.set_file_state(item["sha256"],
+                                              {
+                                              "file_size": metadata["file_size"],
+                                              "file_name": metadata["original_filename"],
+                                              "os_type": metadata["os_type"],
+                                              "engine_name": self.config.string("engine.name"),
+                                              "time_sent": datetime.now()
+                                              })
+            # Send to Pub/Sub
+        except Exception as e:
+            log.error(f"Error caught in worker: {e}\n {traceback.format_exc()}")
 
     def _clean_up(self):
         for i in range(self.num_worker_threads):

@@ -67,7 +67,7 @@ class CBAPIMock:
         if body is Exception or body in Exception.__subclasses__():
             raise body
 
-        if verb == "GET" or verb == "RAW_GET":
+        if verb == "GET" or verb == "RAW_GET" or callable(body):
             self.mocks["{}:{}".format(verb, url)] = body
         else:
             self.mocks["{}:{}".format(verb, url)] = self.StubResponse(body)
@@ -93,7 +93,7 @@ class CBAPIMock:
             matched = self.match_key(self.get_mock_key("POST", url))
             if matched:
                 if callable(self.mocks[matched]):
-                    return self.mocks[matched](url, body, **kwargs)
+                    return self.StubResponse(self.mocks[matched](url, body, **kwargs))
                 else:
                     return self.mocks[matched]
             pytest.fail("POST called for %s when it shouldn't be" % url)
@@ -121,7 +121,7 @@ class CBAPIMock:
                     response = copy.deepcopy(self.mocks[matched])
                     response._contents = body
                 elif callable(self.mocks[matched]):
-                    return self.mocks[matched](url, body, **kwargs)
+                    return self.StubResponse(self.mocks[matched](url, body, **kwargs))
                 return response
             pytest.fail("PUT called for %s when it shouldn't be" % url)
         return _put_object
@@ -132,7 +132,7 @@ class CBAPIMock:
             matched = self.match_key(self.get_mock_key("DELETE", url))
             if matched:
                 if callable(self.mocks[matched]):
-                    return self.mocks[matched](url)
+                    return self.StubResponse(self.mocks[matched](url))
                 else:
                     return self.mocks[matched]
             pytest.fail("DELETE called for %s when it shouldn't be" % url)
