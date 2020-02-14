@@ -1,6 +1,5 @@
 # Package dependencies
 argparse
-cbapi
 boto3
 python-dateutil
 pyyaml
