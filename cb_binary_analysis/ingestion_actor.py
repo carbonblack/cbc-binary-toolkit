@@ -123,7 +123,7 @@ class IngestionActor(Actor):
                 log.info(f"Hash {hashes[i]} has already been analyzed")
 
         # Download binaries from UBS
-        found = download_hashes(self.cbth, new_hashes, message.get("expiration_seconds", self.DEFAULT_EXPIRATION)
+        found = download_hashes(self.cbth, new_hashes, message.get("expiration_seconds", self.DEFAULT_EXPIRATION))
 
         # Iterate through found binaries
         if isinstance(found, list):

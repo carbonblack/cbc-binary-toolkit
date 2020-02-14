@@ -13,7 +13,7 @@ class MockPersistor(BasePersistor):
 
     def get_file_state(self, binary_hash, engine=None):
         """Mock get file state"""
-        return self.db.get([binary_hash], None)
+        return self.db.get(binary_hash, None)
 
     def set_file_state(self, binary_hash, attrs, rowid=None):
         """Mock set file state"""
