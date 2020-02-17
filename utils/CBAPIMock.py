@@ -5,7 +5,7 @@
 import pytest
 import re
 import copy
-from cbapi.errors import ObjectNotFoundError
+
 
 class CBAPIMock:
     """Mock framework for unit tests that need to fetch Carbon Black Cloud data"""
@@ -50,7 +50,7 @@ class CBAPIMock:
         self._all_request_data.append(data)
         self._last_request_data = data
 
-    def mock_request(self, verb, url, body): # could change to response for easier reading
+    def mock_request(self, verb, url, body):
         """
         Mocks the VERB + URL by defining the response for that particular request
 
@@ -64,11 +64,8 @@ class CBAPIMock:
 
         """
 
-        # chekc body Type
-        # if we accept type exctipon bjects, we can check to see if bdy is type escripn, then raie exception instead of retunring bsl
-        if isinstance(body, type):
-            if BaseException in body.__bases__:
-                raise body
+        if body is Exception or body in Exception.__subclasses__():
+            raise body
 
         if verb == "GET" or verb == "RAW_GET":
             self.mocks["{}:{}".format(verb, url)] = body

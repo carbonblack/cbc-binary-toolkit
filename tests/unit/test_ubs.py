@@ -6,11 +6,11 @@ from cb_binary_analysis.ubs import (_download_hashes,
                                     _download_binary_metadata,
                                     _validate_download, download_hashes,
                                     get_metadata, RedownloadHashes)
-# from cb_binary_analysis.config.model import Config
 from cbapi.psc.threathunter import CbThreatHunterAPI
 from tests.unit.ubs_fixtures.metadata import metadata_valid
 from utils.CBAPIMock import CBAPIMock
-from tests.unit.ubs_fixtures.filedownload import FILEDOWNLOADRESP, METADATADOWNLOADRESP
+from tests.unit.ubs_fixtures.filedownload import (FILEDOWNLOADRESP, METADATADOWNLOADRESP,
+                                                  FILEDOWNLOADERROR, FILEDOWNLOADALL)
 
 
 @pytest.fixture(scope="session")
@@ -51,10 +51,20 @@ def test_download_hashes_invalid(cbapi_mock):
 
 
 @pytest.mark.parametrize("hashes", [
+    hashes,
+    not_found_hashes]
+)
+def test_download_hashes_exception(cbapi_mock, hashes):
+    with pytest.raises(Exception):
+        cbapi_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download", Exception)
+        dl = _download_hashes(cbapi_mock.api, hashes, 60)
+        assert dl is None
+
+
+@pytest.mark.parametrize("hashes", [
     hashes]
 )
 def test_download_binary_metadata(cbapi_mock, hashes):
-    # th = create_cbth_object(config_data._data['carbonblackcloud'])
     cbapi_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download", FILEDOWNLOADRESP)
     hash_dl = _download_hashes(cbapi_mock.api, hashes, 60)
     found_hashes, redownload_found_hashes = _validate_download(cbapi_mock.api, hash_dl, 60)
@@ -76,12 +86,10 @@ def test_download_binary_metadata_not_found(cbapi_mock, hashes):
         cbapi_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download", Exception)  # put in the Exception
         hash_dl = _download_hashes(cbapi_mock.api, hashes, 60)
         assert hash_dl is None
-        print(f"hash_dl._info: {hash_dl._info}. type(hash_dl): {type(hash_dl)}")
         check_hash_dl, retry = _validate_download(cbapi_mock.api, hash_dl, 60)
         with pytest.raises(ValueError):
             try_meta = _download_binary_metadata(cbapi_mock.api, check_hash_dl)
             assert try_meta is None
-        assert hash_dl is None
         assert check_hash_dl is None
         assert retry is None
 
@@ -98,7 +106,8 @@ def test_download_binary_metadata_not_found(cbapi_mock, hashes):
 def test_download_binary_metadata_invalid(cbapi_mock, input):
     if isinstance(input, dict):
         with pytest.raises(KeyError):
-            _download_binary_metadata(cbapi_mock.api, input)
+            metadl = _download_binary_metadata(cbapi_mock.api, input)
+            assert metadl is None
     else:
         with pytest.raises(ValueError):
             assert _download_binary_metadata(cbapi_mock.api, input) is None
@@ -141,6 +150,10 @@ def test_validate_download_not_found(cbapi_mock, hashes):
         assert retry is None
 
 
+def test_validate_download_empty(cbapi_mock):
+    assert _validate_download(cbapi_mock.api, None, 60) == (None, None)
+
+
 @pytest.mark.parametrize("hashes", [
     hashes]
 )
@@ -180,3 +193,38 @@ def test_get_metadata_invalid(cbapi_mock):
     empty_dict = {}
     metadata = get_metadata(cbapi_mock.api, empty_dict)
     assert metadata is None
+
+
+@pytest.mark.parametrize("hashes", [
+    hashes,
+    not_found_hashes]
+)
+def test_redownload_class_only_errors(cbapi_mock, hashes):
+    redownload = RedownloadHashes(cbapi_mock.api, hashes, 60)
+    cbapi_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download", FILEDOWNLOADERROR)
+    redownload.redownload()
+    assert len(redownload.found) == 0
+
+
+@pytest.mark.parametrize("hashes", [
+    hashes,
+    not_found_hashes]
+)
+def test_redownload_class_found_notfound(cbapi_mock, hashes):
+    redownload = RedownloadHashes(cbapi_mock.api, hashes, 60)
+    cbapi_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download", FILEDOWNLOADRESP)
+    redownload.redownload()
+    assert len(redownload.found) == 1
+
+
+@pytest.mark.parametrize("hashes", [
+    hashes]
+)
+def test_redownload_class_all_types(cbapi_mock, hashes):
+    redownload = RedownloadHashes(cbapi_mock.api, hashes, 60)
+    assert redownload.shas == hashes
+    assert len(redownload.found) == 0
+    cbapi_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download", FILEDOWNLOADALL)
+    redownload.redownload()
+    assert len(redownload.found) == 16
+    assert redownload.attempt_num == 5
