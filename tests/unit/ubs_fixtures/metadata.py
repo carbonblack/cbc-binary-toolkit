@@ -2,7 +2,7 @@
 
 from cbapi.errors import ObjectNotFoundError
 
-metadata_valid = {
+METADATA_VALID = {
     'sha256': '0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc',
     'url': 'https://www.example.com',
     'architecture': ['amd64'],
@@ -28,7 +28,7 @@ metadata_valid = {
     'trademark': None
 }
 
-hash_metadata = {
+HASH_METADATA = {
     "0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc": {
         "sha256": "0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc",
         "architecture": [

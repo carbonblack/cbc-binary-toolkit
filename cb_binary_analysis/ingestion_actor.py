@@ -14,6 +14,7 @@ from datetime import datetime
 from cbapi.psc.threathunter import CbThreatHunterAPI
 from cb_binary_analysis import InitializationError
 from cb_binary_analysis.state import StateManager
+from cb_binary_analysis.pubsub import PubSubManager
 from .ubs import download_hashes, get_metadata
 from cb_binary_analysis.config import Config
 
@@ -41,6 +42,7 @@ def worker(queue: Queue, func: MethodType):
 @initializing_messages([
                        ("state_manager", StateManager),
                        ("cbth", CbThreatHunterAPI),
+                       ("pub_sub_manager", PubSubManager),
                        ("config", Config)
                        ], initdone='_verify_init')
 class IngestionActor(Actor):
@@ -71,6 +73,7 @@ class IngestionActor(Actor):
         log.debug(f"Worker received: {item}")
         try:
             metadata = get_metadata(self.cbth, item)
+            engine_name = self.config.string("engine.name")
 
             # Save hash entry to state manager
             self.state_manager.set_file_state(item["sha256"],
@@ -78,10 +81,11 @@ class IngestionActor(Actor):
                                               "file_size": metadata["file_size"],
                                               "file_name": metadata["original_filename"],
                                               "os_type": metadata["os_type"],
-                                              "engine_name": self.config.string("engine.name"),
+                                              "engine_name": engine_name,
                                               "time_sent": datetime.now()
                                               })
             # Send to Pub/Sub
+            self.pub_sub_manager.put(engine_name, metadata)
         except Exception as e:
             log.error(f"Error caught in worker: {e}\n {traceback.format_exc()}")
 
@@ -94,7 +98,8 @@ class IngestionActor(Actor):
     def _verify_init(self):
         if not isinstance(self.cbth, CbThreatHunterAPI) or \
            not isinstance(self.config, Config) or \
-           not isinstance(self.state_manager, StateManager):
+           not isinstance(self.state_manager, StateManager) or \
+           not isinstance(self.pub_sub_manager, PubSubManager):
             raise InitializationError
 
     def receiveMessage(self, message, sender):
