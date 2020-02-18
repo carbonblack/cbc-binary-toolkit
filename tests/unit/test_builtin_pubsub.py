@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
-"""Test code for the built-in SQS PubSub manager (LocalStack)."""
+"""Test code for the built-in PubSub manager."""
 
 
 import pytest
-import os
 from cb_binary_analysis.config.model import Config
 from cb_binary_analysis.pubsub.manager import PubSubManager
 
@@ -14,17 +13,12 @@ def local_config():
     """
     Configuration for all the test cases in this module.
     """
-    server_loc = os.environ.get('SQS_TEST_SERVER_ADDR') or 'localhost'
     return Config.load("""
     id: cb-binary-analysis
     version: 0.0.1
     pubsub:
       _provider: cb_binary_analysis.pubsub.builtin.Provider
-      region: us-east-1
-      endpoint_URL: http://{}:4576
-      access_key_id: ABCDEF
-      access_key: 0123456789ABCDEF
-    """.format(server_loc))
+    """)
 
 
 def test_operate_on_one_queue(local_config):
