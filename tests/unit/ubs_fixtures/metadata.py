@@ -1,5 +1,7 @@
 """Binary Metadata"""
 
+from cbapi.errors import ObjectNotFoundError
+
 metadata_valid = {
     'sha256': '0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc',
     'url': 'https://www.example.com',
@@ -78,5 +80,6 @@ hash_metadata = {
         "product_version": "6.1.7601.23755",
         "special_build": None,
         "trademark": None
-    }
+    },
+    "e02d9989cbe295518350ed3f5a04a713ece692406a9ee354785c2a4078466dcd": ObjectNotFoundError
 }

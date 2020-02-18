@@ -6,8 +6,6 @@ import pytest
 import re
 import copy
 
-from cbapi.errors import ObjectNotFoundError
-
 
 class CBAPIMock:
     """Mock framework for unit tests that need to fetch Carbon Black Cloud data"""
@@ -65,11 +63,9 @@ class CBAPIMock:
             When PUT body is None then respond with request body
 
         """
-
-        if body is Exception or body in Exception.__subclasses__():
-            raise body
-
-        if verb == "GET" or verb == "RAW_GET" or callable(body):
+        if verb == "GET" or verb == "RAW_GET" or \
+           callable(body) or \
+           body is Exception or body in Exception.__subclasses__():
             self.mocks["{}:{}".format(verb, url)] = body
         else:
             self.mocks["{}:{}".format(verb, url)] = self.StubResponse(body)
@@ -84,6 +80,8 @@ class CBAPIMock:
             if matched:
                 if callable(self.mocks[matched]):
                     return self.mocks[matched](url, params, default)
+                elif self.mocks[matched] is Exception or self.mocks[matched] in Exception.__subclasses__():
+                    raise self.mocks[matched]
                 else:
                     return self.mocks[matched]
             pytest.fail("GET called for %s when it shouldn't be" % url)
@@ -96,6 +94,8 @@ class CBAPIMock:
             if matched:
                 if callable(self.mocks[matched]):
                     return self.StubResponse(self.mocks[matched](url, body, **kwargs))
+                elif self.mocks[matched] is Exception or self.mocks[matched] in Exception.__subclasses__():
+                    raise self.mocks[matched]
                 else:
                     return self.mocks[matched]
             pytest.fail("POST called for %s when it shouldn't be" % url)
@@ -108,6 +108,8 @@ class CBAPIMock:
             if matched:
                 if callable(self.mocks[matched]):
                     return self.mocks[matched](url, query_params, **kwargs)
+                elif self.mocks[matched] is Exception or self.mocks[matched] in Exception.__subclasses__():
+                    raise self.mocks[matched]
                 else:
                     return self.mocks[matched]
             pytest.fail("Raw GET called for %s when it shouldn't be" % url)
@@ -124,6 +126,8 @@ class CBAPIMock:
                     response._contents = body
                 elif callable(self.mocks[matched]):
                     return self.StubResponse(self.mocks[matched](url, body, **kwargs))
+                elif self.mocks[matched] is Exception or self.mocks[matched] in Exception.__subclasses__():
+                    raise self.mocks[matched]
                 return response
             pytest.fail("PUT called for %s when it shouldn't be" % url)
         return _put_object
@@ -135,6 +139,8 @@ class CBAPIMock:
             if matched:
                 if callable(self.mocks[matched]):
                     return self.StubResponse(self.mocks[matched](url))
+                elif self.mocks[matched] is Exception or self.mocks[matched] in Exception.__subclasses__():
+                    raise self.mocks[matched]
                 else:
                     return self.mocks[matched]
             pytest.fail("DELETE called for %s when it shouldn't be" % url)

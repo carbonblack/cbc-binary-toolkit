@@ -62,8 +62,11 @@ def mock_downloads(url, body, **kwargs):
         "error": []
     }
 
+    not_found_hashes = ["31132832bc0f3ce4a15601dc190c98b9a40a9aba1d87dae59b217610175bdfde"]
+
     for hash in body["sha256"]:
-        response["found"].append({"sha256": hash, "url": "AWS_FAKE_URL"})
+        if hash not in not_found_hashes:
+            response["found"].append({"sha256": hash, "url": "AWS_FAKE_URL"})
     return response
 
 
@@ -74,7 +77,8 @@ def cbapi_mock(monkeypatch, cb_threat_hunter):
 
     hashes = [
         "405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4",
-        "0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc"
+        "0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc",
+        "e02d9989cbe295518350ed3f5a04a713ece692406a9ee354785c2a4078466dcd"
     ]
 
     for hash in hashes:
@@ -107,8 +111,12 @@ def test_receiveMessage_ask(actor, cbapi_mock, state_manager, input):
 
 
 @pytest.mark.parametrize("input", [
-    # Single hash in a single batch
+    # Hash metadata missing
     [{'sha256': ['e02d9989cbe295518350ed3f5a04a713ece692406a9ee354785c2a4078466dcd'], 'expiration_seconds': 3600}],
+    # Hash not found in UBS
+    [{'sha256': ['31132832bc0f3ce4a15601dc190c98b9a40a9aba1d87dae59b217610175bdfde'], 'expiration_seconds': 3600}],
+    # Invalid hash
+    [{'sha256': ['INVALID'], 'expiration_seconds': 3600}]
 ])
 def test_hash_not_found(actor, cbapi_mock, state_manager, input):
     """Test receiveMessage"""
@@ -116,7 +124,7 @@ def test_hash_not_found(actor, cbapi_mock, state_manager, input):
         completion = ActorSystem().ask(actor, item, 10)
         assert "Completed" in completion
         for hash in item["sha256"]:
-            assert state_manager.lookup(hash, ENGINE_NAME)
+            assert state_manager.lookup(hash, ENGINE_NAME) is None
 
 
 @pytest.mark.parametrize("input", [
