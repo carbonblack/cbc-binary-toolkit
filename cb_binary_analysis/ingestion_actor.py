@@ -4,6 +4,7 @@
 
 import logging
 import traceback
+import pdb
 
 from thespian.actors import Actor, ActorExitRequest
 from thespian.initmsgs import initializing_messages
@@ -84,6 +85,8 @@ class IngestionActor(Actor):
             # Send to Pub/Sub
         except Exception as e:
             log.error(f"Error caught in worker: {e}\n {traceback.format_exc()}")
+        except:
+            log.error("Caught!!!!!!")
 
     def _clean_up(self):
         for i in range(self.num_worker_threads):
@@ -115,7 +118,7 @@ class IngestionActor(Actor):
         elif not isinstance(message, dict) or not isinstance(message.get("sha256", None), list):
             self.send(sender, 'Invalid message format expected: {"sha256": [str, ...], "expiration_seconds": int }')
             return
-
+        breakpoint()
         hashes = message.get("sha256")
         new_hashes = []
 

@@ -6,6 +6,8 @@ import pytest
 import re
 import copy
 
+from cbapi.errors import ObjectNotFoundError
+
 
 class CBAPIMock:
     """Mock framework for unit tests that need to fetch Carbon Black Cloud data"""
