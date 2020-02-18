@@ -9,3 +9,5 @@ carbonblackcloud:
 database:
   _provider: cb_binary_analysis.state.builtin.Persistor
   location: cb-binary-analysis.db
+pubsub:
+  _provider: cb_binary_analysis.pubsub.builtin.Provider
