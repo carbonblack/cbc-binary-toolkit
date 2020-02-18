@@ -63,6 +63,10 @@ class CBAPIMock:
             When PUT body is None then respond with request body
 
         """
+
+        if body is Exception or body in Exception.__subclasses__():
+            raise body
+
         if verb == "GET" or verb == "RAW_GET":
             self.mocks["{}:{}".format(verb, url)] = body
         else:

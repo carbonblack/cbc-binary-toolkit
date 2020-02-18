@@ -6,7 +6,6 @@ Functions to retrieve binaries from UBS
 """
 
 from cbapi.psc.threathunter.models import Binary, Downloads
-from cbapi.psc.threathunter import CbThreatHunterAPI
 import logging
 
 log = logging.getLogger(__name__)
@@ -31,6 +30,8 @@ class RedownloadHashes:
         self.shas = shas
         self.expiration_seconds = expiration_seconds
         self.found = []
+        self.not_found = []
+        self.attempt_num = 0
 
     def redownload(self):
         """Attempts to redownload hashes up to five times before exiting."""
@@ -38,36 +39,33 @@ class RedownloadHashes:
             "sha256": self.shas,
             "expiration_seconds": self.expiration_seconds,
         }
-        url = self.urlobject.format(self.cb.credentials.org_key)  # need an org key from config here
+        url = self.urlobject.format(self.cb.credentials.org_key)
         download = self.cb.post_object(url, body).json()
-
+        self.attempt_num += 1
         # save any hashes found on the first retry
         if download["found"]:
-            self.found = download["found"]
+            self.found = download["found"]  # len 1
 
-        attempt_num = 1
-        while download["error"] and attempt_num < self.RETRY_LIMIT:
+        if download["not_found"]:
+            self.not_found = download["not_found"]  # len 1
+
+        while download["error"] and self.attempt_num < self.RETRY_LIMIT:
             body["sha256"] = download["error"]
             download = self.cb.post_object(url, body).json()
 
             if download["found"]:
                 self.found.extend(download["found"])
+            if download["not_found"]:
+                self.not_found.extend(download["not_found"])
 
-            attempt_num += 1
+            self.attempt_num += 1
 
-        if attempt_num == self.RETRY_LIMIT and download["error"]:
+        if self.attempt_num == self.RETRY_LIMIT and download["error"]:
             log.error(f"Reached retry limit for redownloading {len(download['error'])} hashes.")
 
-
-def _create_cbth(args):
-    """Generates a CbThreatHunterAPI object to use in other functions."""
-    try:
-        cbth = CbThreatHunterAPI(url=args['url'], token=args['apitoken'],
-                                 ssl_verify=args['ssl_verify'], org_key=args['orgkey'])
-    except Exception as err:
-        log.error(f"Failed to create a CbThreatHunterAPI object. Exiting. {err}")
-        raise
-    return cbth
+        if self.not_found:
+            log.warning(f"During retry, {len(self.not_found)} hashes were not found in "
+                        f"the Universal Binary Store: {self.not_found}")
 
 
 def _download_hashes(cbth, hashes, expiration_seconds):
@@ -88,6 +86,7 @@ def _download_hashes(cbth, hashes, expiration_seconds):
         return downloads
     except Exception as err:
         log.error(f"Error downloading hashes from UBS: {err}")
+        raise
         return
 
 
@@ -110,7 +109,7 @@ def _download_binary_metadata(cbth, found_binary):
             if isinstance(th_binary, Binary):
                 binary_metadata.update(th_binary._info)
             return binary_metadata
-        except (KeyError, Exception) as err:
+        except Exception as err:
             log.error(f"Error downloading binary metadata from UBS: {err}")
             raise
             return
@@ -159,11 +158,11 @@ def _validate_download(cbth, download, expiration_seconds):
     return download_found, redownload
 
 
-def download_hashes(config, hashes, expiration_seconds=3600):
+def download_hashes(cbth, hashes, expiration_seconds=3600):
     """Initiates download of hashes.
 
     Args:
-        config (cb_binary_analysis.config.model.config): Config details for CBTH.
+        cbth (CbThreatHunterAPI): CB ThreatHunter object.
         hashes (List[str]): hashes to be downloaded from UBS.
         expiration_seconds (int, optional): Desired timeout for AWS links to binaries.
 
@@ -172,10 +171,11 @@ def download_hashes(config, hashes, expiration_seconds=3600):
         None if an error occurred during download.
 
     Examples:
-        >>> download_hashes(config, ["0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc"])
+        >>> download_hashes(cbth, ["0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc"])
     """
-    cbth = _create_cbth(config._data['carbonblackcloud'])
-
+    if not hashes:
+        log.error("No hashes supplied to download_hashes.")
+        return
     download = _download_hashes(cbth, hashes, expiration_seconds)
 
     checked_download, retried_download = _validate_download(cbth, download, expiration_seconds)
