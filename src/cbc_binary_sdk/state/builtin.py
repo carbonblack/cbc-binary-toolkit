@@ -4,6 +4,7 @@
 
 
 import sqlite3
+import json
 from .manager import BasePersistor, BasePersistorFactory
 
 
@@ -12,7 +13,7 @@ class SQLiteBasedPersistor(BasePersistor):
     def __init__(self, conn):
         """Constructor"""
         self._conn = conn
-
+        
     def get_file_state(self, binary_hash, engine=None):
         """
         Get the stored file state for a specified hash value.
@@ -84,6 +85,43 @@ class SQLiteBasedPersistor(BasePersistor):
                                   attrs.get('time_returned', None), attrs.get('time_published', None)))
             return cursor.lastrowid
 
+    def get_unfinished_states(self, engine=None):
+        """
+        Returns all states not marked as "analysis finished" (possibly for a single engine).
+        
+        :param engine str: (Optional) The engine value to look up in the database.
+        :return: A list of dicts containing all unfinished file information. Returns an empty list if none present.
+        """
+        cursor = self._conn.cursor()
+        if engine:
+            stmt = """
+            SELECT rowid, file_hash, file_size, file_name, os_type, engine_name, time_sent, time_returned
+                FROM run_state
+                WHERE time_published IS NULL AND engine_name = ?
+                ORDER BY max(julianday(time_sent), julianday(coalesce(time_returned, time_sent)),
+                             julianday(coalesce(time_published, time_returned, time_sent))) DESC;
+            """
+            output_iterator = cursor.execute(stmt, (engine, ))
+        else:
+            stmt = """
+            SELECT rowid, file_hash, file_size, file_name, os_type, engine_name, time_sent, time_returned
+                FROM run_state
+                WHERE time_published IS NULL
+                ORDER BY max(julianday(time_sent), julianday(coalesce(time_returned, time_sent)),
+                             julianday(coalesce(time_published, time_returned, time_sent))) DESC;
+            """
+            output_iterator = cursor.execute(stmt)
+        return_list = []
+        for row in output_iterator:
+            value = {'persist_id': row[0], 'file_hash': row[1], 'file_size': row[2], 'file_name': row[3],
+                     'os_type': row[4], 'engine_name': row[5]}
+            if row[6]:
+                value['time_sent'] = row[6]
+            if row[7]:
+                value['time_returned'] = row[7]
+            return_list.append(value)
+        return return_list
+
     def prune(self, timestamp):
         """
         Erases all entries from the database older than a specified time.
@@ -100,6 +138,47 @@ class SQLiteBasedPersistor(BasePersistor):
         cursor.close()
         self._conn.commit()
         self._conn.execute("VACUUM;")
+
+    def add_report_item(self, severity, engine, data):
+        """
+        Adds a new report item (IOC record) to the current stored list.
+        
+        :param severity int: The severity level (1-10).
+        :param engine str: The engine value to store this data for.
+        :param data dict: The data item to be stored.
+        """
+        cursor = self._conn.cursor()
+        stmt = """
+        INSERT INTO report_item (severity, engine_name, data)
+            VALUES (?, ?, ?);
+        """
+        cursor.execute(stmt, (severity, engine, json.dumps(data)))
+    
+    def get_current_report_items(self, severity, engine):
+        """
+        Returns all current report items (IOC records) in the given list.
+        
+        :param severity int: The severity level (1-10).
+        :param engine str: The engine value to return data for.
+        :return: A list of dicts, each of which represents a report item.
+        """
+        cursor = self._conn.cursor()
+        stmt = "SELECT data FROM report_item WHERE severity = ? AND engine_name = ?;"
+        return_list = []
+        for row in cursor.execute(stmt, (severity, engine)):
+            return_list.append(json.loads(row[0]))
+        return return_list
+    
+    def clear_report_items(self, severity, engine):
+        """
+        Clears all report items (IOC records) from a given list.
+        
+        :param severity int: The severity level (1-10).
+        :param engine str: The engine value to clear data for.
+        """
+        cursor = self._conn.cursor()
+        stmt = "DELETE FROM report_item WHERE severity = ? AND engine_name = ?;"
+        cursor.execute(stmt, (severity, engine))
 
 
 class Persistor(BasePersistorFactory):
@@ -136,3 +215,12 @@ class Persistor(BasePersistorFactory):
         );
         """
         cursor.execute(stmt)
+        stmt = """
+        CREATE TABLE IF NOT EXISTS report_item (
+            severity INTEGER NOT NULL,
+            engine_name TEXT NOT NULL,
+            data TEXT NOT NULL
+        );
+        """
+        cursor.execute(stmt)
+        

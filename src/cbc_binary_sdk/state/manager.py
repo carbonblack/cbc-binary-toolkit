@@ -110,6 +110,15 @@ class StateManager:
         """
         return self._persistor.get_file_state(binary_hash, engine)
 
+    def get_unfinished_states(self, engine=None):
+        """
+        Returns all states not marked as "analysis finished" (possibly for a single engine).
+        
+        :param engine str: (Optional) The engine value to look up in the database.
+        :return: A list of dicts containing all unfinished file information. Returns an empty list if none present.
+        """
+        return self._persistor.get_unfinished_states(engine)
+
     def prune(self, timestamp):
         """
         Erase all records older than a specified timestamp.
@@ -131,3 +140,32 @@ class StateManager:
         :return: The row ID of the database row, either new or existing.
         """
         return self._persistor.set_file_state(binary_hash, attrs, rowid)
+
+    def add_report_item(self, severity, engine, data):
+        """
+        Adds a new report item (IOC record) to the current stored list.
+        
+        :param severity int: The severity level (1-10).
+        :param engine str: The engine value to store this data for.
+        :param data dict: The data item to be stored.
+        """
+        self._persistor.add_report_item(severity, engine, data)
+    
+    def get_current_report_items(self, severity, engine):
+        """
+        Returns all current report items (IOC records) in the given list.
+        
+        :param severity int: The severity level (1-10).
+        :param engine str: The engine value to return data for.
+        :return: A list of dicts, each of which represents a report item.
+        """
+        return self._persistor.get_current_report_items(severity, engine)
+    
+    def clear_report_items(self, severity, engine):
+        """
+        Clears all report items (IOC records) from a given list.
+        
+        :param severity int: The severity level (1-10).
+        :param engine str: The engine value to clear data for.
+        """
+        self._persistor.clear_report_items(severity, engine)
