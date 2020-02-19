@@ -14,7 +14,8 @@ install_reqs = [
     "python-dateutil",
     "pyyaml",
     "thespian",
-    "cbapi"
+    "cbapi",
+    "schema"
 ]
 
 setup(
