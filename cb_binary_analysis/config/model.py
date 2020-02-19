@@ -10,10 +10,12 @@ from .errors import ConfigError
 
 
 class Config:
+    """Config processing and management"""
     default_location = 'config/binary-analysis-config.yaml'
     _required_id = 'cb-binary-analysis'
 
     def __init__(self, data):
+        """Constructor"""
         self._data = data
 
     @classmethod
@@ -105,8 +107,9 @@ class Config:
 
     def section(self, path):
         """
-        Returns a sub-section of the configuration data as another Config object. This accesses the same
-        data, but without the prefix. For example, if B == A.section("foo"), then
+        Returns a sub-section of the configuration data as another Config object.
+
+        This accesses the same data, but without the prefix. For example, if B == A.section("foo"), then
         B.string("bar") == A.string("foo.bar").
 
         :param path: The path to the configuration section (with components separated by '.')

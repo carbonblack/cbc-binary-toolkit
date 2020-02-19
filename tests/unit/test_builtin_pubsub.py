@@ -10,9 +10,7 @@ from cb_binary_analysis.pubsub.manager import PubSubManager
 
 @pytest.fixture
 def local_config():
-    """
-    Configuration for all the test cases in this module.
-    """
+    """Configuration for all the test cases in this module."""
     return Config.load("""
     id: cb-binary-analysis
     version: 0.0.1
@@ -22,6 +20,7 @@ def local_config():
 
 
 def test_operate_on_one_queue(local_config):
+    """TODO"""
     manager = PubSubManager(local_config)
     testq = manager.create_queue('testq')
 
@@ -32,6 +31,7 @@ def test_operate_on_one_queue(local_config):
 
 
 def test_two_refs_to_same_queue(local_config):
+    """TODO"""
     manager = PubSubManager(local_config)
     testq_out = manager.create_queue('testq1')
     testq_in = manager.create_queue('testq1')
@@ -43,6 +43,7 @@ def test_two_refs_to_same_queue(local_config):
 
 
 def test_sequential_order(local_config):
+    """TODO"""
     manager = PubSubManager(local_config)
     testq = manager.create_queue('testq2')
 

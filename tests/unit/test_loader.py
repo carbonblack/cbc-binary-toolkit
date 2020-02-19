@@ -8,10 +8,12 @@ from cb_binary_analysis.loader import dynamic_load, dynamic_create
 
 
 class TestClassForLoad:
+    """TODO"""
     pass
 
 
 def test_dynamic_load():
+    """TODO"""
     class1 = dynamic_load('test_loader.TestClassForLoad')
     assert class1 == TestClassForLoad
     with pytest.raises(ImportError):
@@ -19,6 +21,7 @@ def test_dynamic_load():
 
 
 def test_dynamic_create():
+    """TODO"""
     obj1 = dynamic_create('test_loader.TestClassForLoad')
     assert isinstance(obj1, TestClassForLoad)
     with pytest.raises(ImportError):

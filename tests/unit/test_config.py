@@ -8,6 +8,7 @@ from cb_binary_analysis.config.errors import ConfigError
 
 
 def test_load_valid_config():
+    """TODO"""
     cfg = Config.load("""
     id: cb-binary-analysis
     version: 0.0.1
@@ -30,6 +31,7 @@ def test_load_valid_config():
 
 
 def test_load_errors():
+    """TODO"""
     with pytest.raises(ConfigError, match=r"^Invalid configuration data format"):
         Config.load("""
         - alpha
@@ -53,6 +55,7 @@ def test_load_errors():
 
 
 def test_section():
+    """TODO"""
     cfg = Config.load("""
     id: cb-binary-analysis
     version: 0.0.1

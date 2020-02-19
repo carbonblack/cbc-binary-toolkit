@@ -8,10 +8,9 @@ from .manager import BasePersistor, BasePersistorFactory
 
 
 class SQLiteBasedPersistor(BasePersistor):
-    """
-    Default implementation of the persistor that uses SQLite to store information.
-    """
+    """Default implementation of the persistor that uses SQLite to store information."""
     def __init__(self, conn):
+        """Constructor"""
         self._conn = conn
 
     def get_file_state(self, binary_hash, engine=None):
@@ -104,9 +103,7 @@ class SQLiteBasedPersistor(BasePersistor):
 
 
 class Persistor(BasePersistorFactory):
-    """
-    Default implementation of the persistor factory that uses SQLite to store information.
-    """
+    """Default implementation of the persistor factory that uses SQLite to store information."""
     def create_persistor(self, config):
         """
         Creates a new persistor object.

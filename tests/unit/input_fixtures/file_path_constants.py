@@ -1,6 +1,4 @@
-"""
-File paths for testing purposes
-"""
+"""File paths for testing purposes"""
 
 BASIC_INPUT_FILE = 'tests/unit/input_fixtures/basic/csv_input'
 LARGE_INPUT_FILE = 'tests/unit/input_fixtures/large/csv_input'

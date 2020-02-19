@@ -10,9 +10,7 @@ from cb_binary_analysis.state.manager import StateManager
 
 @pytest.fixture
 def local_config():
-    """
-    Configuration for all the test cases in this module.
-    """
+    """Configuration for all the test cases in this module."""
     return Config.load("""
     id: cb-binary-analysis
     version: 0.0.1
@@ -23,6 +21,7 @@ def local_config():
 
 
 def test_file_state_create_and_alter(local_config):
+    """TODO"""
     manager = StateManager(local_config)
     cookie = manager.set_file_state("ABCDEFGH", {"file_size": 2000000, "file_name": "blort.exe",
                                                  "os_type": "WINDOWS", "engine_name": "default"})
@@ -52,6 +51,7 @@ def test_file_state_create_and_alter(local_config):
 
 
 def test_file_state_newest_selected(local_config):
+    """TODO"""
     manager = StateManager(local_config)
     cookie1 = manager.set_file_state("ABCDEFGH", {"file_size": 2000000, "file_name": "blort.exe",
                                                   "os_type": "WINDOWS", "engine_name": "default",
@@ -72,6 +72,7 @@ def test_file_state_newest_selected(local_config):
 
 
 def test_file_state_multi_engine(local_config):
+    """TODO"""
     manager = StateManager(local_config)
     cookie1 = manager.set_file_state("ABCDEFGH", {"file_size": 2000000, "file_name": "blort.exe",
                                                   "os_type": "WINDOWS", "engine_name": "default",
@@ -98,12 +99,14 @@ def test_file_state_multi_engine(local_config):
 
 
 def test_file_state_not_found(local_config):
+    """TODO"""
     manager = StateManager(local_config)
     state = manager.lookup("QRSTUVWXYZ")
     assert state is None
 
 
 def test_file_state_prune(local_config):
+    """TODO"""
     manager = StateManager(local_config)
     cookie1 = manager.set_file_state("ABCDEFGH", {"file_size": 2000000, "file_name": "blort.exe",
                                                   "os_type": "WINDOWS", "engine_name": "default",
