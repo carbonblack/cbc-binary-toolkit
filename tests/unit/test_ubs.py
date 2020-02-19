@@ -37,6 +37,7 @@ not_found_hashes = ["6c4eb3c9e0f478b2d19a329687d113ba92c90a17d0caa6c40247a5afff3
     hashes]
 )
 def test_download_hashes(cbapi_mock, hashes):
+    """TODO"""
     cbapi_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download", FILE_DOWNLOAD_RESP)
     hash_dl = _download_hashes(cbapi_mock.api, hashes, 60)
     assert len(hash_dl.found) == 1
@@ -45,6 +46,7 @@ def test_download_hashes(cbapi_mock, hashes):
 
 
 def test_download_hashes_invalid(cbapi_mock):
+    """TODO"""
     cbapi_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download", None)
     found_hashes = download_hashes(cbapi_mock.api, [])
     assert found_hashes is None
@@ -55,6 +57,7 @@ def test_download_hashes_invalid(cbapi_mock):
     not_found_hashes]
 )
 def test_download_hashes_exception(cbapi_mock, hashes):
+    """TODO"""
     with pytest.raises(Exception):
         cbapi_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download", Exception)
         dl = _download_hashes(cbapi_mock.api, hashes, 60)
@@ -65,6 +68,7 @@ def test_download_hashes_exception(cbapi_mock, hashes):
     hashes]
 )
 def test_download_binary_metadata(cbapi_mock, hashes):
+    """TODO"""
     cbapi_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download", FILE_DOWNLOAD_RESP)
     hash_dl = _download_hashes(cbapi_mock.api, hashes, 60)
     found_hashes, redownload_found_hashes = _validate_download(cbapi_mock.api, hash_dl, 60)
@@ -82,6 +86,7 @@ def test_download_binary_metadata(cbapi_mock, hashes):
     not_found_hashes]
 )
 def test_download_binary_metadata_not_found(cbapi_mock, hashes):
+    """TODO"""
     with pytest.raises(Exception):
         cbapi_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download", Exception)  # put in the Exception
         hash_dl = _download_hashes(cbapi_mock.api, hashes, 60)
@@ -104,6 +109,7 @@ def test_download_binary_metadata_not_found(cbapi_mock, hashes):
     ["url", "sha256"]]
 )
 def test_download_binary_metadata_invalid(cbapi_mock, input):
+    """TODO"""
     if isinstance(input, dict):
         with pytest.raises(KeyError):
             metadl = _download_binary_metadata(cbapi_mock.api, input)
@@ -117,6 +123,7 @@ def test_download_binary_metadata_invalid(cbapi_mock, input):
     hashes]
 )
 def test_redownloadHashes(cbapi_mock, hashes):
+    """TODO"""
     cbapi_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download", FILE_DOWNLOAD_RESP)
     redownload = RedownloadHashes(cbapi_mock.api, hashes, 60)
     assert redownload.cb == cbapi_mock.api
@@ -131,6 +138,7 @@ def test_redownloadHashes(cbapi_mock, hashes):
     hashes]
 )
 def test_validate_download(cbapi_mock, hashes):
+    """TODO"""
     cbapi_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download", FILE_DOWNLOAD_RESP)
     hash_dl = _download_hashes(cbapi_mock.api, hashes, 60)
     found_hashes, redownload_found_hashes = _validate_download(cbapi_mock.api, hash_dl, 60)
@@ -142,6 +150,7 @@ def test_validate_download(cbapi_mock, hashes):
     not_found_hashes]
 )
 def test_validate_download_not_found(cbapi_mock, hashes):
+    """TODO"""
     with pytest.raises(Exception):
         cbapi_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download", Exception)
         hash_dl = _download_hashes(cbapi_mock.api, hashes, 60)
@@ -151,6 +160,7 @@ def test_validate_download_not_found(cbapi_mock, hashes):
 
 
 def test_validate_download_empty(cbapi_mock):
+    """TODO"""
     assert _validate_download(cbapi_mock.api, None, 60) == (None, None)
 
 
@@ -158,6 +168,7 @@ def test_validate_download_empty(cbapi_mock):
     hashes]
 )
 def test_download_metadata(cbapi_mock, hashes):
+    """TODO"""
     cbapi_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download", FILE_DOWNLOAD_RESP)
     found_hashes = download_hashes(cbapi_mock.api, hashes)
     cbapi_mock.mock_request("GET", f"/ubs/v1/orgs/test/sha256/{found_hashes[0]['sha256']}/metadata",
@@ -174,6 +185,7 @@ def test_download_metadata(cbapi_mock, hashes):
     hashes]
 )
 def test_get_metadata(cbapi_mock, hashes):
+    """TODO"""
     cbapi_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download", FILE_DOWNLOAD_RESP)
     found_hashes = download_hashes(cbapi_mock.api, hashes)
     cbapi_mock.mock_request("GET", f"/ubs/v1/orgs/test/sha256/{found_hashes[0]['sha256']}/metadata",
@@ -187,6 +199,7 @@ def test_get_metadata(cbapi_mock, hashes):
 
 
 def test_get_metadata_invalid(cbapi_mock):
+    """TODO"""
     found_hashes = {"something": "wedontwant"}
     with pytest.raises(KeyError):
         get_metadata(cbapi_mock.api, found_hashes)
@@ -200,6 +213,7 @@ def test_get_metadata_invalid(cbapi_mock):
     not_found_hashes]
 )
 def test_redownload_class_only_errors(cbapi_mock, hashes):
+    """TODO"""
     redownload = RedownloadHashes(cbapi_mock.api, hashes, 60)
     cbapi_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download", FILE_DOWNLOAD_ERROR)
     redownload.redownload()
@@ -211,6 +225,7 @@ def test_redownload_class_only_errors(cbapi_mock, hashes):
     not_found_hashes]
 )
 def test_redownload_class_found_notfound(cbapi_mock, hashes):
+    """TODO"""
     redownload = RedownloadHashes(cbapi_mock.api, hashes, 60)
     cbapi_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download", FILE_DOWNLOAD_RESP)
     redownload.redownload()
@@ -221,6 +236,7 @@ def test_redownload_class_found_notfound(cbapi_mock, hashes):
     hashes]
 )
 def test_redownload_class_all_types(cbapi_mock, hashes):
+    """TODO"""
     redownload = RedownloadHashes(cbapi_mock.api, hashes, 60)
     assert redownload.shas == hashes
     assert len(redownload.found) == 0

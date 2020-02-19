@@ -9,7 +9,9 @@ from cb_binary_analysis.pubsub.manager import BaseQueue, BaseProvider, BaseProvi
 
 
 class TestQueue(BaseQueue):
+    """TODO"""
     def put(self, workitem):
+        """TODO"""
         assert workitem["foo"] == "bar"
         if hasattr(self, "_p"):
             self._p = self._p + 1
@@ -17,6 +19,7 @@ class TestQueue(BaseQueue):
             self._p = 1
 
     def get(self):
+        """TODO"""
         if hasattr(self, "_g"):
             self._g = self._g + 1
         else:
@@ -25,23 +28,25 @@ class TestQueue(BaseQueue):
 
 
 class TestProvider(BaseProvider):
+    """TODO"""
     def create_queue(self, queue_name):
+        """TODO"""
         q = TestQueue()
         q._name = queue_name
         return q
 
 
 class TestProviderFactory(BaseProviderFactory):
+    """TODO"""
     def create_pubsub_provider(self, config):
+        """TODO"""
         assert config.string("is_test") == "True"
         return TestProvider()
 
 
 @pytest.fixture
 def local_config():
-    """
-    Configuration for all the test cases in this module.
-    """
+    """Configuration for all the test cases in this module."""
     return Config.load("""
     id: cb-binary-analysis
     version: 0.0.1
@@ -52,6 +57,7 @@ def local_config():
 
 
 def test_get(local_config):
+    """TODO"""
     manager = PubSubManager(local_config)
     queue = manager.create_queue("blort")
     assert queue._name == "blort"
@@ -62,6 +68,7 @@ def test_get(local_config):
 
 
 def test_put(local_config):
+    """TODO"""
     manager = PubSubManager(local_config)
     queue = manager.create_queue("blort")
     assert queue._name == "blort"

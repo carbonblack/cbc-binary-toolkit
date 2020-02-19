@@ -7,9 +7,7 @@ from cb_binary_analysis.loader import dynamic_create
 
 
 class BasePersistor:
-    """
-    "Abstract base class" that should be inherited by persistor objects.
-    """
+    """'Abstract base class' that should be inherited by persistor objects."""
     def get_file_state(self, binary_hash, engine=None):
         """
         Get the stored file state for a specified hash value.
@@ -41,9 +39,7 @@ class BasePersistor:
 
 
 class BasePersistorFactory:
-    """
-    "Abstract base class" that should be inherited by persistor factory objects.
-    """
+    """'Abstract base class' that should be inherited by persistor factory objects."""
     def create_persistor(self, config):
         """
         Creates a new persistor object.
@@ -56,10 +52,12 @@ class BasePersistorFactory:
 
 class StateManager:
     """
-    High level manager for file state that passes through to a persistence provider (configured in
-    the config file) to do its work.
+    High level manager for file state that passes through to a persistence provider.
+
+    Initializes State Manager indicate by config
     """
     def __init__(self, config):
+        """Constuctor"""
         factory_classname = config.string('database._provider')
         factory = dynamic_create(factory_classname)
         self._persistor = factory.create_persistor(config.section('database'))
