@@ -164,11 +164,11 @@ def test_file_state_prune(local_config):
     assert state["file_name"] == "blort.exe"
     
     
-def _test_check_report_items(list, key, values):
+def _test_check_report_items(reportlist, key, values):
     checkoff = {}
     for v in values:
         checkoff[v] = True
-    for element in list:
+    for element in reportlist:
         v = element.get(key, None)
         assert v is not None
         assert checkoff.get(v, False) is True
