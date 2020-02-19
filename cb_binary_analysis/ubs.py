@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
-
-
-"""
-Functions to retrieve binaries from UBS
-"""
+"""Functions to retrieve binaries from UBS"""
 
 from cbapi.psc.threathunter.models import Binary, Downloads
 import logging
@@ -12,13 +8,14 @@ log = logging.getLogger(__name__)
 
 
 class RedownloadHashes:
-    """Values and function to redownload any hashes that experienced an error
-    during the initial download attempt.
+    """
+    Values and function to redownload any hashes that experienced an error during the initial download attempt.
 
     Args:
         cbth (CbThreatHunterAPI): CB ThreatHunter object.
         shas (List[str]): hashes to be redownloaded.
         expiration_seconds (int): Desired timeout for AWS links to binaries.
+
     """
 
     urlobject = "/ubs/v1/orgs/{}/file/_download"
@@ -26,6 +23,7 @@ class RedownloadHashes:
     RETRY_LIMIT = 5
 
     def __init__(self, cbth, shas, expiration_seconds):
+        """Redownload Hashes constructor"""
         self.cb = cbth
         self.shas = shas
         self.expiration_seconds = expiration_seconds
@@ -69,7 +67,8 @@ class RedownloadHashes:
 
 
 def _download_hashes(cbth, hashes, expiration_seconds):
-    """Download hashes from UBS.
+    """
+    Download hashes from UBS.
 
     Args:
         cbth (CbThreatHunterAPI): CB ThreatHunter object.
@@ -79,6 +78,7 @@ def _download_hashes(cbth, hashes, expiration_seconds):
     Returns:
         downloads: Downloads object with found, not_found, and error attributes.
         None if there is an error during download.
+
     """
     try:
         log.debug("Downloading hashes from UBS")
@@ -91,7 +91,8 @@ def _download_hashes(cbth, hashes, expiration_seconds):
 
 
 def _download_binary_metadata(cbth, found_binary):
-    """Retrieve metadata for a binary found in the UBS.
+    """
+    Retrieve metadata for a binary found in the UBS.
 
     Args:
         cbth (CbThreatHunterAPI): CB ThreatHunter object.
@@ -100,6 +101,7 @@ def _download_binary_metadata(cbth, found_binary):
     Returns:
         binary_metadata (Dict): Metadata dictionary downloaded from UBS.
         None if download for binary metadata failed.
+
     """
     if isinstance(found_binary, dict):
         try:
@@ -121,8 +123,7 @@ def _download_binary_metadata(cbth, found_binary):
 
 def _validate_download(cbth, download, expiration_seconds):
     """
-    Verifies the presence of Downloads.FoundItem. Retries downloading
-    if there are errors during download.
+    Verifies the presence of Downloads.FoundItem. Retries downloading if there are errors during download.
 
     Args:
         cbth (CbThreatHunterAPI): CB ThreatHunter object.
@@ -134,6 +135,7 @@ def _validate_download(cbth, download, expiration_seconds):
             redownloaded hashes. Second return value may be none if there were no hashes to re-download,
             or re-downloading timed out.
         (None, None) if no hashes were successfully downloaded and re-downloaded.
+
     """
     if not download:
         log.error("No hashes were found in the Universal Binary Store.")
@@ -159,7 +161,8 @@ def _validate_download(cbth, download, expiration_seconds):
 
 
 def download_hashes(cbth, hashes, expiration_seconds=3600):
-    """Initiates download of hashes.
+    """
+    Initiates download of hashes
 
     Args:
         cbth (CbThreatHunterAPI): CB ThreatHunter object.
@@ -172,6 +175,7 @@ def download_hashes(cbth, hashes, expiration_seconds=3600):
 
     Examples:
         >>> download_hashes(cbth, ["0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc"])
+
     """
     if not hashes:
         log.error("No hashes supplied to download_hashes.")
@@ -191,13 +195,16 @@ def download_hashes(cbth, hashes, expiration_seconds=3600):
 
 
 def get_metadata(cbth, binary):
-    """Initiates download of binary metadata from UBS.
+    """
+    Initiates download of binary metadata from UBS.
 
     Args:
         cbth (CbThreatHunterAPI): CB ThreatHunter object.
         binary (Dict): Dictionary with "sha256" and "url" values.
+
     Returns:
         metadata (Dict): Dictionary containing hash, download URL, and metadata.
+
     """
     metadata = None
     if not binary:

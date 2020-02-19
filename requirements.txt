@@ -8,6 +8,7 @@ cbapi
 
 # Dev dependencies
 flake8
+flake8-docstrings
 coverage
 coveralls
 pytest

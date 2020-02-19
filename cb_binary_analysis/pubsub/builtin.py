@@ -8,10 +8,9 @@ from .manager import BaseQueue, BaseProvider, BaseProviderFactory
 
 
 class PythonBasedQueue(BaseQueue):
-    """
-    Default implementation of the PubSub queue.
-    """
+    """Default implementation of the PubSub queue."""
     def __init__(self):
+        """Constructor"""
         self._queue = Queue(0)
 
     def put(self, workitem):
@@ -24,8 +23,9 @@ class PythonBasedQueue(BaseQueue):
 
     def get(self):
         """
-        Retrieves a new work item from the queue. If there are no work items available, blocks until one
-        becomes available.
+        Retrieves a new work item from the queue.
+
+        If there are no work items available, blocks until one becomes available.
 
         :return: The first work item on the queue.
         """
@@ -33,10 +33,9 @@ class PythonBasedQueue(BaseQueue):
 
 
 class PythonBasedProvider(BaseProvider):
-    """
-    Default implementation of the PubSub provider.
-    """
+    """Default implementation of the PubSub provider."""
     def __init__(self):
+        """Constructor"""
         self._queues = {}
 
     def create_queue(self, queue_name):
@@ -52,11 +51,18 @@ class PythonBasedProvider(BaseProvider):
             self._queues[queue_name] = rc
         return rc
 
+    def get_queue(self, queue_name):
+        """
+        Gets a PubSub queue by name.
+
+        :param queue_name str: The name for the new queue.
+        :return: The new queue object.
+        """
+        return self._queues.get(queue_name, None)
+
 
 class Provider(BaseProviderFactory):
-    """
-    Default implementation of the PubSub provider factory.
-    """
+    """Default implementation of the PubSub provider factory."""
     def create_pubsub_provider(self, config):
         """
         Creates a new PubSub provider object.

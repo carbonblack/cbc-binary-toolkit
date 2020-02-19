@@ -11,15 +11,11 @@ from thespian.initmsgs import initializing_messages
 from schema import SchemaError
 from cbapi.psc.threathunter import CbThreatHunterAPI, Report
 from .schemas import IOCV2Schema
+from cb_binary_analysis import InitializationError
 
 log = logging.getLogger(__name__)
 
 SEVERITY_RANGE = 10
-
-
-class InitializationError(Exception):
-    """Raised when the actor does not received the correct objects for initialization"""
-    pass
 
 
 @initializing_messages([("cbth", CbThreatHunterAPI), ("engine_name", str)], initdone='_verify_init')
