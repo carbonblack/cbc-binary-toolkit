@@ -21,7 +21,7 @@ def local_config():
 
 
 def test_file_state_create_and_alter(local_config):
-    """TODO"""
+    """Tests the ability to create and alter file states in the persistor."""
     manager = StateManager(local_config)
     cookie = manager.set_file_state("ABCDEFGH", {"file_size": 2000000, "file_name": "blort.exe",
                                                  "os_type": "WINDOWS", "engine_name": "default"})
@@ -51,7 +51,7 @@ def test_file_state_create_and_alter(local_config):
 
 
 def test_file_state_newest_selected(local_config):
-    """TODO"""
+    """Tests to make sure that, when we ask for a file state, we get the newest one."""
     manager = StateManager(local_config)
     cookie1 = manager.set_file_state("ABCDEFGH", {"file_size": 2000000, "file_name": "blort.exe",
                                                   "os_type": "WINDOWS", "engine_name": "default",
@@ -72,7 +72,7 @@ def test_file_state_newest_selected(local_config):
 
 
 def test_file_state_multi_engine(local_config):
-    """TODO"""
+    """Tests to make sure file states work with multiple engine names."""
     manager = StateManager(local_config)
     cookie1 = manager.set_file_state("ABCDEFGH", {"file_size": 2000000, "file_name": "blort.exe",
                                                   "os_type": "WINDOWS", "engine_name": "default",
@@ -99,13 +99,14 @@ def test_file_state_multi_engine(local_config):
 
 
 def test_file_state_not_found(local_config):
-    """TODO"""
+    """Tests to make sure we don't get anything for a file state that doesn't exist."""
     manager = StateManager(local_config)
     state = manager.lookup("QRSTUVWXYZ")
     assert state is None
     
     
 def test_file_state_unfinished(local_config):
+    """Tests the get_unfinished_states() functionality."""
     manager = StateManager(local_config)
     manager.set_file_state("ABCDEFGH", {"file_size": 2000000, "file_name": "blort.exe",
                                         "os_type": "WINDOWS", "engine_name": "default",
@@ -128,6 +129,7 @@ def test_file_state_unfinished(local_config):
     
     
 def test_file_state_unfinished_none(local_config):
+    """Tests the get_unfinished_states() functionality when there are no unfinished states."""
     manager = StateManager(local_config)
     manager.set_file_state("ABCDEFGH", {"file_size": 2000000, "file_name": "blort.exe",
                                         "os_type": "WINDOWS", "engine_name": "default",
@@ -144,7 +146,7 @@ def test_file_state_unfinished_none(local_config):
         
 
 def test_file_state_prune(local_config):
-    """TODO"""
+    """Tests the prune() functionality."""
     manager = StateManager(local_config)
     cookie1 = manager.set_file_state("ABCDEFGH", {"file_size": 2000000, "file_name": "blort.exe",
                                                   "os_type": "WINDOWS", "engine_name": "default",
@@ -165,6 +167,7 @@ def test_file_state_prune(local_config):
     
     
 def _test_check_report_items(reportlist, key, values):
+    """Helper function for test_report_items."""
     checkoff = {}
     for v in values:
         checkoff[v] = True
@@ -177,6 +180,7 @@ def _test_check_report_items(reportlist, key, values):
 
 
 def test_report_items(local_config):
+    """Tests the management of report items."""
     manager = StateManager(local_config)
     manager.add_report_item(6, 'default', {'keyval': 1})
     manager.add_report_item(6, 'default', {'keyval': 4})    
