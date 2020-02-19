@@ -128,9 +128,43 @@ def test_receiveMessage_ask(actor, cbapi_mock, state_manager, pub_sub_manager, i
     try:
         while True:
             data = pub_sub_queue._queue.get(False)
+            assert data["persist_id"]
+            # Remove persist_id when comparing against METADATA_DOWNLOAD_RESP
+            del data["persist_id"]
             assert data == METADATA_DOWNLOAD_RESP[data["sha256"]]
     except Empty:
         pass
+
+
+@pytest.mark.parametrize("input", [
+    # Duplicate hashes in a single batch
+    [{'sha256': ['405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4',
+                 '405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4'], 'expiration_seconds': 3600}],
+    # Duplicate hases in multiple batches
+    [{'sha256': ['405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4'], 'expiration_seconds': 3600},
+     {'sha256': ['405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4'], 'expiration_seconds': 3600}]
+])
+def test_duplicate_hashes(actor, cbapi_mock, state_manager, pub_sub_manager, input):
+    """Test receiveMessage"""
+    pub_sub_queue = pub_sub_manager.get_queue(ENGINE_NAME)
+
+    for item in input:
+        completion = ActorSystem().ask(actor, item, 10)
+        assert "Completed" in completion
+        for hash in item["sha256"]:
+            assert state_manager.lookup(hash, ENGINE_NAME)
+
+    count = 0
+    try:
+        while True:
+            data = pub_sub_queue._queue.get(False)
+            assert data["persist_id"]
+            # Remove persist_id when comparing against METADATA_DOWNLOAD_RESP
+            del data["persist_id"]
+            assert data == METADATA_DOWNLOAD_RESP[data["sha256"]]
+            count += 1
+    except Empty:
+        assert count == 1
 
 
 @pytest.mark.parametrize("input", [
@@ -184,6 +218,9 @@ def test_receiveMessage_tell(actor, cbapi_mock, state_manager, pub_sub_manager, 
     try:
         while True:
             data = pub_sub_queue._queue.get(False)
+            assert data["persist_id"]
+            # Remove persist_id when comparing against METADATA_DOWNLOAD_RESP
+            del data["persist_id"]
             assert data == METADATA_DOWNLOAD_RESP[data["sha256"]]
     except Empty:
         pass

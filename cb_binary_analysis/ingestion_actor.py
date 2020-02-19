@@ -76,14 +76,15 @@ class IngestionActor(Actor):
             engine_name = self.config.string("engine.name")
 
             # Save hash entry to state manager
-            self.state_manager.set_file_state(item["sha256"],
-                                              {
-                                              "file_size": metadata["file_size"],
-                                              "file_name": metadata["original_filename"],
-                                              "os_type": metadata["os_type"],
-                                              "engine_name": engine_name,
-                                              "time_sent": datetime.now()
-                                              })
+            metadata["persist_id"] = self.state_manager.set_file_state(item["sha256"],
+                                                                       {
+                                                                       "file_size": metadata["file_size"],
+                                                                       "file_name": metadata["original_filename"],
+                                                                       "os_type": metadata["os_type"],
+                                                                       "engine_name": engine_name,
+                                                                       "time_sent": datetime.now()
+                                                                       })
+
             # Send to Pub/Sub
             self.pub_sub_manager.put(engine_name, metadata)
         except Exception as e:
@@ -122,17 +123,19 @@ class IngestionActor(Actor):
             return
 
         hashes = message.get("sha256")
-        new_hashes = []
+        new_hashes = dict()
 
         # Check previously seen hashes
-        for i in range(0, len(hashes)):
-            if self.state_manager.lookup(hashes[i]) is None:
-                new_hashes.append(hashes[i])
+        for hash in hashes:
+            if self.state_manager.lookup(hash) is None and new_hashes.get(hash, True):
+                new_hashes[hash] = False
             else:
-                log.info(f"Hash {hashes[i]} has already been analyzed")
+                log.info(f"Hash {hash} has already been analyzed")
 
         # Download binaries from UBS
-        found = download_hashes(self.cbth, new_hashes, message.get("expiration_seconds", self.DEFAULT_EXPIRATION))
+        found = download_hashes(self.cbth,
+                                list(new_hashes.keys()),
+                                message.get("expiration_seconds", self.DEFAULT_EXPIRATION))
 
         # Iterate through found binaries
         if isinstance(found, list):

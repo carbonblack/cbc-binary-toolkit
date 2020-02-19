@@ -1,5 +1,7 @@
 """Test code for the persistence state manager."""
 
+import uuid
+
 from dateutil.parser import parse
 from cb_binary_analysis.state.manager import BasePersistor, BasePersistorFactory
 
@@ -18,6 +20,7 @@ class MockPersistor(BasePersistor):
     def set_file_state(self, binary_hash, attrs, rowid=None):
         """Mock set file state"""
         self.db[binary_hash] = attrs
+        return uuid.uuid4()
 
     def prune(self, timestamp):
         """Mock prune"""
