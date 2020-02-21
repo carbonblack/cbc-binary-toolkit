@@ -4,8 +4,8 @@
 
 
 import pytest
-from cb_binary_analysis.config.model import Config
-from cb_binary_analysis.state.manager import StateManager
+from cbc_binary_sdk.config import Config
+from cbc_binary_sdk.state.manager import StateManager
 
 
 @pytest.fixture
@@ -15,7 +15,7 @@ def local_config():
     id: cb-binary-analysis
     version: 0.0.1
     database:
-      _provider: cb_binary_analysis.state.builtin.Persistor
+      _provider: cbc_binary_sdk.state.builtin.Persistor
       location: ":memory:"
     """)
 

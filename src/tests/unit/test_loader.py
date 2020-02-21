@@ -4,7 +4,7 @@
 
 
 import pytest
-from cb_binary_analysis.loader import dynamic_load, dynamic_create
+from cbc_binary_sdk.loader import dynamic_load, dynamic_create
 
 
 class TestClassForLoad:

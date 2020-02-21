@@ -4,9 +4,9 @@
 
 import pytest
 from thespian.actors import ActorSystem, ActorExitRequest
-from cb_binary_analysis.report_actor import ReportActor
+from cbc_binary_sdk.report_actor import ReportActor
 from cbapi.psc.threathunter import CbThreatHunterAPI
-from utils.CBAPIMock import CBAPIMock
+from tests.unit.ubs_fixtures.CBAPIMock import CBAPIMock
 
 ENGINE_NAME = "TEST_ENGINE"
 FEED_ID = "id1"

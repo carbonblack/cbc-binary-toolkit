@@ -30,11 +30,11 @@ class TestUserHandling:
     def test_analyze(self):
         """Test analyze command"""
         with open(LOG_FILE, "a+") as log:
-            subprocess.call([pycommand, 'cb-binary-analysis/main.py', 'analyze', '-l ["test"]'], stdout=log, stderr=log)
+            subprocess.call([pycommand, 'bin/cb-binary-analysis', 'analyze', '-l ["test"]'], stdout=log, stderr=log)
             pass
 
     def test_clear(self):
         """Test clear command"""
         with open(LOG_FILE, "a+") as log:
-            subprocess.call([pycommand, 'cb-binary-analysis/main.py', 'clear'], stdout=log, stderr=log)
+            subprocess.call([pycommand, 'bin/cb-binary-analysis', 'clear'], stdout=log, stderr=log)
             pass

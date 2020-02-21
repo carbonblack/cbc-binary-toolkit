@@ -3,8 +3,8 @@
 """Unit tests for the configuration code"""
 
 import pytest
-from cb_binary_analysis.config.model import Config
-from cb_binary_analysis.config.errors import ConfigError
+from cbc_binary_sdk.config import Config
+from cbc_binary_sdk.config.errors import ConfigError
 
 
 def test_load_valid_config():

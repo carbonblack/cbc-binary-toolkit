@@ -1,5 +1,5 @@
 [run]
-source = cb_binary_analysis
+source = src/cbc_binary_sdk
 [report]
 exclude_lines =
     pragma: no cover

@@ -4,8 +4,8 @@
 
 
 import pytest
-from cb_binary_analysis.config.model import Config
-from cb_binary_analysis.pubsub.manager import PubSubManager
+from cbc_binary_sdk.config import Config
+from cbc_binary_sdk.pubsub.manager import PubSubManager
 
 
 @pytest.fixture
@@ -15,7 +15,7 @@ def local_config():
     id: cb-binary-analysis
     version: 0.0.1
     pubsub:
-      _provider: cb_binary_analysis.pubsub.builtin.Provider
+      _provider: cbc_binary_sdk.pubsub.builtin.Provider
     """)
 
 

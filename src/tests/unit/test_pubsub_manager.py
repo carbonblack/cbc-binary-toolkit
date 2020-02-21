@@ -4,8 +4,8 @@
 
 
 import pytest
-from cb_binary_analysis.config.model import Config
-from cb_binary_analysis.pubsub.manager import BaseQueue, BaseProvider, BaseProviderFactory, PubSubManager
+from cbc_binary_sdk.config import Config
+from cbc_binary_sdk.pubsub.manager import BaseQueue, BaseProvider, BaseProviderFactory, PubSubManager
 
 
 class TestQueue(BaseQueue):

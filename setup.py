@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Python setup script for PIP packaging"""
+from __future__ import unicode_literals
 import os
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 def read(fname):
@@ -19,7 +20,7 @@ install_reqs = [
 ]
 
 setup(
-    name="cb-binary-analysis",
+    name="cbc_binary_sdk",
     version=read("VERSION"),
     url="https://developer.carbonblack.com/",
     license="MIT",
@@ -35,5 +36,8 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
     install_requires=install_reqs,
-    packages=["cb_binary_analysis"]
+    package_dir={'': 'src'},
+    packages=find_packages(where="src", exclude=["tests.*", "tests"]),
+    scripts=["bin/cbc-binary-analysis"],
+    data_files=[("carbonblackcloud/binary-sdk", ["config/binary-analysis-config.yaml.example"])]
 )
