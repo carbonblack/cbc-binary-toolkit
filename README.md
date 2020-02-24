@@ -6,7 +6,7 @@
 <br>
 **Release Date:** N/A
 
-
+The Binary Analysis SDK provides a system of processing incoming SHA256 hashes by integrating with the Universal Binary Store (UBS) on the Carbon Black Cloud (CBC).
 
 
 ## Support
@@ -33,6 +33,9 @@ if you're planning on pushing changes to the Binary Analysis SDK then following 
 
 ## Getting Started
 
+There are two ways to use the Binary Analysis SDK, developing your own tool using the SDK or using the attached
+scripts which provide out of the box functionality.
+
 
 Installing the Binary Analysis SDK
 
@@ -58,18 +61,25 @@ optional arguments:
 ```
 
 
-Using the SDK
+Using the SDK to develop your own tools
 
 ```
 from cbc_binary_sdk import *
 ```
 
 
-## Improving the Binary Analysis SDK
+
+
+## Developing Improvements for the Binary Analysis SDK
+
+If you want to provide additional examples, fix a bug, or add a feature to the SDK the following steps will get you started.
 
 ##### Installing for SDK development
+
+You will need to fork the repo in order to create pull requests when submitting code for review. For details on forking a repo https://help.github.com/en/github/getting-started-with-github/fork-a-repo
+
 ```
-git clone https://github.com/carbonblack/cb-binary-analysis
+git clone https://github.com/{fork-name}/cb-binary-analysis
 cd cb-binary-analysis
 pip install requirements.txt
 ```
@@ -83,3 +93,19 @@ pytest
     -s Logs streamed to stdout
     -k {test or file} Selectively runs test matching string or file
 ```
+
+##### Development Flow
+
+Create a branch off of develop
+```
+git checkout develop
+git checkout -b {branch-name}
+```
+
+If your branch is behind origin/develop on the main repo then you will need to rebase.
+```
+git checkout {branch-name}
+git rebase develop
+```
+
+Note if your develop branch is out of sync with the main repo then you will need to sync your fork. https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork
