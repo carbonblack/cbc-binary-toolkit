@@ -103,8 +103,8 @@ def test_file_state_not_found(local_config):
     manager = StateManager(local_config)
     state = manager.lookup("QRSTUVWXYZ")
     assert state is None
-    
-    
+
+
 def test_file_state_unfinished(local_config):
     """Tests the get_unfinished_states() functionality."""
     manager = StateManager(local_config)
@@ -126,8 +126,8 @@ def test_file_state_unfinished(local_config):
     assert state["time_sent"] == "2020-01-14T12:00:00"
     assert state["time_returned"] == "2020-01-14T12:05:00"
     assert state.get('time_published', None) is None
-    
-    
+
+
 def test_file_state_unfinished_none(local_config):
     """Tests the get_unfinished_states() functionality when there are no unfinished states."""
     manager = StateManager(local_config)
@@ -143,7 +143,30 @@ def test_file_state_unfinished_none(local_config):
                                         "time_published": "2020-01-14T12:05:01"})
     output = manager.get_unfinished_states()
     assert len(output) == 0
-        
+
+
+def test_num_stored_states(local_config):
+    """Tests the get_num_stored_states() API."""
+    manager = StateManager(local_config)
+    manager.set_file_state("ABCDEFGH", {"file_size": 2000000, "file_name": "blort.exe",
+                                        "os_type": "WINDOWS", "engine_name": "default",
+                                        "time_sent": "2020-01-15T12:00:00",
+                                        "time_returned": "2020-01-15T12:05:00",
+                                        "time_published": "2020-01-15T12:05:01"})
+    manager.set_file_state("MNOPQRST", {"file_size": 2000000, "file_name": "foobar.exe",
+                                        "os_type": "WINDOWS", "engine_name": "default",
+                                        "time_sent": "2020-01-14T12:00:00",
+                                        "time_returned": "2020-01-14T12:05:00",
+                                        "time_published": "2020-01-14T12:05:01"})
+    manager.set_file_state("BCDEFGHI", {"file_size": 1500000, "file_name": "gorply.exe",
+                                        "os_type": "WINDOWS", "engine_name": "another",
+                                        "time_sent": "2020-01-14T12:00:00",
+                                        "time_returned": "2020-01-14T12:05:00",
+                                        "time_published": "2020-01-14T12:05:01"})
+    output = manager.get_num_stored_states()
+    assert output['default'] == 2
+    assert output['another'] == 1
+
 
 def test_file_state_prune(local_config):
     """Tests the prune() functionality."""
@@ -164,8 +187,8 @@ def test_file_state_prune(local_config):
     state = manager.lookup("ABCDEFGH")
     assert state["persist_id"] == cookie1
     assert state["file_name"] == "blort.exe"
-    
-    
+
+
 def _test_check_report_items(reportlist, key, values):
     """Helper function for test_report_items."""
     checkoff = {}
@@ -176,21 +199,21 @@ def _test_check_report_items(reportlist, key, values):
         assert v is not None
         assert checkoff.get(v, False) is True
         del checkoff[v]
-    assert checkoff == {}    
+    assert checkoff == {}
 
 
 def test_report_items(local_config):
     """Tests the management of report items."""
     manager = StateManager(local_config)
     manager.add_report_item(6, 'default', {'keyval': 1})
-    manager.add_report_item(6, 'default', {'keyval': 4})    
+    manager.add_report_item(6, 'default', {'keyval': 4})
     manager.add_report_item(6, 'default', {'keyval': 9})
     manager.add_report_item(2, 'default', {'keyval': 2})
     manager.add_report_item(2, 'default', {'keyval': 3})
-    _test_check_report_items(manager.get_current_report_items(6, 'default'), 'keyval', [1, 4, 9])            
+    _test_check_report_items(manager.get_current_report_items(6, 'default'), 'keyval', [1, 4, 9])
     _test_check_report_items(manager.get_current_report_items(2, 'default'), 'keyval', [2, 3])
     _test_check_report_items(manager.get_current_report_items(9, 'default'), 'keyval', [])
     manager.clear_report_items(6, 'default')
-    _test_check_report_items(manager.get_current_report_items(6, 'default'), 'keyval', [])            
+    _test_check_report_items(manager.get_current_report_items(6, 'default'), 'keyval', [])
     _test_check_report_items(manager.get_current_report_items(2, 'default'), 'keyval', [2, 3])
     _test_check_report_items(manager.get_current_report_items(9, 'default'), 'keyval', [])

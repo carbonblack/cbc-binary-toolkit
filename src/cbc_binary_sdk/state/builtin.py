@@ -13,7 +13,7 @@ class SQLiteBasedPersistor(BasePersistor):
     def __init__(self, conn):
         """Constructor"""
         self._conn = conn
-        
+
     def get_file_state(self, binary_hash, engine=None):
         """
         Get the stored file state for a specified hash value.
@@ -88,7 +88,7 @@ class SQLiteBasedPersistor(BasePersistor):
     def get_unfinished_states(self, engine=None):
         """
         Returns all states not marked as "analysis finished" (possibly for a single engine).
-        
+
         :param engine str: (Optional) The engine value to look up in the database.
         :return: A list of dicts containing all unfinished file information. Returns an empty list if none present.
         """
@@ -122,6 +122,20 @@ class SQLiteBasedPersistor(BasePersistor):
             return_list.append(value)
         return return_list
 
+    def get_num_stored_states(self):
+        """
+        Returns the number of stored states in the persistence manager for each known engine.
+
+        :return: A dict with engine names as keys and count of results for each engine as values.
+        """
+        cursor = self._conn.cursor()
+        stmt = "SELECT engine_name, count(*) FROM run_state GROUP BY engine_name;"
+        output_iterator = cursor.execute(stmt)
+        return_dict = {}
+        for row in output_iterator:
+            return_dict[row[0]] = row[1]
+        return return_dict
+
     def prune(self, timestamp):
         """
         Erases all entries from the database older than a specified time.
@@ -142,7 +156,7 @@ class SQLiteBasedPersistor(BasePersistor):
     def add_report_item(self, severity, engine, data):
         """
         Adds a new report item (IOC record) to the current stored list.
-        
+
         :param severity int: The severity level (1-10).
         :param engine str: The engine value to store this data for.
         :param data dict: The data item to be stored.
@@ -153,11 +167,11 @@ class SQLiteBasedPersistor(BasePersistor):
             VALUES (?, ?, ?);
         """
         cursor.execute(stmt, (severity, engine, json.dumps(data)))
-    
+
     def get_current_report_items(self, severity, engine):
         """
         Returns all current report items (IOC records) in the given list.
-        
+
         :param severity int: The severity level (1-10).
         :param engine str: The engine value to return data for.
         :return: A list of dicts, each of which represents a report item.
@@ -168,11 +182,11 @@ class SQLiteBasedPersistor(BasePersistor):
         for row in cursor.execute(stmt, (severity, engine)):
             return_list.append(json.loads(row[0]))
         return return_list
-    
+
     def clear_report_items(self, severity, engine):
         """
         Clears all report items (IOC records) from a given list.
-        
+
         :param severity int: The severity level (1-10).
         :param engine str: The engine value to clear data for.
         """
@@ -223,4 +237,3 @@ class Persistor(BasePersistorFactory):
         );
         """
         cursor.execute(stmt)
-        

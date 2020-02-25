@@ -8,12 +8,12 @@ from cbc_binary_sdk.loader import dynamic_load, dynamic_create
 
 
 class TestClassForLoad:
-    """TODO"""
+    """Stub class to be used as a target for loading operations."""
     pass
 
 
 def test_dynamic_load():
-    """TODO"""
+    """Test to make sure we can dynamically load a class."""
     class1 = dynamic_load('test_loader.TestClassForLoad')
     assert class1 == TestClassForLoad
     with pytest.raises(ImportError):
@@ -21,7 +21,7 @@ def test_dynamic_load():
 
 
 def test_dynamic_create():
-    """TODO"""
+    """Test to make sure we can dynamically load a class and create an instance of said class."""
     obj1 = dynamic_create('test_loader.TestClassForLoad')
     assert isinstance(obj1, TestClassForLoad)
     with pytest.raises(ImportError):

@@ -20,7 +20,7 @@ def local_config():
 
 
 def test_operate_on_one_queue(local_config):
-    """TODO"""
+    """Test to make sure we can put a payload into a queue and get it out."""
     manager = PubSubManager(local_config)
     testq = manager.create_queue('testq')
 
@@ -31,7 +31,7 @@ def test_operate_on_one_queue(local_config):
 
 
 def test_two_refs_to_same_queue(local_config):
-    """TODO"""
+    """Test that two references to the same queue result in proper operation."""
     manager = PubSubManager(local_config)
     testq_out = manager.create_queue('testq1')
     testq_in = manager.create_queue('testq1')
@@ -43,7 +43,7 @@ def test_two_refs_to_same_queue(local_config):
 
 
 def test_sequential_order(local_config):
-    """TODO"""
+    """Test that we get queued items out in the same order in which they went in."""
     manager = PubSubManager(local_config)
     testq = manager.create_queue('testq2')
 
