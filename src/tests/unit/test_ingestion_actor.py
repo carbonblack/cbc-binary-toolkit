@@ -6,12 +6,12 @@ import pytest
 
 from queue import Empty
 from thespian.actors import ActorSystem, ActorExitRequest
-from cb_binary_analysis.ingestion_actor import IngestionActor
-from cb_binary_analysis.state import StateManager
-from cb_binary_analysis.pubsub import PubSubManager
-from cb_binary_analysis.config import Config
+from cbc_binary_sdk.ingestion_actor import IngestionActor
+from cbc_binary_sdk.state import StateManager
+from cbc_binary_sdk.pubsub import PubSubManager
+from cbc_binary_sdk.config import Config
 from cbapi.psc.threathunter import CbThreatHunterAPI
-from utils.CBAPIMock import CBAPIMock
+from tests.unit.ubs_fixtures.CBAPIMock import CBAPIMock
 from tests.unit.ubs_fixtures.metadata import HASH_METADATA
 from tests.unit.ubs_fixtures.filedownload import METADATA_DOWNLOAD_RESP
 
@@ -27,7 +27,7 @@ def config():
     database:
       _provider: persistor_fixtures.mock_persistor.MockPersistorFactory
     pubsub:
-      _provider: cb_binary_analysis.pubsub.builtin.Provider
+      _provider: cbc_binary_sdk.pubsub.builtin.Provider
     engine:
       name: {ENGINE_NAME}
     """)

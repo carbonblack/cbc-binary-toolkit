@@ -3,7 +3,7 @@
 """The high-level management for the state of analyzed files."""
 
 
-from cb_binary_analysis.loader import dynamic_create
+from cbc_binary_sdk.loader import dynamic_create
 
 
 class BasePersistor:

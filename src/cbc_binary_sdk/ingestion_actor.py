@@ -12,11 +12,11 @@ from threading import Thread
 from types import MethodType
 from datetime import datetime
 from cbapi.psc.threathunter import CbThreatHunterAPI
-from cb_binary_analysis import InitializationError
-from cb_binary_analysis.state import StateManager
-from cb_binary_analysis.pubsub import PubSubManager
+from cbc_binary_sdk import InitializationError
+from cbc_binary_sdk.state import StateManager
+from cbc_binary_sdk.pubsub import PubSubManager
 from .ubs import download_hashes, get_metadata
-from cb_binary_analysis.config import Config
+from cbc_binary_sdk.config import Config
 
 log = logging.getLogger(__name__)
 log.disabled = False

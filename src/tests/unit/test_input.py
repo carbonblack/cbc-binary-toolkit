@@ -3,8 +3,9 @@
 """Unit tests for input functions"""
 
 import pytest
+import os
 
-from cb_binary_analysis.input import read_csv, read_json
+from cbc_binary_sdk.input import read_csv, read_json
 from typing import List, Dict
 from json import JSONDecodeError
 
@@ -27,6 +28,11 @@ from tests.unit.input_fixtures.file_path_constants import (
 )
 
 
+def attach_path(path):
+    """Attaches local file path to location"""
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), path)
+
+
 class TestInputFunctions():
     """Unit tests for input.py functions"""
     @pytest.mark.parametrize("input_file_path, answer_file_path", [
@@ -35,8 +41,8 @@ class TestInputFunctions():
     ])
     def test_csv(self, input_file_path: str, answer_file_path: List[Dict]):
         """Unit testing read_csv function"""
-        with open(answer_file_path, 'r') as answer_file:
-            csv_file = open(input_file_path)
+        with open(attach_path(answer_file_path), 'r') as answer_file:
+            csv_file = open(attach_path(input_file_path))
             assert str(read_csv(csv_file)) == answer_file.read().strip()
 
     @pytest.mark.parametrize("input_file_path, answer_file_path", [
@@ -45,8 +51,8 @@ class TestInputFunctions():
     ])
     def test_json(self, input_file_path: str, answer_file_path: List[Dict]):
         """Unit testing read_json function"""
-        with open(input_file_path, 'r') as input_file:
-            with open(answer_file_path, 'r') as answer_file:
+        with open(attach_path(input_file_path), 'r') as input_file:
+            with open(attach_path(answer_file_path), 'r') as answer_file:
                 assert str(read_json(input_file.read().strip())) == answer_file.read().strip()
 
     @pytest.mark.parametrize("error, input_file_path, msg", [
@@ -55,13 +61,13 @@ class TestInputFunctions():
             BASIC_INPUT_CSV_WRONG_HASHLEN,
             "Hash should be 64 chars, instead is 63 chars: "
             "qqtrqoetfdomjjqnyatgmmbomhtnzqchzqzhxggmxqzgoabcnzysikrmunjgrup"),
-        (OSError, DOES_NOT_EXIST_FILE, f"[Errno 2] No such file or directory: '{DOES_NOT_EXIST_FILE}'"),
-        (AssertionError, EMPTY_CSV, f'There are no hashes in File {EMPTY_CSV}')
+        (OSError, DOES_NOT_EXIST_FILE, f"[Errno 2] No such file or directory: '{attach_path(DOES_NOT_EXIST_FILE)}'"),
+        (AssertionError, EMPTY_CSV, f'There are no hashes in File {attach_path(EMPTY_CSV)}')
     ])
     def test_csv_exceptions(self, error, input_file_path: str, msg: str):
         """Unit testing read_csv function exceptions"""
         with pytest.raises(error) as context:
-            csv_file = open(input_file_path)
+            csv_file = open(attach_path(input_file_path))
             read_csv(csv_file)
         assert str(context.value) == msg
 
@@ -78,6 +84,6 @@ class TestInputFunctions():
     def test_json_exceptions(self, error, input_file_path: str, msg: str):
         """Unit testing read_json exceptions"""
         with pytest.raises(error) as context:
-            with open(input_file_path, 'r') as input_file:
+            with open(attach_path(input_file_path), 'r') as input_file:
                 str(read_json(input_file.read()))
         assert str(context.value) == msg

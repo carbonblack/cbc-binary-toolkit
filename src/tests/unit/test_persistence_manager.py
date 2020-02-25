@@ -4,8 +4,8 @@
 
 
 import pytest
-from cb_binary_analysis.config.model import Config
-from cb_binary_analysis.state.manager import BasePersistor, BasePersistorFactory, StateManager
+from cbc_binary_sdk.config import Config
+from cbc_binary_sdk.state.manager import BasePersistor, BasePersistorFactory, StateManager
 
 
 class TestPersistor(BasePersistor):

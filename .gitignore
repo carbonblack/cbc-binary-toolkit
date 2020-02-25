@@ -103,6 +103,9 @@ venv.bak/
 /.pydevproject
 /.settings
 
+# macOS
+.DS_Store
+
 # mkdocs documentation
 /site
 
