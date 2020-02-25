@@ -19,11 +19,9 @@ Also review the documentation and guides available on the
 
 The Binary Analysis SDK is design to work on Python 3.6 and above.
 
-All requirements are install as part of `pip install` or
-if you're planning on pushing changes to the Binary Analysis SDK then following can be used after cloning the repo
-`pip install requirements.txt`
+All requirements are installed as part of `pip install` or if you're planning on pushing changes to the Binary Analysis SDK, the following can be used after cloning the repo `pip install requirements.txt`
 
-##### Packages
+### Packages
 * argparse
 * cbapi
 * python-dateutil
@@ -33,8 +31,7 @@ if you're planning on pushing changes to the Binary Analysis SDK then following 
 
 ## Getting Started
 
-There are two ways to use the Binary Analysis SDK, developing your own tool using the SDK or using the attached
-scripts which provide out of the box functionality.
+There are two ways to use the Binary Analysis SDK. The following scripts provide all out-of-the-box functionality. You can also use the SDK to develop your own tool for processing binaries.
 
 
 Installing the Binary Analysis SDK
@@ -43,7 +40,9 @@ Installing the Binary Analysis SDK
 pip install cbc-binary-sdk
 ```
 
-Running Binary Analysis tool
+### Running Binary Analysis tool
+
+The cbc-binary-analysis tool provides out-of-the-box builtin resources for processing binaries and managing the analysis results.
 
 ```
 usage: cbc-binary-analysis [-h] [-C CONFIG] {analyze,clear} ...
@@ -61,7 +60,7 @@ optional arguments:
 ```
 
 
-Using the SDK to develop your own tools
+### Using the SDK to develop your own tools
 
 ```
 from cbc_binary_sdk import *
@@ -74,7 +73,7 @@ from cbc_binary_sdk import *
 
 If you want to provide additional examples, fix a bug, or add a feature to the SDK the following steps will get you started.
 
-##### Installing for SDK development
+### Installing for SDK development
 
 You will need to fork the repo in order to create pull requests when submitting code for review. For details on forking a repo https://help.github.com/en/github/getting-started-with-github/fork-a-repo
 
@@ -85,7 +84,7 @@ pip install requirements.txt
 ```
 
 
-##### Running SDK tests
+### Running the SDK tests
 
 ```
 pytest
@@ -94,18 +93,23 @@ pytest
     -k {test or file} Selectively runs test matching string or file
 ```
 
-##### Development Flow
+### Development Flow
 
-Create a branch off of develop
+Create a branch off of the develop branch
 ```
 git checkout develop
 git checkout -b {branch-name}
 ```
 
-If your branch is behind origin/develop on the main repo then you will need to rebase.
+When the feature or bug fix is finished you will need to create a pull request to the CarbonBlack repo, the following will push your changes to Github.
+```
+git push {remote} {branch-name}
+```
+
+If your branch is behind the develop branch then you will need to rebase.
 ```
 git checkout {branch-name}
 git rebase develop
 ```
 
-Note if your develop branch is out of sync with the main repo then you will need to sync your fork. https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork
+Note if your develop branch is out of sync with the CarbonBlack repo then you will need to sync your fork. https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork
