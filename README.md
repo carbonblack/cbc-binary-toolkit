@@ -21,7 +21,7 @@ The Binary Analysis SDK is design to work on Python 3.6 and above.
 
 All requirements are installed as part of `pip install` or if you're planning on pushing changes to the Binary Analysis SDK, the following can be used after cloning the repo `pip install requirements.txt`
 
-### Packages
+### Python Packages
 * argparse
 * cbapi
 * python-dateutil
