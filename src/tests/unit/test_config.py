@@ -3,14 +3,14 @@
 """Unit tests for the configuration code"""
 
 import pytest
-from cbc_binary_sdk.config import Config
-from cbc_binary_sdk.config.errors import ConfigError
+from cbc_binary_toolkit.config import Config
+from cbc_binary_toolkit.config.errors import ConfigError
 
 
 def test_load_valid_config():
     """Test the load of a valid configuration."""
     cfg = Config.load("""
-    id: cb-binary-analysis
+    id: cbc_binary_toolkit
     version: 0.0.1
     orville:
       captain: Ed Mercer
@@ -57,7 +57,7 @@ def test_load_errors():
 def test_section():
     """Test the section() API."""
     cfg = Config.load("""
-    id: cb-binary-analysis
+    id: cbc_binary_toolkit
     version: 0.0.1
     pets:
       dog: QBit

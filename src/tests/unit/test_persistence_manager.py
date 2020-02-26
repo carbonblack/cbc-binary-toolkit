@@ -4,8 +4,8 @@
 
 
 import pytest
-from cbc_binary_sdk.config import Config
-from cbc_binary_sdk.state.manager import BasePersistor, BasePersistorFactory, StateManager
+from cbc_binary_toolkit.config import Config
+from cbc_binary_toolkit.state.manager import BasePersistor, BasePersistorFactory, StateManager
 
 
 class TestPersistor(BasePersistor):
@@ -142,7 +142,7 @@ class TestPersistorFactory(BasePersistorFactory):
 def local_config():
     """Configuration for all the test cases in this module."""
     return Config.load("""
-    id: cb-binary-analysis
+    id: cbc_binary_toolkit
     version: 0.0.1
     database:
       _provider: test_persistence_manager.TestPersistorFactory
@@ -273,7 +273,7 @@ def test_clear_report_items(local_config):
 def test_config_with_bogus_class():
     """Test the configuration while trying to load a bogus class."""
     cfg = Config.load("""
-    id: cb-binary-analysis
+    id: cbc_binary_toolkit
     version: 0.0.1
     database:
       _provider: not_exist_package.NotExist
@@ -286,7 +286,7 @@ def test_config_with_bogus_class():
 def test_config_without_provider_set():
     """Test the configuration without having a provider class set."""
     cfg = Config.load("""
-    id: cb-binary-analysis
+    id: cbc_binary_toolkit
     version: 0.0.1
     database:
       is_test: "True"

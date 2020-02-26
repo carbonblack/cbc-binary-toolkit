@@ -3,7 +3,7 @@
 """The high-level management for the PubSub queue system."""
 
 
-from cbc_binary_sdk.loader import dynamic_create
+from cbc_binary_toolkit.loader import dynamic_create
 
 
 class BaseQueue:

@@ -20,7 +20,7 @@ install_reqs = [
 ]
 
 setup(
-    name="cbc_binary_sdk",
+    name="cbc_binary_toolkit",
     version=read("VERSION"),
     url="https://developer.carbonblack.com/",
     license="MIT",
@@ -39,6 +39,5 @@ setup(
     package_dir={'': 'src'},
     packages=find_packages(where="src", exclude=["tests.*", "tests"]),
     scripts=["bin/cbc-binary-analysis"],
-    data_files=[("carbonblackcloud/binary-sdk", ["config/binary-analysis-config.yaml.example"])],
-    package_data={"cbc-binary-sdk": ["examples/*"]}
+    data_files=[("carbonblackcloud/binary-sdk", ["config/binary-analysis-config.yaml.example"])]
 )

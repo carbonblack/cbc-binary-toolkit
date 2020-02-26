@@ -3,7 +3,7 @@
 import uuid
 
 from dateutil.parser import parse
-from cbc_binary_sdk.state.manager import BasePersistor, BasePersistorFactory
+from cbc_binary_toolkit.state.manager import BasePersistor, BasePersistorFactory
 
 
 class MockPersistor(BasePersistor):

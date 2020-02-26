@@ -6,10 +6,10 @@ import pytest
 
 from queue import Empty
 from thespian.actors import ActorSystem, ActorExitRequest
-from cbc_binary_sdk.ingestion_actor import IngestionActor
-from cbc_binary_sdk.state import StateManager
-from cbc_binary_sdk.pubsub import PubSubManager
-from cbc_binary_sdk.config import Config
+from cbc_binary_toolkit.ingestion_actor import IngestionActor
+from cbc_binary_toolkit.state import StateManager
+from cbc_binary_toolkit.pubsub import PubSubManager
+from cbc_binary_toolkit.config import Config
 from cbapi.psc.threathunter import CbThreatHunterAPI
 from tests.unit.ubs_fixtures.CBAPIMock import CBAPIMock
 from tests.unit.ubs_fixtures.metadata import HASH_METADATA
@@ -22,12 +22,12 @@ ENGINE_NAME = "TEST_ENGINE"
 def config():
     """Configuration for all the test cases in this module."""
     return Config.load(f"""
-    id: cb-binary-analysis
+    id: cbc_binary_toolkit
     version: 0.0.1
     database:
       _provider: persistor_fixtures.mock_persistor.MockPersistorFactory
     pubsub:
-      _provider: cbc_binary_sdk.pubsub.builtin.Provider
+      _provider: cbc_binary_toolkit.pubsub.builtin.Provider
     engine:
       name: {ENGINE_NAME}
     """)

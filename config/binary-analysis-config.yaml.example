@@ -1,5 +1,5 @@
 # Configuration for Binary Analysis SDK
-id: cbc_binary_sdk
+id: cbc_binary_toolkit
 version: 0.0.1
 carbonblackcloud:
   url: https://defense-dev01.cbdtest.io
@@ -7,7 +7,7 @@ carbonblackcloud:
   org_key: abcdefgh
   ssl_verify: True
 database:
-  _provider: cbc_binary_sdk.state.builtin.Persistor
+  _provider: cbc_binary_toolkit.state.builtin.Persistor
   location: ":memory:"
 pubsub:
   _provider: cbc_binary_sdk.pubsub.builtin.Provider

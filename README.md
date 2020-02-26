@@ -63,7 +63,7 @@ optional arguments:
 ### Using the SDK to develop your own tools
 
 ```
-from cbc_binary_sdk import *
+from cbc_binary_toolkit import *
 ```
 
 

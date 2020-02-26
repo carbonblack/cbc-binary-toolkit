@@ -4,7 +4,7 @@
 
 import pytest
 from thespian.actors import ActorSystem, ActorExitRequest
-from cbc_binary_sdk.report_actor import ReportActor
+from cbc_binary_toolkit.report_actor import ReportActor
 from cbapi.psc.threathunter import CbThreatHunterAPI
 from tests.unit.ubs_fixtures.CBAPIMock import CBAPIMock
 

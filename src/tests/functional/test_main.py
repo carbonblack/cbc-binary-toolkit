@@ -18,6 +18,8 @@ else:
 
 LOG_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), "log.txt")
 
+BIN = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../../bin/cbc-binary-analysis")
+
 
 # Clear log file for each run
 open(LOG_FILE, "w").close()
@@ -30,11 +32,11 @@ class TestUserHandling:
     def test_analyze(self):
         """Test analyze command"""
         with open(LOG_FILE, "a+") as log:
-            subprocess.call([pycommand, 'bin/cb-binary-analysis', 'analyze', '-l ["test"]'], stdout=log, stderr=log)
+            subprocess.call([pycommand, BIN, 'analyze', '-l ["test"]'], stdout=log, stderr=log)
             pass
 
     def test_clear(self):
         """Test clear command"""
         with open(LOG_FILE, "a+") as log:
-            subprocess.call([pycommand, 'bin/cb-binary-analysis', 'clear'], stdout=log, stderr=log)
+            subprocess.call([pycommand, BIN, 'clear'], stdout=log, stderr=log)
             pass

@@ -11,7 +11,7 @@ from thespian.initmsgs import initializing_messages
 from schema import SchemaError
 from cbapi.psc.threathunter import CbThreatHunterAPI, Report
 from .schemas import IOCV2Schema
-from cbc_binary_sdk import InitializationError
+from cbc_binary_toolkit import InitializationError
 
 log = logging.getLogger(__name__)
 

@@ -8,8 +8,8 @@ This tests the functionality of each segment of the code
 
 #
 # import pytest
-# from cbc_binary_sdk.main import parse_args
-# from cbc_binary_sdk.config import Config
+# from cbc_binary_toolkit.main import parse_args
+# from cbc_binary_toolkit.config import Config
 #
 #
 # @pytest.mark.skip(reason="Restructuring main to be executable")

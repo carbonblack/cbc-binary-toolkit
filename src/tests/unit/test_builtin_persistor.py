@@ -4,19 +4,20 @@
 
 
 import pytest
+
 from sqlite3 import Cursor, OperationalError
-from cbc_binary_sdk.config import Config
-from cbc_binary_sdk.state.manager import StateManager
+from cbc_binary_toolkit.config import Config
+from cbc_binary_toolkit.state.manager import StateManager
 
 
 @pytest.fixture
 def local_config():
     """Configuration for all the test cases in this module."""
     return Config.load("""
-    id: cb-binary-analysis
+    id: cbc_binary_toolkit
     version: 0.0.1
     database:
-      _provider: cbc_binary_sdk.state.builtin.Persistor
+      _provider: cbc_binary_toolkit.state.builtin.Persistor
       location: ":memory:"
     """)
 

@@ -15,11 +15,11 @@ import os
 from datetime import datetime
 from thespian.actors import ActorSystem, ActorExitRequest
 
-from cbc_binary_sdk import input
-from cbc_binary_sdk.config import Config
-from cbc_binary_sdk.ingestion_actor import IngestionActor
-from cbc_binary_sdk.pubsub import PubSubManager
-from cbc_binary_sdk.state import StateManager
+from cbc_binary_toolkit import input
+from cbc_binary_toolkit.config import Config
+from cbc_binary_toolkit.ingestion_actor import IngestionActor
+from cbc_binary_toolkit.pubsub import PubSubManager
+from cbc_binary_toolkit.state import StateManager
 
 from cbapi import CbThreatHunterAPI
 

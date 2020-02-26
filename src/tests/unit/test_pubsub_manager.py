@@ -4,8 +4,8 @@
 
 
 import pytest
-from cbc_binary_sdk.config import Config
-from cbc_binary_sdk.pubsub.manager import BaseQueue, BaseProvider, BaseProviderFactory, PubSubManager
+from cbc_binary_toolkit.config import Config
+from cbc_binary_toolkit.pubsub.manager import BaseQueue, BaseProvider, BaseProviderFactory, PubSubManager
 
 
 class TestQueue(BaseQueue):
@@ -77,7 +77,7 @@ class TestProviderFactory(BaseProviderFactory):
 def local_config():
     """Configuration for all the test cases in this module."""
     return Config.load("""
-    id: cb-binary-analysis
+    id: cbc_binary_toolkit
     version: 0.0.1
     pubsub:
       _provider: test_pubsub_manager.TestProviderFactory

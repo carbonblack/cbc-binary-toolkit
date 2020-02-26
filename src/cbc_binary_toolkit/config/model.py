@@ -12,7 +12,7 @@ from .errors import ConfigError
 class Config:
     """Config processing and management"""
     default_location = 'config/binary-analysis-config.yaml'
-    _required_id = 'cbc_binary_sdk'
+    _required_id = 'cbc_binary_toolkit'
 
     def __init__(self, data):
         """Constructor"""

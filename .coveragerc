@@ -1,5 +1,5 @@
 [run]
-source = src/cbc_binary_sdk
+source = src/cbc_binary_toolkit
 [report]
 exclude_lines =
     pragma: no cover
