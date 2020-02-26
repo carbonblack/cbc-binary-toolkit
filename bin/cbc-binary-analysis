@@ -10,13 +10,18 @@ This is the entry point for the Binary Analysis SDK
 import argparse
 import logging
 import sys
+import os
 
 from datetime import datetime
 from thespian.actors import ActorSystem, ActorExitRequest
 
-from cbc_binary_sdk.config import Config
 from cbc_binary_sdk import input
+from cbc_binary_sdk.config import Config
 from cbc_binary_sdk.ingestion_actor import IngestionActor
+from cbc_binary_sdk.pubsub import PubSubManager
+from cbc_binary_sdk.state import StateManager
+
+from cbapi import CbThreatHunterAPI
 
 LOG_LEVEL = logging.INFO
 logging.basicConfig(level=LOG_LEVEL)  # Needs converted to configuration property
@@ -45,12 +50,15 @@ logcfg = {
     'disable_existing_loggers': False,
 }
 
+default_install = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                               "../carbonblackcloud/binary-sdk/binary-analysis-config.yaml.example")
+
 
 def parse_args(args):
     """Create argparser"""
     parser = argparse.ArgumentParser()
-    parser.add_argument("-C", "--config", type=str, default=Config.default_location,
-                        help="Location of the configuration file (default {0})".format(Config.default_location))
+    parser.add_argument("-c", "--config", type=str, default=default_install,
+                        help="Location of the configuration file (default {0})".format(default_install))
 
     commands = parser.add_subparsers(help="Binary analysis commands", dest="command_name", required=True)
 
@@ -60,41 +68,68 @@ def parse_args(args):
     input_type.add_argument("-l", "--list", type=str, help="List of hashes in JSON string format")
     input_type.add_argument("-f", "--file", type=argparse.FileType('r'), help="File of hashes in json or csv format")
 
+    # Restart command parser
+    commands.add_parser("restart", help="Restart a failed job and pick up where the job crashed or exited")
+
     # Clear command parser
-    analyze_command = commands.add_parser("clear", help="Clear cache of analyzed hashes")
+    clear_command = commands.add_parser("clear", help="Clear cache of analyzed hashes")
+    clear_command.add_argument("date", type=str, help="ISO 8601 date format {YYYY-MM-DD HH:MM:SS.SSS}")
     return parser.parse_args(args)
+
+
+def init(actorsys, config):
+    """Initialize actors"""
+    state_manager = StateManager(config)
+    pub_sub_manager = PubSubManager(config)
+    pub_sub_manager.create_queue(config.get("engine.name"))
+    cbth = CbThreatHunterAPI(url=config.get("carbonblackcloud.url"),
+                             org_key=config.get("carbonblackcloud.org_key"),
+                             token=config.get("carbonblackcloud.api_token"),
+                             ssl_verify=config.get("carbonblackcloud.ssl_verify"))
+
+    injest = actorsys.createActor(IngestionActor)
+
+    # Send requried init objects
+    actorsys.ask(injest, config)
+    actorsys.ask(injest, cbth)
+    actorsys.ask(injest, pub_sub_manager)
+    actorsys.ask(injest, state_manager)
+
+    return {"injest": injest}
 
 
 def main():
     """Entry point"""
-    log.info(f"Prefix: {sys.prefix}")
-    log.info(f"Exec Prefix: {sys.exec_prefix}")
-    log.info(f"Executable: {sys.executable}")
-    log.info(f"File: {__file__}")
-    log.info(f"Path: {sys.path}")
     log.info("Started: {}".format(datetime.now()))
 
     actorsys = ActorSystem(logDefs=logcfg)
     args = parse_args(sys.argv[1:])
 
-    # XXX config = Config.load_file(args.config) - uncomment this when we're ready to use it
+    if args.config != default_install:
+        config = Config.load_file(args.config)
+    else:
+        log.info(f"Attempting to load config from {default_install}")
+        config = Config.load_file(default_install)
 
     if args.command_name == "analyze":
         log.info("Analyzing hashes")
+        actors = init(actorsys, config)
         if args.file is not None:
             hash_group = input.read_csv(args.file)
         else:
             hash_group = input.read_json(args.list)
 
-        actor = actorsys.createActor(IngestionActor)
         for group in hash_group:
-            completion = actorsys.ask(actor, group, 1)
+            completion = actorsys.tell(actors["injest"], group)
             log.info(completion)
 
         # Clean up actor
-        actorsys.ask(actor, ActorExitRequest())
+        actorsys.listen()
+        actorsys.ask(actors["injest"], ActorExitRequest())
     elif args.command_name == "clear":
         log.info("Clear cache")
+    elif args.command_name == "restart":
+        log.info("Restart")
 
 
 if __name__ == '__main__':

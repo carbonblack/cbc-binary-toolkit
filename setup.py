@@ -15,8 +15,8 @@ install_reqs = [
     "cbapi",
     "python-dateutil",
     "pyyaml",
-    "schema"
-    "thespian",
+    "schema",
+    "thespian"
 ]
 
 setup(
@@ -39,5 +39,6 @@ setup(
     package_dir={'': 'src'},
     packages=find_packages(where="src", exclude=["tests.*", "tests"]),
     scripts=["bin/cbc-binary-analysis"],
-    data_files=[("carbonblackcloud/binary-sdk", ["config/binary-analysis-config.yaml.example"])]
+    data_files=[("carbonblackcloud/binary-sdk", ["config/binary-analysis-config.yaml.example"])],
+    package_data={"cbc-binary-sdk": ["examples/*"]}
 )

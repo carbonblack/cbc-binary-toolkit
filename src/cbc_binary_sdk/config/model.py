@@ -12,7 +12,7 @@ from .errors import ConfigError
 class Config:
     """Config processing and management"""
     default_location = 'config/binary-analysis-config.yaml'
-    _required_id = 'cb-binary-analysis'
+    _required_id = 'cbc_binary_sdk'
 
     def __init__(self, data):
         """Constructor"""
@@ -119,3 +119,12 @@ class Config:
         if isinstance(v, dict):
             return Config(v)
         raise ConfigError('value not valid section: ' + path)
+
+    def get(self, path):
+        """
+        Returns the desired property
+
+        :param path: The path to the configuration variable (with components separated by '.')
+        :return: The value.
+        """
+        return self._seek_path(path)
