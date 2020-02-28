@@ -22,37 +22,40 @@ class SQLiteBasedPersistor(BasePersistor):
         :param engine str: (Optional) The engine value to look up in the database.
         :return: A dict containing the file information, or None if not found.
         """
-        cursor = self._conn.cursor()
-        if engine:
-            stmt = """
-            SELECT rowid, file_size, file_name, os_type, engine_name, time_sent, time_returned, time_published
-                FROM run_state
-                WHERE file_hash = ? AND engine_name = ?
-                ORDER BY max(julianday(time_sent), julianday(coalesce(time_returned, time_sent)),
-                             julianday(coalesce(time_published, time_returned, time_sent))) DESC;
-            """
-            cursor.execute(stmt, (binary_hash, engine))
-        else:
-            stmt = """
-            SELECT rowid, file_size, file_name, os_type, engine_name, time_sent, time_returned, time_published
-                FROM run_state
-                WHERE file_hash = ?
-                ORDER BY max(julianday(time_sent), julianday(coalesce(time_returned, time_sent)),
-                             julianday(coalesce(time_published, time_returned, time_sent))) DESC;
-            """
-            cursor.execute(stmt, (binary_hash,))
-        row = cursor.fetchone()
-        if not row:
+        try:
+            cursor = self._conn.cursor()
+            if engine:
+                stmt = """
+                SELECT rowid, file_size, file_name, os_type, engine_name, time_sent, time_returned, time_published
+                    FROM run_state
+                    WHERE file_hash = ? AND engine_name = ?
+                    ORDER BY max(julianday(time_sent), julianday(coalesce(time_returned, time_sent)),
+                                 julianday(coalesce(time_published, time_returned, time_sent))) DESC;
+                """
+                cursor.execute(stmt, (binary_hash, engine))
+            else:
+                stmt = """
+                SELECT rowid, file_size, file_name, os_type, engine_name, time_sent, time_returned, time_published
+                    FROM run_state
+                    WHERE file_hash = ?
+                    ORDER BY max(julianday(time_sent), julianday(coalesce(time_returned, time_sent)),
+                                 julianday(coalesce(time_published, time_returned, time_sent))) DESC;
+                """
+                cursor.execute(stmt, (binary_hash,))
+            row = cursor.fetchone()
+            if not row:
+                return None
+            value = {'persist_id': row[0], 'file_hash': binary_hash, 'file_size': row[1], 'file_name': row[2],
+                     'os_type': row[3], 'engine_name': row[4]}
+            if row[5]:
+                value['time_sent'] = row[5]
+            if row[6]:
+                value['time_returned'] = row[6]
+            if row[7]:
+                value['time_published'] = row[7]
+            return value
+        except sqlite3.OperationalError:
             return None
-        value = {'persist_id': row[0], 'file_hash': binary_hash, 'file_size': row[1], 'file_name': row[2],
-                 'os_type': row[3], 'engine_name': row[4]}
-        if row[5]:
-            value['time_sent'] = row[5]
-        if row[6]:
-            value['time_returned'] = row[6]
-        if row[7]:
-            value['time_published'] = row[7]
-        return value
 
     def set_file_state(self, binary_hash, attrs, persist_id=None):
         """
@@ -63,27 +66,30 @@ class SQLiteBasedPersistor(BasePersistor):
         :param persist_id int: The persistence ID of the existing record we're modifying (optional).
         :return: The persistence ID of the database row, either new or existing.
         """
-        cursor = self._conn.cursor()
-        if persist_id:
-            stmt = """
-            UPDATE run_state
-                SET time_sent = ifnull(?, time_sent), time_returned = ifnull(?, time_returned),
-                    time_published = ifnull(?, time_published)
-                WHERE rowid = ? AND file_hash = ?;
-            """
-            cursor.execute(stmt, (attrs.get('time_sent', None), attrs.get('time_returned', None),
-                                  attrs.get('time_published', None), persist_id, binary_hash))
-            return persist_id
-        else:
-            stmt = """
-            INSERT INTO run_state(file_hash, file_size, file_name, os_type, engine_name, time_sent,
-                                  time_returned, time_published)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?);
-            """
-            cursor.execute(stmt, (binary_hash, attrs['file_size'], attrs['file_name'], attrs['os_type'],
-                                  attrs['engine_name'], attrs.get('time_sent', None),
-                                  attrs.get('time_returned', None), attrs.get('time_published', None)))
-            return cursor.lastrowid
+        try:
+            cursor = self._conn.cursor()
+            if persist_id:
+                stmt = """
+                UPDATE run_state
+                    SET time_sent = ifnull(?, time_sent), time_returned = ifnull(?, time_returned),
+                        time_published = ifnull(?, time_published)
+                    WHERE rowid = ? AND file_hash = ?;
+                """
+                cursor.execute(stmt, (attrs.get('time_sent', None), attrs.get('time_returned', None),
+                                      attrs.get('time_published', None), persist_id, binary_hash))
+                return persist_id
+            else:
+                stmt = """
+                INSERT INTO run_state(file_hash, file_size, file_name, os_type, engine_name, time_sent,
+                                      time_returned, time_published)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+                """
+                cursor.execute(stmt, (binary_hash, attrs['file_size'], attrs['file_name'], attrs['os_type'],
+                                      attrs['engine_name'], attrs.get('time_sent', None),
+                                      attrs.get('time_returned', None), attrs.get('time_published', None)))
+                return cursor.lastrowid
+        except sqlite3.OperationalError:
+            return None
 
     def get_unfinished_states(self, engine=None):
         """
@@ -92,35 +98,38 @@ class SQLiteBasedPersistor(BasePersistor):
         :param engine str: (Optional) The engine value to look up in the database.
         :return: A list of dicts containing all unfinished file information. Returns an empty list if none present.
         """
-        cursor = self._conn.cursor()
-        if engine:
-            stmt = """
-            SELECT rowid, file_hash, file_size, file_name, os_type, engine_name, time_sent, time_returned
-                FROM run_state
-                WHERE time_published IS NULL AND engine_name = ?
-                ORDER BY max(julianday(time_sent), julianday(coalesce(time_returned, time_sent)),
-                             julianday(coalesce(time_published, time_returned, time_sent))) DESC;
-            """
-            output_iterator = cursor.execute(stmt, (engine, ))
-        else:
-            stmt = """
-            SELECT rowid, file_hash, file_size, file_name, os_type, engine_name, time_sent, time_returned
-                FROM run_state
-                WHERE time_published IS NULL
-                ORDER BY max(julianday(time_sent), julianday(coalesce(time_returned, time_sent)),
-                             julianday(coalesce(time_published, time_returned, time_sent))) DESC;
-            """
-            output_iterator = cursor.execute(stmt)
-        return_list = []
-        for row in output_iterator:
-            value = {'persist_id': row[0], 'file_hash': row[1], 'file_size': row[2], 'file_name': row[3],
-                     'os_type': row[4], 'engine_name': row[5]}
-            if row[6]:
-                value['time_sent'] = row[6]
-            if row[7]:
-                value['time_returned'] = row[7]
-            return_list.append(value)
-        return return_list
+        try:
+            cursor = self._conn.cursor()
+            if engine:
+                stmt = """
+                SELECT rowid, file_hash, file_size, file_name, os_type, engine_name, time_sent, time_returned
+                    FROM run_state
+                    WHERE time_published IS NULL AND engine_name = ?
+                    ORDER BY max(julianday(time_sent), julianday(coalesce(time_returned, time_sent)),
+                                 julianday(coalesce(time_published, time_returned, time_sent))) DESC;
+                """
+                output_iterator = cursor.execute(stmt, (engine, ))
+            else:
+                stmt = """
+                SELECT rowid, file_hash, file_size, file_name, os_type, engine_name, time_sent, time_returned
+                    FROM run_state
+                    WHERE time_published IS NULL
+                    ORDER BY max(julianday(time_sent), julianday(coalesce(time_returned, time_sent)),
+                                 julianday(coalesce(time_published, time_returned, time_sent))) DESC;
+                """
+                output_iterator = cursor.execute(stmt)
+            return_list = []
+            for row in output_iterator:
+                value = {'persist_id': row[0], 'file_hash': row[1], 'file_size': row[2], 'file_name': row[3],
+                         'os_type': row[4], 'engine_name': row[5]}
+                if row[6]:
+                    value['time_sent'] = row[6]
+                if row[7]:
+                    value['time_returned'] = row[7]
+                return_list.append(value)
+            return return_list
+        except sqlite3.OperationalError:
+            return []
 
     def get_num_stored_states(self):
         """
@@ -128,13 +137,16 @@ class SQLiteBasedPersistor(BasePersistor):
 
         :return: A dict with engine names as keys and count of results for each engine as values.
         """
-        cursor = self._conn.cursor()
-        stmt = "SELECT engine_name, count(*) FROM run_state GROUP BY engine_name;"
-        output_iterator = cursor.execute(stmt)
-        return_dict = {}
-        for row in output_iterator:
-            return_dict[row[0]] = row[1]
-        return return_dict
+        try:
+            cursor = self._conn.cursor()
+            stmt = "SELECT engine_name, count(*) FROM run_state GROUP BY engine_name;"
+            output_iterator = cursor.execute(stmt)
+            return_dict = {}
+            for row in output_iterator:
+                return_dict[row[0]] = row[1]
+            return return_dict
+        except sqlite3.OperationalError:
+            return {}
 
     def prune(self, timestamp):
         """
@@ -142,16 +154,19 @@ class SQLiteBasedPersistor(BasePersistor):
 
         :param timestamp str: The basic timestamp. Everything older than this will be erased.
         """
-        cursor = self._conn.cursor()
-        stmt = """
-        DELETE FROM run_state
-            WHERE max(julianday(time_sent), julianday(coalesce(time_returned, time_sent)),
-                      julianday(coalesce(time_published, time_returned, time_sent))) < julianday(?);
-        """
-        cursor.execute(stmt, (timestamp, ))
-        cursor.close()
-        self._conn.commit()
-        self._conn.execute("VACUUM;")
+        try:
+            cursor = self._conn.cursor()
+            stmt = """
+            DELETE FROM run_state
+                WHERE max(julianday(time_sent), julianday(coalesce(time_returned, time_sent)),
+                          julianday(coalesce(time_published, time_returned, time_sent))) < julianday(?);
+            """
+            cursor.execute(stmt, (timestamp, ))
+            cursor.close()
+            self._conn.commit()
+            self._conn.execute("VACUUM;")
+        except sqlite3.OperationalError:
+            pass
 
     def add_report_item(self, severity, engine, data):
         """
@@ -161,12 +176,15 @@ class SQLiteBasedPersistor(BasePersistor):
         :param engine str: The engine value to store this data for.
         :param data dict: The data item to be stored.
         """
-        cursor = self._conn.cursor()
-        stmt = """
-        INSERT INTO report_item (severity, engine_name, data)
-            VALUES (?, ?, ?);
-        """
-        cursor.execute(stmt, (severity, engine, json.dumps(data)))
+        try:
+            cursor = self._conn.cursor()
+            stmt = """
+            INSERT INTO report_item (severity, engine_name, data)
+                VALUES (?, ?, ?);
+            """
+            cursor.execute(stmt, (severity, engine, json.dumps(data)))
+        except sqlite3.OperationalError:
+            pass
 
     def get_current_report_items(self, severity, engine):
         """
@@ -176,12 +194,15 @@ class SQLiteBasedPersistor(BasePersistor):
         :param engine str: The engine value to return data for.
         :return: A list of dicts, each of which represents a report item.
         """
-        cursor = self._conn.cursor()
-        stmt = "SELECT data FROM report_item WHERE severity = ? AND engine_name = ?;"
-        return_list = []
-        for row in cursor.execute(stmt, (severity, engine)):
-            return_list.append(json.loads(row[0]))
-        return return_list
+        try:
+            cursor = self._conn.cursor()
+            stmt = "SELECT data FROM report_item WHERE severity = ? AND engine_name = ?;"
+            return_list = []
+            for row in cursor.execute(stmt, (severity, engine)):
+                return_list.append(json.loads(row[0]))
+            return return_list
+        except sqlite3.OperationalError:
+            return []
 
     def clear_report_items(self, severity, engine):
         """
@@ -190,9 +211,12 @@ class SQLiteBasedPersistor(BasePersistor):
         :param severity int: The severity level (1-10).
         :param engine str: The engine value to clear data for.
         """
-        cursor = self._conn.cursor()
-        stmt = "DELETE FROM report_item WHERE severity = ? AND engine_name = ?;"
-        cursor.execute(stmt, (severity, engine))
+        try:
+            cursor = self._conn.cursor()
+            stmt = "DELETE FROM report_item WHERE severity = ? AND engine_name = ?;"
+            cursor.execute(stmt, (severity, engine))
+        except sqlite3.OperationalError:
+            pass
 
 
 class Persistor(BasePersistorFactory):

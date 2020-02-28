@@ -126,6 +126,12 @@ def test_file_state_unfinished(local_config):
     assert state["time_sent"] == "2020-01-14T12:00:00"
     assert state["time_returned"] == "2020-01-14T12:05:00"
     assert state.get('time_published', None) is None
+    output = manager.get_unfinished_states("default")
+    assert len(output) == 1
+    state = output[0]
+    assert state["file_hash"] == "MNOPQRST"
+    output = manager.get_unfinished_states("unknown-engine")
+    assert len(output) == 0
 
 
 def test_file_state_unfinished_none(local_config):
@@ -142,6 +148,17 @@ def test_file_state_unfinished_none(local_config):
                                         "time_returned": "2020-01-14T12:05:00",
                                         "time_published": "2020-01-14T12:05:01"})
     output = manager.get_unfinished_states()
+    assert len(output) == 0
+    output = manager.get_unfinished_states("default")
+    assert len(output) == 0
+
+
+def test_file_state_unfinished_nodata(local_config):
+    """Tests the get_unfinished_states() with nothing in the database."""
+    manager = StateManager(local_config)
+    output = manager.get_unfinished_states()
+    assert len(output) == 0
+    output = manager.get_unfinished_states("default")
     assert len(output) == 0
 
 
@@ -166,6 +183,13 @@ def test_num_stored_states(local_config):
     output = manager.get_num_stored_states()
     assert output['default'] == 2
     assert output['another'] == 1
+
+
+def test_num_stored_states_nodata(local_config):
+    """Tests get_num_stored_states() with no data in the database."""
+    manager = StateManager(local_config)
+    output = manager.get_num_stored_states()
+    assert output == {}
 
 
 def test_file_state_prune(local_config):
@@ -217,3 +241,10 @@ def test_report_items(local_config):
     _test_check_report_items(manager.get_current_report_items(6, 'default'), 'keyval', [])
     _test_check_report_items(manager.get_current_report_items(2, 'default'), 'keyval', [2, 3])
     _test_check_report_items(manager.get_current_report_items(9, 'default'), 'keyval', [])
+
+
+def test_report_items_nodata(local_config):
+    """Tests the extraction of report items when there are none in the database."""
+    manager = StateManager(local_config)
+    items = manager.get_current_report_items(6, 'default')
+    assert len(items) == 0
