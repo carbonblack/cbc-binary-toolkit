@@ -15,7 +15,7 @@ import os
 from datetime import datetime
 from thespian.actors import ActorSystem, ActorExitRequest
 
-from cbc_binary_toolkit import input
+from cbc_binary_toolkit import input as binary_input
 from cbc_binary_toolkit.config import Config
 from cbc_binary_toolkit.ingestion_actor import IngestionActor
 from cbc_binary_toolkit.pubsub import PubSubManager
@@ -50,8 +50,12 @@ logcfg = {
     'disable_existing_loggers': False,
 }
 
-default_install = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                               "../carbonblackcloud/binary-sdk/binary-analysis-config.yaml.example")
+if "cb-binary-analysis" in os.path.dirname(os.path.realpath(__file__)):
+    default_install = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                   "../config/binary-analysis-config.yaml.example")
+else:
+    default_install = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                   "../carbonblackcloud/binary-sdk/binary-analysis-config.yaml.example")
 
 
 def parse_args(args):
@@ -72,8 +76,9 @@ def parse_args(args):
     commands.add_parser("restart", help="Restart a failed job and pick up where the job crashed or exited")
 
     # Clear command parser
-    clear_command = commands.add_parser("clear", help="Clear cache of analyzed hashes")
-    clear_command.add_argument("date", type=str, help="ISO 8601 date format {YYYY-MM-DD HH:MM:SS.SSS}")
+    clear_command = commands.add_parser("clear", help="Clear cache of analyzed hashes. All or by timestamp")
+    clear_command.add_argument("-t", "--timestamp", type=str,
+                               help="ISO 8601 date format {YYYY-MM-DD HH:MM:SS.SSS}")
     return parser.parse_args(args)
 
 
@@ -98,6 +103,18 @@ def init(actorsys, config):
     return {"injest": injest}
 
 
+def yes_or_no(question):
+    """Request confirmation"""
+    reply = str(input(f"{question}: (y/n)")).lower().strip()
+    if reply[0] == 'y':
+        return True
+    if reply[0] == 'n':
+        return False
+    else:
+        log.error("Invalid: please use y/n")
+        return yes_or_no(question)
+
+
 def main():
     """Entry point"""
     log.info("Started: {}".format(datetime.now()))
@@ -115,9 +132,9 @@ def main():
         log.info("Analyzing hashes")
         actors = init(actorsys, config)
         if args.file is not None:
-            hash_group = input.read_csv(args.file)
+            hash_group = binary_input.read_csv(args.file)
         else:
-            hash_group = input.read_json(args.list)
+            hash_group = binary_input.read_json(args.list)
 
         for group in hash_group:
             completion = actorsys.tell(actors["injest"], group)
@@ -128,6 +145,17 @@ def main():
         actorsys.ask(actors["injest"], ActorExitRequest())
     elif args.command_name == "clear":
         log.info("Clear cache")
+        # TODO: Add support for specifying the engine to clear
+        timestamp = args.timestamp
+        if timestamp is None:
+            timestamp = str(datetime.now())
+        if not yes_or_no(f"Confirm you want to clear runs since {timestamp}"):
+            log.info("Clear canceled")
+            return
+
+        # Clear previous states
+        state_manager = StateManager(config)
+        state_manager.prune(timestamp)
     elif args.command_name == "restart":
         log.info("Restart")
 
