@@ -141,7 +141,9 @@ class EngineResultsThread(Thread):
     def _check_completion(self, engine_name):
         """Check for equality between num reports given to analysis engine and num reports received from that engine."""
         state_manager = self.kwargs.get("state_manager", None)
-        sent_reports_dict = state_manager.get_num_stored_states() # need to modfiy this, to get unfiinished states, not all states.
+
+        # need to modfiy this, to get unfiinished states, not all states.
+        sent_reports_dict = state_manager.get_num_stored_states()
 
         if engine_name not in sent_reports_dict:
             log.error(f"Received report for engine {engine_name}, but this engine hasn't been sent reports to analyze.")

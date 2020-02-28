@@ -3,7 +3,6 @@
 """Unit tests for the engine results actor"""
 
 import pytest
-from datetime import datetime
 import time
 # from queue import Empty
 from thespian.actors import ActorSystem, ActorExitRequest
@@ -15,8 +14,6 @@ from cbc_binary_sdk.pubsub import PubSubManager
 from cbc_binary_sdk.config import Config
 from cbapi.psc.threathunter import CbThreatHunterAPI
 from tests.unit.engine_fixtures.messages import MESSAGE_VALID
-# from utils.CBAPIMock import CBAPIMock
-from tests.unit.ubs_fixtures.metadata import HASH_METADATA
 
 import logging
 ENGINE_NAME = "TEST_ENGINE"
@@ -88,15 +85,18 @@ def report_actor(cb_threat_hunter):
 @pytest.fixture(scope="function")
 def result_queue(pub_sub_manager):
     """Create result queue for engine results thread"""
-    return pub_sub_manager.create_queue(ENGINE_NAME+"_results")
+    return pub_sub_manager.create_queue(ENGINE_NAME + "_results")
 
 
 @pytest.fixture(scope="function")
 def engine_results_thread(state_manager, pub_sub_manager, config, report_actor, result_queue, timeout=3):
     """Create engine results thread"""
-    t = EngineResultsThread(kwargs={'state_manager': state_manager, 'pub_sub_manager': pub_sub_manager, 'config': config,
-                                    'report_actor': report_actor, 'timeout': timeout, 'result_queue': result_queue})
-    return t
+    return EngineResultsThread(kwargs={'state_manager': state_manager,
+                                       'pub_sub_manager': pub_sub_manager,
+                                       'config': config,
+                                       'report_actor': report_actor,
+                                       'timeout': timeout,
+                                       'result_queue': result_queue})
 
 
 # ==================================== TESTS BELOW ====================================
