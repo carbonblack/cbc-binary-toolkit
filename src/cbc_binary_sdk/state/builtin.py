@@ -5,7 +5,11 @@
 
 import sqlite3
 import json
+import logging
 from .manager import BasePersistor, BasePersistorFactory
+
+
+log = logging.getLogger(__name__)
 
 
 class SQLiteBasedPersistor(BasePersistor):
@@ -54,7 +58,8 @@ class SQLiteBasedPersistor(BasePersistor):
             if row[7]:
                 value['time_published'] = row[7]
             return value
-        except sqlite3.OperationalError:
+        except sqlite3.OperationalError as e:
+            log.error("OperationalError in get_file_state: %s" % (e,))
             return None
 
     def set_file_state(self, binary_hash, attrs, persist_id=None):
@@ -88,7 +93,8 @@ class SQLiteBasedPersistor(BasePersistor):
                                       attrs['engine_name'], attrs.get('time_sent', None),
                                       attrs.get('time_returned', None), attrs.get('time_published', None)))
                 return cursor.lastrowid
-        except sqlite3.OperationalError:
+        except sqlite3.OperationalError as e:
+            log.error("OperationalError in set_file_state: %s" % (e,))
             return None
 
     def get_unfinished_states(self, engine=None):
@@ -128,7 +134,8 @@ class SQLiteBasedPersistor(BasePersistor):
                     value['time_returned'] = row[7]
                 return_list.append(value)
             return return_list
-        except sqlite3.OperationalError:
+        except sqlite3.OperationalError as e:
+            log.error("OperationalError in get_unfinished_states: %s" % (e,))
             return []
 
     def get_num_stored_states(self):
@@ -145,7 +152,8 @@ class SQLiteBasedPersistor(BasePersistor):
             for row in output_iterator:
                 return_dict[row[0]] = row[1]
             return return_dict
-        except sqlite3.OperationalError:
+        except sqlite3.OperationalError as e:
+            log.error("OperationalError in get_num_stored_states: %s" % (e,))
             return {}
 
     def prune(self, timestamp):
@@ -165,8 +173,8 @@ class SQLiteBasedPersistor(BasePersistor):
             cursor.close()
             self._conn.commit()
             self._conn.execute("VACUUM;")
-        except sqlite3.OperationalError:
-            pass
+        except sqlite3.OperationalError as e:
+            log.error("OperationalError in prune: %s" % (e,))
 
     def add_report_item(self, severity, engine, data):
         """
@@ -183,8 +191,8 @@ class SQLiteBasedPersistor(BasePersistor):
                 VALUES (?, ?, ?);
             """
             cursor.execute(stmt, (severity, engine, json.dumps(data)))
-        except sqlite3.OperationalError:
-            pass
+        except sqlite3.OperationalError as e:
+            log.error("OperationalError in add_report_item: %s" % (e,))
 
     def get_current_report_items(self, severity, engine):
         """
@@ -201,7 +209,8 @@ class SQLiteBasedPersistor(BasePersistor):
             for row in cursor.execute(stmt, (severity, engine)):
                 return_list.append(json.loads(row[0]))
             return return_list
-        except sqlite3.OperationalError:
+        except sqlite3.OperationalError as e:
+            log.error("OperationalError in get_current_report_items: %s" % (e,))
             return []
 
     def clear_report_items(self, severity, engine):
@@ -215,8 +224,8 @@ class SQLiteBasedPersistor(BasePersistor):
             cursor = self._conn.cursor()
             stmt = "DELETE FROM report_item WHERE severity = ? AND engine_name = ?;"
             cursor.execute(stmt, (severity, engine))
-        except sqlite3.OperationalError:
-            pass
+        except sqlite3.OperationalError as e:
+            log.error("OperationalError in clear_report_items: %s" % (e,))
 
 
 class Persistor(BasePersistorFactory):
