@@ -9,9 +9,13 @@ from cbc_binary_sdk.pubsub.manager import BaseQueue, BaseProvider, BaseProviderF
 
 
 class TestQueue(BaseQueue):
-    """TODO"""
+    """Mockup of a queue object."""
     def put(self, workitem):
-        """TODO"""
+        """
+        Puts a new work item on the queue.
+
+        :param workitem dict: The work item to put on the queue.
+        """
         assert workitem["foo"] == "bar"
         if hasattr(self, "_p"):
             self._p = self._p + 1
@@ -19,7 +23,13 @@ class TestQueue(BaseQueue):
             self._p = 1
 
     def get(self):
-        """TODO"""
+        """
+        Retrieves a new work item from the queue.
+
+        If there are no work items available, blocks until one becomes available.
+
+        :return: The first work item on the queue.
+        """
         if hasattr(self, "_g"):
             self._g = self._g + 1
         else:
@@ -28,18 +38,37 @@ class TestQueue(BaseQueue):
 
 
 class TestProvider(BaseProvider):
-    """TODO"""
+    """Mockup of the PubSub provider."""
     def create_queue(self, queue_name):
-        """TODO"""
+        """
+        Creates a new PubSub queue.  If one already exists by that name, returns that instance.
+
+        :param queue_name str: The name for the new queue.
+        :return: The new queue object.
+        """
         q = TestQueue()
         q._name = queue_name
         return q
 
+    def get_queue(self, queue_name):
+        """
+        Gets a PubSub queue by name.
+
+        :param queue_name str: The name for the new queue.
+        :return: The new queue object.
+        """
+        return None
+
 
 class TestProviderFactory(BaseProviderFactory):
-    """TODO"""
+    """Mockup of the PubSub provider factory."""
     def create_pubsub_provider(self, config):
-        """TODO"""
+        """
+        Creates a new PubSub provider object.
+
+        :param config Config: The configuration section for the persistence parameters.
+        :return: The new provider factory object.
+        """
         assert config.string("is_test") == "True"
         return TestProvider()
 
@@ -57,7 +86,7 @@ def local_config():
 
 
 def test_get(local_config):
-    """TODO"""
+    """Test the get() API."""
     manager = PubSubManager(local_config)
     queue = manager.create_queue("blort")
     assert queue._name == "blort"
@@ -68,10 +97,19 @@ def test_get(local_config):
 
 
 def test_put(local_config):
-    """TODO"""
+    """Test the put() API."""
     manager = PubSubManager(local_config)
     queue = manager.create_queue("blort")
     assert queue._name == "blort"
     queue.put({"foo": "bar"})
     assert getattr(queue, "_g", 0) == 0
     assert getattr(queue, "_p", 0) == 1
+
+
+def test_queue_ops(local_config):
+    """Test the operations of the PubSub provider."""
+    manager = PubSubManager(local_config)
+    queue = manager.create_queue('blort')
+    assert queue._name == "blort"
+    queue = manager.get_queue('foobar')
+    assert queue is None
