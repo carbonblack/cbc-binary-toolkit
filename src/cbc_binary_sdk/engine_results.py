@@ -14,7 +14,6 @@ from schema import SchemaError
 from .schemas import EngineResponseSchema
 from cbc_binary_sdk.state import StateManager
 from cbc_binary_sdk.pubsub import PubSubManager
-from cbc_binary_sdk.pubsub.builtin import PythonBasedQueue
 from cbc_binary_sdk.config import Config
 from cbc_binary_sdk import InitializationError
 log = logging.getLogger(__name__)
@@ -30,12 +29,19 @@ class EngineResultsThread(Thread):
         """Engine Results processing thread, pulling from results pub/sub queue"""
         super(EngineResultsThread, self).__init__(group=group, target=target, name=name)
         self.kwargs = kwargs
+        self._verify_init()
         self.report_actor = kwargs.get("report_actor", None)
+        self.state_manager = kwargs.get("state_manager", None)
+        self.config = kwargs.get("config", None)
+        self.pub_sub_manager = kwargs.get("pub_sub_manager", None)
+        self.timeout = kwargs.get("timeout", None)
+
+        self.result_queue_name = self.config.string("pubsub.result_queue_name")
+
         self.received_binary_counts = {}
         self.last_time_results_received = datetime.now()
         self.timeout_check = Event()
         self.timeout_thread = Thread(target=self._check_timeout)
-        self._verify_init()
         return
 
     def _verify_init(self):
@@ -43,8 +49,7 @@ class EngineResultsThread(Thread):
            not isinstance(self.kwargs.get("pub_sub_manager", None), PubSubManager) or \
            not isinstance(self.kwargs.get("config", None), Config) or \
            not isinstance(self.kwargs.get("report_actor", None), ActorAddress) or \
-           not isinstance(self.kwargs.get("timeout", None), int) or \
-           not isinstance(self.kwargs.get("result_queue", None), PythonBasedQueue):
+           not isinstance(self.kwargs.get("timeout", None), int):
             raise InitializationError
 
     def _check_timeout(self):
@@ -55,7 +60,7 @@ class EngineResultsThread(Thread):
                             f"{(now - self.last_time_results_received).seconds}"
                             f" seconds. Ending EngineResultsThread.")
                 self.timeout_check.set()
-                self.kwargs.get("result_queue", None).put(None)
+                self.pub_sub_manager.put(self.result_queue_name, None)
                 return True
             else:
                 time.sleep(5)
@@ -64,9 +69,8 @@ class EngineResultsThread(Thread):
         """Autorun function on thread start"""
         try:
             self.timeout_thread.start()
-            queue = self.kwargs.get("result_queue", None)
             while not self.timeout_check.is_set():
-                work_item = queue.get()
+                work_item = self.pub_sub_manager.get(self.result_queue_name)
                 if self._work(work_item):
                     break
         except Exception as e:
@@ -75,7 +79,7 @@ class EngineResultsThread(Thread):
 
     def _work(self, work_item):
         """
-        Process result from self.result_queue
+        Process result from result queue
 
         Checks timeout and EningeResponseSchema, updates the state manager, passes IOC
         to report actor, and signals if completed.
@@ -127,7 +131,6 @@ class EngineResultsThread(Thread):
             state_manager = self.kwargs.get("state_manager", None)
             for ioc in iocs:
                 state_manager.add_report_item(ioc["severity"], engine_name, ioc)
-                # resp = ActorSystem().ask(self.kwargs.get("report_actor", None), ioc, 10)
                 resp = ActorSystem().ask(self.report_actor, ioc, 10)
                 log.debug(f"Response asking {self.report_actor} an IOC: {resp}")
             if engine_name in self.received_binary_counts:

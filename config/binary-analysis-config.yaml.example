@@ -11,3 +11,4 @@ database:
   location: cb-binary-analysis.db
 pubsub:
   _provider: cbc_binary_sdk.pubsub.builtin.Provider
+  result_queue_name: results

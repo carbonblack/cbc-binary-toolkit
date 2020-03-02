@@ -31,6 +31,7 @@ def config():
       location: ":memory:"
     pubsub:
       _provider: cbc_binary_sdk.pubsub.builtin.Provider
+      result_queue_name: results
     engine:
       name: {ENGINE_NAME}
     """)
@@ -56,6 +57,7 @@ def pub_sub_manager(config):
     """Creates pub_sub for IngestionActor"""
     manager = PubSubManager(config)
     manager.create_queue(ENGINE_NAME)
+    manager.create_queue(config.string("pubsub.result_queue_name"))
     return manager
 
 
@@ -83,20 +85,13 @@ def report_actor(cb_threat_hunter):
 
 
 @pytest.fixture(scope="function")
-def result_queue(pub_sub_manager):
-    """Create result queue for engine results thread"""
-    return pub_sub_manager.create_queue(ENGINE_NAME + "_results")
-
-
-@pytest.fixture(scope="function")
-def engine_results_thread(state_manager, pub_sub_manager, config, report_actor, result_queue, timeout=3):
+def engine_results_thread(state_manager, pub_sub_manager, config, report_actor, timeout=3):
     """Create engine results thread"""
     return EngineResultsThread(kwargs={'state_manager': state_manager,
                                        'pub_sub_manager': pub_sub_manager,
                                        'config': config,
                                        'report_actor': report_actor,
-                                       'timeout': timeout,
-                                       'result_queue': result_queue})
+                                       'timeout': timeout})
 
 
 # ==================================== TESTS BELOW ====================================
@@ -104,13 +99,12 @@ def engine_results_thread(state_manager, pub_sub_manager, config, report_actor, 
     [MESSAGE_VALID, {"file_size": 1, "file_name": "testFile",
                      "os_type": "Mac", "engine_name": "TEST_ENGINE"}]
 ])
-def test_init(state_manager, pub_sub_manager, engine_results_thread, engine_msg, db_init):
+def test_init(config, state_manager, pub_sub_manager, engine_results_thread, engine_msg, db_init):
     """Test creation of engine results thread"""
-    result_queue = pub_sub_manager.get_queue(ENGINE_NAME + "_results")
     hash = engine_msg.get("binary_hash", None)
     state_manager.set_file_state(hash, db_init)
     engine_results_thread.start()
-    result_queue.put(engine_msg)
+    pub_sub_manager.put(config.string("pubsub.result_queue_name"), engine_msg)
 
 
 def test_check_timeout(engine_results_thread):
