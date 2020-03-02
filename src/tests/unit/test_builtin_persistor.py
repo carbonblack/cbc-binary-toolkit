@@ -22,7 +22,9 @@ def local_config():
 
 
 class BreakingCursor(Cursor):
+    """Mock for testing error handling"""
     def execute(self, statement, parameters=None):
+        """Trigger exception"""
         raise OperationalError('in testing')
 
 
@@ -168,14 +170,13 @@ def test_file_state_unfinished_nodata(local_config):
     assert len(output) == 0
 
 
-def test_num_stored_states(local_config):
-    """Tests the get_num_stored_states() API."""
+def test_num_unfinished_states(local_config):
+    """Tests the get_num_unfinished_states() API."""
     manager = StateManager(local_config)
     manager.set_file_state("ABCDEFGH", {"file_size": 2000000, "file_name": "blort.exe",
                                         "os_type": "WINDOWS", "engine_name": "default",
                                         "time_sent": "2020-01-15T12:00:00",
-                                        "time_returned": "2020-01-15T12:05:00",
-                                        "time_published": "2020-01-15T12:05:01"})
+                                        "time_returned": "2020-01-15T12:05:00"})
     manager.set_file_state("MNOPQRST", {"file_size": 2000000, "file_name": "foobar.exe",
                                         "os_type": "WINDOWS", "engine_name": "default",
                                         "time_sent": "2020-01-14T12:00:00",
@@ -184,17 +185,16 @@ def test_num_stored_states(local_config):
     manager.set_file_state("BCDEFGHI", {"file_size": 1500000, "file_name": "gorply.exe",
                                         "os_type": "WINDOWS", "engine_name": "another",
                                         "time_sent": "2020-01-14T12:00:00",
-                                        "time_returned": "2020-01-14T12:05:00",
-                                        "time_published": "2020-01-14T12:05:01"})
-    output = manager.get_num_stored_states()
-    assert output['default'] == 2
+                                        "time_returned": "2020-01-14T12:05:00"})
+    output = manager.get_num_unfinished_states()
+    assert output['default'] == 1
     assert output['another'] == 1
 
 
-def test_num_stored_states_nodata(local_config):
-    """Tests get_num_stored_states() with no data in the database."""
+def test_num_unfinished_states_nodata(local_config):
+    """Tests get_num_unfinished_states() with no data in the database."""
     manager = StateManager(local_config)
-    output = manager.get_num_stored_states()
+    output = manager.get_num_unfinished_states()
     assert output == {}
 
 
@@ -264,7 +264,7 @@ def test_exception_handling(local_config):
                                                "os_type": "WINDOWS", "engine_name": "default"}) is None
     assert manager.lookup("ABCDEFGH", "default") is None
     assert manager.get_unfinished_states() == []
-    assert manager.get_num_stored_states() == {}
+    assert manager.get_num_unfinished_states() == {}
     manager.prune("2020-01-12T00:00:00")
     manager.add_report_item(6, 'default', {'keyval': 1})
     assert manager.get_current_report_items(6, 'default') == []

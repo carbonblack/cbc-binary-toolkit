@@ -54,9 +54,9 @@ class TestPersistor(BasePersistor):
             self._gus = 1
         return [{"file_hash": "ABCDEFG", "file_name": "blort.exe"}]
 
-    def get_num_stored_states(self):
+    def get_num_unfinished_states(self):
         """
-        Returns the number of stored states in the persistence manager for each known engine.
+        Returns the number of unfinished states in the persistence manager for each known engine.
 
         :return: A dict with engine names as keys and count of results for each engine as values.
         """
@@ -197,10 +197,10 @@ def test_get_unfinished_states(local_config):
     assert getattr(manager._persistor, "_cri", 0) == 0
 
 
-def test_get_num_stored_states(local_config):
-    """Test the get_num_stored_states() API."""
+def test_get_num_unfinished_states(local_config):
+    """Test the get_num_unfinished_states() API."""
     manager = StateManager(local_config)
-    counts = manager.get_num_stored_states()
+    counts = manager.get_num_unfinished_states()
     assert counts['default'] == 2
     assert counts['another'] == 1
     assert getattr(manager._persistor, "_gfs", 0) == 0

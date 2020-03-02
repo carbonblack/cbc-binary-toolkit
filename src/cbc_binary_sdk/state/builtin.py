@@ -139,22 +139,22 @@ class SQLiteBasedPersistor(BasePersistor):
             log.error("OperationalError in get_unfinished_states: %s" % (e,))
             return []
 
-    def get_num_stored_states(self):
+    def get_num_unfinished_states(self):
         """
-        Returns the number of stored states in the persistence manager for each known engine.
+        Returns the number of unfinished states in the persistence manager for each known engine.
 
         :return: A dict with engine names as keys and count of results for each engine as values.
         """
         try:
             cursor = self._conn.cursor(self._cursor_factory)
-            stmt = "SELECT engine_name, count(*) FROM run_state GROUP BY engine_name;"
+            stmt = "SELECT engine_name, count(*) FROM run_state WHERE time_published IS NULL GROUP BY engine_name;"
             output_iterator = cursor.execute(stmt)
             return_dict = {}
             for row in output_iterator:
                 return_dict[row[0]] = row[1]
             return return_dict
         except sqlite3.OperationalError as e:
-            log.error("OperationalError in get_num_stored_states: %s" % (e,))
+            log.error("OperationalError in get_num_unfinished_states: %s" % (e,))
             return {}
 
     def prune(self, timestamp):

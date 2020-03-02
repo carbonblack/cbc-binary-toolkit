@@ -38,13 +38,13 @@ class BasePersistor:
         """
         raise NotImplementedError("protocol not implemented: get_unfinished_states")
 
-    def get_num_stored_states(self):
+    def get_num_unfinished_states(self):
         """
-        Returns the number of stored states in the persistence manager for each known engine.
+        Returns the number of unfinished states in the persistence manager for each known engine.
 
         :return: A dict with engine names as keys and count of results for each engine as values.
         """
-        raise NotImplementedError("protocol not implemented: get_num_stored_states")
+        raise NotImplementedError("protocol not implemented: get_num_unfinished_states")
 
     def prune(self, timestamp):
         """
@@ -127,13 +127,13 @@ class StateManager:
         """
         return self._persistor.get_unfinished_states(engine)
 
-    def get_num_stored_states(self):
+    def get_num_unfinished_states(self):
         """
-        Returns the number of stored states in the persistence manager for each known engine.
+        Returns the number of unfinished states in the persistence manager for each known engine.
 
         :return: A dict with engine names as keys and count of results for each engine as values.
         """
-        return self._persistor.get_num_stored_states()
+        return self._persistor.get_num_unfinished_states()
 
     def prune(self, timestamp):
         """

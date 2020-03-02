@@ -12,11 +12,11 @@ from thespian.actors import ActorAddress, ActorSystem
 
 from schema import SchemaError
 from .schemas import EngineResponseSchema
-from cb_binary_analysis.state import StateManager
-from cb_binary_analysis.pubsub import PubSubManager
-from cb_binary_analysis.pubsub.builtin import PythonBasedQueue
-from cb_binary_analysis.config import Config
-from cb_binary_analysis import InitializationError
+from cbc_binary_sdk.state import StateManager
+from cbc_binary_sdk.pubsub import PubSubManager
+from cbc_binary_sdk.pubsub.builtin import PythonBasedQueue
+from cbc_binary_sdk.config import Config
+from cbc_binary_sdk import InitializationError
 log = logging.getLogger(__name__)
 
 DEFAULT_TIMEOUT_SEC = 300
@@ -32,7 +32,6 @@ class EngineResultsThread(Thread):
         self.kwargs = kwargs
         self.report_actor = kwargs.get("report_actor", None)
         self.received_binary_counts = {}
-        # self.sent_reports_dict = self.kwargs.get("state_manager", None).get_num_stored_states()
         self.last_time_results_received = datetime.now()
         self.timeout_check = Event()
         self.timeout_thread = Thread(target=self._check_timeout)
@@ -142,12 +141,12 @@ class EngineResultsThread(Thread):
         """Check for equality between num reports given to analysis engine and num reports received from that engine."""
         state_manager = self.kwargs.get("state_manager", None)
 
-        # need to modfiy this, to get unfiinished states, not all states.
-        sent_reports_dict = state_manager.get_num_stored_states()
+        unfinished_states = state_manager.get_num_unfinished_states()
 
-        if engine_name not in sent_reports_dict:
+        if engine_name not in unfinished_states:
             log.error(f"Received report for engine {engine_name}, but this engine hasn't been sent reports to analyze.")
         else:
-            if self.received_binary_counts[engine_name] == sent_reports_dict[engine_name]:
+            # Assumes ingestion will process hashes faster than analysis engines return IOCs
+            if unfinished_states[engine_name] == 0:
                 return True
         return False
