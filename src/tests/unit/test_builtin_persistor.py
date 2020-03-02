@@ -4,6 +4,7 @@
 
 
 import pytest
+from sqlite3 import Cursor, OperationalError
 from cbc_binary_sdk.config import Config
 from cbc_binary_sdk.state.manager import StateManager
 
@@ -18,6 +19,11 @@ def local_config():
       _provider: cbc_binary_sdk.state.builtin.Persistor
       location: ":memory:"
     """)
+
+
+class BreakingCursor(Cursor):
+    def execute(self, statement, parameters=None):
+        raise OperationalError('in testing')
 
 
 def test_file_state_create_and_alter(local_config):
@@ -248,3 +254,18 @@ def test_report_items_nodata(local_config):
     manager = StateManager(local_config)
     items = manager.get_current_report_items(6, 'default')
     assert len(items) == 0
+
+
+def test_exception_handling(local_config):
+    """Tests that OperationalError is handled by all methods without throwing an exception."""
+    manager = StateManager(local_config)
+    manager._persistor._cursor_factory = BreakingCursor
+    assert manager.set_file_state("ABCDEFGH", {"file_size": 2000000, "file_name": "blort.exe",
+                                               "os_type": "WINDOWS", "engine_name": "default"}) is None
+    assert manager.lookup("ABCDEFGH", "default") is None
+    assert manager.get_unfinished_states() == []
+    assert manager.get_num_stored_states() == {}
+    manager.prune("2020-01-12T00:00:00")
+    manager.add_report_item(6, 'default', {'keyval': 1})
+    assert manager.get_current_report_items(6, 'default') == []
+    manager.clear_report_items(6, 'default')

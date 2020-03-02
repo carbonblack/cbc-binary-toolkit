@@ -17,6 +17,7 @@ class SQLiteBasedPersistor(BasePersistor):
     def __init__(self, conn):
         """Constructor"""
         self._conn = conn
+        self._cursor_factory = sqlite3.Cursor
 
     def get_file_state(self, binary_hash, engine=None):
         """
@@ -27,7 +28,7 @@ class SQLiteBasedPersistor(BasePersistor):
         :return: A dict containing the file information, or None if not found.
         """
         try:
-            cursor = self._conn.cursor()
+            cursor = self._conn.cursor(self._cursor_factory)
             if engine:
                 stmt = """
                 SELECT rowid, file_size, file_name, os_type, engine_name, time_sent, time_returned, time_published
@@ -72,7 +73,7 @@ class SQLiteBasedPersistor(BasePersistor):
         :return: The persistence ID of the database row, either new or existing.
         """
         try:
-            cursor = self._conn.cursor()
+            cursor = self._conn.cursor(self._cursor_factory)
             if persist_id:
                 stmt = """
                 UPDATE run_state
@@ -105,7 +106,7 @@ class SQLiteBasedPersistor(BasePersistor):
         :return: A list of dicts containing all unfinished file information. Returns an empty list if none present.
         """
         try:
-            cursor = self._conn.cursor()
+            cursor = self._conn.cursor(self._cursor_factory)
             if engine:
                 stmt = """
                 SELECT rowid, file_hash, file_size, file_name, os_type, engine_name, time_sent, time_returned
@@ -145,7 +146,7 @@ class SQLiteBasedPersistor(BasePersistor):
         :return: A dict with engine names as keys and count of results for each engine as values.
         """
         try:
-            cursor = self._conn.cursor()
+            cursor = self._conn.cursor(self._cursor_factory)
             stmt = "SELECT engine_name, count(*) FROM run_state GROUP BY engine_name;"
             output_iterator = cursor.execute(stmt)
             return_dict = {}
@@ -163,7 +164,7 @@ class SQLiteBasedPersistor(BasePersistor):
         :param timestamp str: The basic timestamp. Everything older than this will be erased.
         """
         try:
-            cursor = self._conn.cursor()
+            cursor = self._conn.cursor(self._cursor_factory)
             stmt = """
             DELETE FROM run_state
                 WHERE max(julianday(time_sent), julianday(coalesce(time_returned, time_sent)),
@@ -185,7 +186,7 @@ class SQLiteBasedPersistor(BasePersistor):
         :param data dict: The data item to be stored.
         """
         try:
-            cursor = self._conn.cursor()
+            cursor = self._conn.cursor(self._cursor_factory)
             stmt = """
             INSERT INTO report_item (severity, engine_name, data)
                 VALUES (?, ?, ?);
@@ -203,7 +204,7 @@ class SQLiteBasedPersistor(BasePersistor):
         :return: A list of dicts, each of which represents a report item.
         """
         try:
-            cursor = self._conn.cursor()
+            cursor = self._conn.cursor(self._cursor_factory)
             stmt = "SELECT data FROM report_item WHERE severity = ? AND engine_name = ?;"
             return_list = []
             for row in cursor.execute(stmt, (severity, engine)):
@@ -221,7 +222,7 @@ class SQLiteBasedPersistor(BasePersistor):
         :param engine str: The engine value to clear data for.
         """
         try:
-            cursor = self._conn.cursor()
+            cursor = self._conn.cursor(self._cursor_factory)
             stmt = "DELETE FROM report_item WHERE severity = ? AND engine_name = ?;"
             cursor.execute(stmt, (severity, engine))
         except sqlite3.OperationalError as e:
