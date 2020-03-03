@@ -6,6 +6,8 @@ import pytest
 import time
 # from queue import Empty
 from thespian.actors import ActorSystem, ActorExitRequest
+
+from cbc_binary_sdk import InitializationError
 from cbc_binary_sdk.engine_results import EngineResultsThread
 from cbc_binary_sdk.ingestion_actor import IngestionActor
 from cbc_binary_sdk.report_actor import ReportActor
@@ -13,7 +15,7 @@ from cbc_binary_sdk.state import StateManager
 from cbc_binary_sdk.pubsub import PubSubManager
 from cbc_binary_sdk.config import Config
 from cbapi.psc.threathunter import CbThreatHunterAPI
-from tests.unit.engine_fixtures.messages import MESSAGE_VALID, IOCS_1, UNFINISHED_STATE, FINISHED_STATE
+from tests.unit.engine_fixtures.messages import MESSAGE_VALID, IOCS_1, IOCS_2, UNFINISHED_STATE, FINISHED_STATE
 
 import logging
 ENGINE_NAME = "TEST_ENGINE"
@@ -107,6 +109,16 @@ def test_init(config, state_manager, pub_sub_manager, engine_results_thread, eng
     pub_sub_manager.put(config.string("pubsub.result_queue_name"), engine_msg)
 
 
+@pytest.mark.parametrize("kwargs", [
+    None,
+    {"timeout": 2}
+])
+def test_init_exception(kwargs):
+    """Test invalid init"""
+    with pytest.raises(InitializationError):
+        EngineResultsThread(kwargs=kwargs)
+
+
 def test_check_timeout(engine_results_thread):
     """Test timeout check, flag not set after starting, becomes set over time"""
     engine_results_thread.start()
@@ -131,14 +143,15 @@ def test_update_state(engine_results_thread, state_manager, message, db_init):
 
 
 @pytest.mark.parametrize("iocs", [
-    IOCS_1
+    [IOCS_1],
+    [IOCS_1, IOCS_2]
 ])
 def test_accept_report(engine_results_thread, state_manager, iocs):
     """Test adding report to item_list in state_manager"""
-    assert len(state_manager.get_current_report_items(1, ENGINE_NAME)) == 0
-    engine_results_thread._accept_report(ENGINE_NAME, iocs)
-    for ioc in iocs:
-        assert ioc in state_manager.get_current_report_items(ioc["severity"], ENGINE_NAME)
+    for ioc_group in iocs:
+        engine_results_thread._accept_report(ENGINE_NAME, ioc_group)
+        for ioc in ioc_group:
+            assert ioc in state_manager.get_current_report_items(ioc["severity"], ENGINE_NAME)
 
 
 @pytest.mark.parametrize("state,expected", [

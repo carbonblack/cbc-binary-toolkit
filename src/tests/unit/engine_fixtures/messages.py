@@ -7,9 +7,9 @@ IOCS_1 = [{
           "severity": 1,
           },
           {
-          "id": "j39sbv7",
+          "id": "kfsd982m",
           "match_type": "equality",
-          "values": ["127.0.0.1"],
+          "values": ["127.0.0.2"],
           "severity": 1,
           },
           {
@@ -23,6 +23,13 @@ IOCS_1 = [{
           "match_type": "regex",
           "values": [".*google.*"],
           "severity": 3,
+          }]
+
+IOCS_2 = [{
+          "id": "s9dlk2m1",
+          "match_type": "query",
+          "values": ["netconn_ipv4:127.0.0.1"],
+          "severity": 2,
           }]
 
 

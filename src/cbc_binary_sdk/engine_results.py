@@ -45,7 +45,8 @@ class EngineResultsThread(Thread):
         return
 
     def _verify_init(self):
-        if not isinstance(self.kwargs.get("state_manager", None), StateManager) or \
+        if not self.kwargs or \
+           not isinstance(self.kwargs.get("state_manager", None), StateManager) or \
            not isinstance(self.kwargs.get("pub_sub_manager", None), PubSubManager) or \
            not isinstance(self.kwargs.get("config", None), Config) or \
            not isinstance(self.kwargs.get("report_actor", None), ActorAddress) or \
