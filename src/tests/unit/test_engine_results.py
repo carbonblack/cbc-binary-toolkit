@@ -13,7 +13,7 @@ from cbc_binary_sdk.state import StateManager
 from cbc_binary_sdk.pubsub import PubSubManager
 from cbc_binary_sdk.config import Config
 from cbapi.psc.threathunter import CbThreatHunterAPI
-from tests.unit.engine_fixtures.messages import MESSAGE_VALID
+from tests.unit.engine_fixtures.messages import MESSAGE_VALID, IOCS_1, UNFINISHED_STATE, FINISHED_STATE
 
 import logging
 ENGINE_NAME = "TEST_ENGINE"
@@ -130,20 +130,28 @@ def test_update_state(engine_results_thread, state_manager, message, db_init):
     assert "time_returned" in info_after_update
 
 
-def test_accept_report(engine_results_thread, state_manager):
+@pytest.mark.parametrize("iocs", [
+    IOCS_1
+])
+def test_accept_report(engine_results_thread, state_manager, iocs):
     """Test adding report to item_list in state_manager"""
-    # use state_manager.get_current_report_items to verify item isn't in there
-    # use EngineResultsThread._accept_report to add to list
-    # verify item is in list with state_manager.get_current_report_items
-    pass
+    assert len(state_manager.get_current_report_items(1, ENGINE_NAME)) == 0
+    engine_results_thread._accept_report(ENGINE_NAME, iocs)
+    for ioc in iocs:
+        assert ioc in state_manager.get_current_report_items(ioc["severity"], ENGINE_NAME)
 
 
-def test_check_completion(engine_results_thread):
+@pytest.mark.parametrize("state,expected", [
+    [None, False],
+    [UNFINISHED_STATE, False],
+    [FINISHED_STATE, True]
+])
+def test_check_completion(engine_results_thread, state_manager, state, expected):
     """Test completion check"""
-    # need to modify EngineResultsThread._check_completion to use (currently unimplemented)
-    # state_manager.get_unfinished_states. Currently EngineResultsThread._check_completion
-    # only works on a clean first pass. A restart wouldn't be checked for completion correctly.
-
+    if state:
+        state["engine_name"] = ENGINE_NAME
+        state_manager.set_file_state("HASH", state)
+    assert engine_results_thread._check_completion(ENGINE_NAME) == expected
     # add a sample file to pub/sub queue with state_manager.set_file_state
     # spin up engine_results_thread
     # get the results queue with pub_sub_manager.get_queue(ENGINE_NAME + "_results"

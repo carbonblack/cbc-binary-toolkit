@@ -139,7 +139,7 @@ class SQLiteBasedPersistor(BasePersistor):
             log.error("OperationalError in get_unfinished_states: %s" % (e,))
             return []
 
-    def get_num_unfinished_states(self):
+    def get_num_unfinished_states(self, engine=None):
         """
         Returns the number of unfinished states in the persistence manager for each known engine.
 
@@ -152,6 +152,12 @@ class SQLiteBasedPersistor(BasePersistor):
             return_dict = {}
             for row in output_iterator:
                 return_dict[row[0]] = row[1]
+
+            get_names = "SELECT DISTINCT engine_name FROM run_state;"
+            engine_names = cursor.execute(get_names)
+            for row in engine_names:
+                if row[0] not in return_dict:
+                    return_dict[row[0]] = 0
             return return_dict
         except sqlite3.OperationalError as e:
             log.error("OperationalError in get_num_unfinished_states: %s" % (e,))

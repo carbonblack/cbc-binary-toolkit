@@ -34,7 +34,7 @@ class EngineResultsThread(Thread):
         self.state_manager = kwargs.get("state_manager", None)
         self.config = kwargs.get("config", None)
         self.pub_sub_manager = kwargs.get("pub_sub_manager", None)
-        self.timeout = kwargs.get("timeout", None)
+        self.timeout = kwargs.get("timeout", DEFAULT_TIMEOUT_SEC)
 
         self.result_queue_name = self.config.string("pubsub.result_queue_name")
 
@@ -49,13 +49,13 @@ class EngineResultsThread(Thread):
            not isinstance(self.kwargs.get("pub_sub_manager", None), PubSubManager) or \
            not isinstance(self.kwargs.get("config", None), Config) or \
            not isinstance(self.kwargs.get("report_actor", None), ActorAddress) or \
-           not isinstance(self.kwargs.get("timeout", None), int):
+           not isinstance(self.kwargs.get("timeout", DEFAULT_TIMEOUT_SEC), int):
             raise InitializationError
 
     def _check_timeout(self):
         while True:
             now = datetime.now()
-            if (now - self.last_time_results_received).seconds > self.kwargs.get("timeout", DEFAULT_TIMEOUT_SEC):
+            if (now - self.last_time_results_received).seconds > self.timeout:
                 log.warning(f"Haven't received results from an analysis engine in "
                             f"{(now - self.last_time_results_received).seconds}"
                             f" seconds. Ending EngineResultsThread.")
@@ -117,7 +117,7 @@ class EngineResultsThread(Thread):
         try:
             info_dict = {}
             info_dict["time_returned"] = datetime.now()
-            state_manager = self.kwargs.get("state_manager", None)
+            state_manager = self.state_manager
             file_info = state_manager.lookup(binary_hash, engine_name)
             persist_id = file_info["persist_id"]
 
@@ -128,7 +128,7 @@ class EngineResultsThread(Thread):
     def _accept_report(self, engine_name, iocs):
         """Add Report IOCs returned from Analysis Engine to report_item list, and increase count of reports received"""
         try:
-            state_manager = self.kwargs.get("state_manager", None)
+            state_manager = self.state_manager
             for ioc in iocs:
                 state_manager.add_report_item(ioc["severity"], engine_name, ioc)
                 resp = ActorSystem().ask(self.report_actor, ioc, 10)
@@ -142,7 +142,7 @@ class EngineResultsThread(Thread):
 
     def _check_completion(self, engine_name):
         """Check for equality between num reports given to analysis engine and num reports received from that engine."""
-        state_manager = self.kwargs.get("state_manager", None)
+        state_manager = self.state_manager
 
         unfinished_states = state_manager.get_num_unfinished_states()
 
