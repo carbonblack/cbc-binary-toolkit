@@ -36,6 +36,7 @@ def config():
       result_queue_name: results
     engine:
       name: {ENGINE_NAME}
+      feed_id: TEST_FEED_ID
     """)
 
 
@@ -87,7 +88,7 @@ def report_actor(cb_threat_hunter):
 
 
 @pytest.fixture(scope="function")
-def engine_results_thread(state_manager, pub_sub_manager, config, report_actor, timeout=3):
+def engine_results_thread(state_manager, pub_sub_manager, config, report_actor, timeout=5):
     """Create engine results thread"""
     return EngineResultsThread(kwargs={'state_manager': state_manager,
                                        'pub_sub_manager': pub_sub_manager,
@@ -111,7 +112,7 @@ def test_init(config, state_manager, pub_sub_manager, engine_results_thread, eng
 
 @pytest.mark.parametrize("kwargs", [
     None,
-    {"timeout": 2}
+    {"timeout": 5}
 ])
 def test_init_exception(kwargs):
     """Test invalid init"""
@@ -123,7 +124,7 @@ def test_check_timeout(engine_results_thread):
     """Test timeout check, flag not set after starting, becomes set over time"""
     engine_results_thread.start()
     assert not engine_results_thread.timeout_check.is_set()
-    time.sleep(6)
+    time.sleep(7)
     assert engine_results_thread.timeout_check.is_set()
 
 
@@ -165,9 +166,28 @@ def test_check_completion(engine_results_thread, state_manager, state, expected)
         state["engine_name"] = ENGINE_NAME
         state_manager.set_file_state("HASH", state)
     assert engine_results_thread._check_completion(ENGINE_NAME) == expected
-    # add a sample file to pub/sub queue with state_manager.set_file_state
-    # spin up engine_results_thread
-    # get the results queue with pub_sub_manager.get_queue(ENGINE_NAME + "_results"
-    # put a sample engine response (MESSAGE_VALID) on results queue
-    # use EngineResultsThread._update_state to signal receiving of report
-    # use (modified) EngineResultsThread._check_completion to assert we've completed
+
+
+@pytest.mark.parametrize("analysis,state", [
+    (MESSAGE_VALID, UNFINISHED_STATE),
+])
+def test_execution(engine_results_thread, config, state_manager, pub_sub_manager, analysis, state):
+    """Test end to end of EngineResultsThread"""
+    analysis["engine_name"] = ENGINE_NAME
+    state["engine_name"] = ENGINE_NAME
+
+    # Set processed state
+    state_manager.set_file_state(analysis["binary_hash"], state)
+
+    # Add analysis to pubsub
+    pub_sub_manager.put(config.string("pubsub.result_queue_name"), analysis)
+
+    # Start analysis processing thread
+    engine_results_thread.start()
+
+    # Wait for thread to exit
+    engine_results_thread.join()
+
+    # Check hash has returned timestamp
+    hash_state = state_manager.lookup(analysis["binary_hash"], ENGINE_NAME)
+    assert hash_state["time_returned"]

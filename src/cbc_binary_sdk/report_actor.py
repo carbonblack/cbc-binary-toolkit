@@ -69,7 +69,7 @@ class ReportActor(ActorTypeDispatcher):
                 if len(self.iocs[sev]) > 0:
                     now = time.time()
                     report_meta = {
-                        "id": uuid.uuid4(),
+                        "id": str(uuid.uuid4()),
                         "timestamp": int(now),
                         "title": f"{self.engine_name} Severity {sev + 1} - "
                                  f"{time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(now))}",

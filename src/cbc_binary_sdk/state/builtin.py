@@ -111,7 +111,7 @@ class SQLiteBasedPersistor(BasePersistor):
                 stmt = """
                 SELECT rowid, file_hash, file_size, file_name, os_type, engine_name, time_sent, time_returned
                     FROM run_state
-                    WHERE time_published IS NULL AND engine_name = ?
+                    WHERE time_returned IS NULL AND engine_name = ?
                     ORDER BY max(julianday(time_sent), julianday(coalesce(time_returned, time_sent)),
                                  julianday(coalesce(time_published, time_returned, time_sent))) DESC;
                 """
@@ -120,7 +120,7 @@ class SQLiteBasedPersistor(BasePersistor):
                 stmt = """
                 SELECT rowid, file_hash, file_size, file_name, os_type, engine_name, time_sent, time_returned
                     FROM run_state
-                    WHERE time_published IS NULL
+                    WHERE time_returned IS NULL
                     ORDER BY max(julianday(time_sent), julianday(coalesce(time_returned, time_sent)),
                                  julianday(coalesce(time_published, time_returned, time_sent))) DESC;
                 """
@@ -147,7 +147,7 @@ class SQLiteBasedPersistor(BasePersistor):
         """
         try:
             cursor = self._conn.cursor(self._cursor_factory)
-            stmt = "SELECT engine_name, count(*) FROM run_state WHERE time_published IS NULL GROUP BY engine_name;"
+            stmt = "SELECT engine_name, count(*) FROM run_state WHERE time_returned IS NULL GROUP BY engine_name;"
             output_iterator = cursor.execute(stmt)
             return_dict = {}
             for row in output_iterator:
@@ -245,7 +245,7 @@ class Persistor(BasePersistorFactory):
         :return: The new persistor object.
         """
         location = config.string('location')
-        conn = sqlite3.connect(location)
+        conn = sqlite3.connect(location, check_same_thread=False)
         self._setup_database(conn)
         return SQLiteBasedPersistor(conn)
 

@@ -119,12 +119,10 @@ def test_file_state_unfinished(local_config):
     manager.set_file_state("ABCDEFGH", {"file_size": 2000000, "file_name": "blort.exe",
                                         "os_type": "WINDOWS", "engine_name": "default",
                                         "time_sent": "2020-01-15T12:00:00",
-                                        "time_returned": "2020-01-15T12:05:00",
-                                        "time_published": "2020-01-15T12:05:01"})
+                                        "time_returned": "2020-01-15T12:05:00"})
     manager.set_file_state("MNOPQRST", {"file_size": 2000000, "file_name": "foobar.exe",
                                         "os_type": "WINDOWS", "engine_name": "default",
-                                        "time_sent": "2020-01-14T12:00:00",
-                                        "time_returned": "2020-01-14T12:05:00"})
+                                        "time_sent": "2020-01-14T12:00:00"})
     output = manager.get_unfinished_states()
     assert len(output) == 1
     state = output[0]
@@ -132,8 +130,7 @@ def test_file_state_unfinished(local_config):
     assert state["file_hash"] == "MNOPQRST"
     assert state["engine_name"] == "default"
     assert state["time_sent"] == "2020-01-14T12:00:00"
-    assert state["time_returned"] == "2020-01-14T12:05:00"
-    assert state.get('time_published', None) is None
+    assert state.get('time_returned', None) is None
     output = manager.get_unfinished_states("default")
     assert len(output) == 1
     state = output[0]
@@ -148,13 +145,11 @@ def test_file_state_unfinished_none(local_config):
     manager.set_file_state("ABCDEFGH", {"file_size": 2000000, "file_name": "blort.exe",
                                         "os_type": "WINDOWS", "engine_name": "default",
                                         "time_sent": "2020-01-15T12:00:00",
-                                        "time_returned": "2020-01-15T12:05:00",
-                                        "time_published": "2020-01-15T12:05:01"})
+                                        "time_returned": "2020-01-15T12:05:00"})
     manager.set_file_state("MNOPQRST", {"file_size": 2000000, "file_name": "foobar.exe",
                                         "os_type": "WINDOWS", "engine_name": "default",
                                         "time_sent": "2020-01-14T12:00:00",
-                                        "time_returned": "2020-01-14T12:05:00",
-                                        "time_published": "2020-01-14T12:05:01"})
+                                        "time_returned": "2020-01-14T12:05:00"})
     output = manager.get_unfinished_states()
     assert len(output) == 0
     output = manager.get_unfinished_states("default")
@@ -175,8 +170,7 @@ def test_num_unfinished_states(local_config):
     manager = StateManager(local_config)
     manager.set_file_state("ABCDEFGH", {"file_size": 2000000, "file_name": "blort.exe",
                                         "os_type": "WINDOWS", "engine_name": "default",
-                                        "time_sent": "2020-01-15T12:00:00",
-                                        "time_returned": "2020-01-15T12:05:00"})
+                                        "time_sent": "2020-01-15T12:00:00"})
     manager.set_file_state("MNOPQRST", {"file_size": 2000000, "file_name": "foobar.exe",
                                         "os_type": "WINDOWS", "engine_name": "default",
                                         "time_sent": "2020-01-14T12:00:00",
@@ -184,8 +178,7 @@ def test_num_unfinished_states(local_config):
                                         "time_published": "2020-01-14T12:05:01"})
     manager.set_file_state("BCDEFGHI", {"file_size": 1500000, "file_name": "gorply.exe",
                                         "os_type": "WINDOWS", "engine_name": "another",
-                                        "time_sent": "2020-01-14T12:00:00",
-                                        "time_returned": "2020-01-14T12:05:00"})
+                                        "time_sent": "2020-01-14T12:00:00"})
     output = manager.get_num_unfinished_states()
     assert output['default'] == 1
     assert output['another'] == 1

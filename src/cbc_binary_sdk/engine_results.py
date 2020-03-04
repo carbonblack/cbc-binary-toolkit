@@ -41,6 +41,7 @@ class EngineResultsThread(Thread):
         self.received_binary_counts = {}
         self.last_time_results_received = datetime.now()
         self.timeout_check = Event()
+        self.completion_check = Event()
         self.timeout_thread = Thread(target=self._check_timeout)
         return
 
@@ -56,7 +57,9 @@ class EngineResultsThread(Thread):
     def _check_timeout(self):
         while True:
             now = datetime.now()
-            if (now - self.last_time_results_received).seconds > self.timeout:
+            if self.completion_check.is_set():
+                break
+            elif (now - self.last_time_results_received).seconds > self.timeout:
                 log.warning(f"Haven't received results from an analysis engine in "
                             f"{(now - self.last_time_results_received).seconds}"
                             f" seconds. Ending EngineResultsThread.")
@@ -64,7 +67,7 @@ class EngineResultsThread(Thread):
                 self.pub_sub_manager.put(self.result_queue_name, None)
                 return True
             else:
-                time.sleep(5)
+                time.sleep(1)
 
     def run(self):
         """Autorun function on thread start"""
@@ -104,8 +107,13 @@ class EngineResultsThread(Thread):
                 if completed_engine_analysis:
                     log.debug(f"{engine_name} has completed analysis of {self.received_binary_counts[engine_name]}"
                               f" reports.")
-                    resp = ActorSystem().ask(self.report_actor, ("SEND_REPORTS", "SOME_FEED_ID"), 10)
-                    log.debug(f"Response asking {self.report_actor} to SEND_REPORTS: {resp}")
+                    resp = ActorSystem().ask(self.report_actor,
+                                             ("SEND_REPORTS", self.config.string("engine.feed_id")),
+                                             10)
+                    log.debug(f"EngineResultsThread asking {self.report_actor} to SEND_REPORTS: {resp}")
+
+                    # Kill timeout thread
+                    self.completion_check.set()
                     return True
                 else:
                     log.debug("Haven't finished engine")

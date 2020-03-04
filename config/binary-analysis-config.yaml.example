@@ -12,3 +12,6 @@ database:
 pubsub:
   _provider: cbc_binary_sdk.pubsub.builtin.Provider
   result_queue_name: results
+engine:
+  name: example
+  feed_id: example-feed-id

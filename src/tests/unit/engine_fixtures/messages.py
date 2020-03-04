@@ -38,8 +38,7 @@ UNFINISHED_STATE = {
     "file_name": "blort.exe",
     "os_type": "WINDOWS",
     "engine_name": "!!REPLACE!!",
-    "time_sent": "2020-01-15T12:00:00",
-    "time_returned": "2020-01-15T12:05:00"
+    "time_sent": "2020-01-15T12:00:00"
 }
 
 FINISHED_STATE = {
@@ -48,8 +47,7 @@ FINISHED_STATE = {
     "os_type": "WINDOWS",
     "engine_name": "!!REPLACE!!",
     "time_sent": "2020-01-14T12:00:00",
-    "time_returned": "2020-01-14T12:05:00",
-    "time_published": "2020-01-14T12:05:01"
+    "time_returned": "2020-01-14T12:05:00"
 }
 
 MESSAGE_VALID = {
