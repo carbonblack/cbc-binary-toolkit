@@ -32,11 +32,11 @@ class TestUserHandling:
     def test_analyze(self):
         """Test analyze command"""
         with open(LOG_FILE, "a+") as log:
-            subprocess.call([pycommand, BIN, 'analyze', '-l ["test"]'], stdout=log, stderr=log)
+            # subprocess.call([pycommand, BIN, 'analyze', '-l ["test"]'], stdout=log, stderr=log)
             pass
 
     def test_clear(self):
         """Test clear command"""
         with open(LOG_FILE, "a+") as log:
-            subprocess.call([pycommand, BIN, 'clear'], stdout=log, stderr=log)
+            # subprocess.call([pycommand, BIN, 'clear'], stdout=log, stderr=log)
             pass

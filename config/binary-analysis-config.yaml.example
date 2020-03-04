@@ -10,7 +10,7 @@ database:
   _provider: cbc_binary_toolkit.state.builtin.Persistor
   location: ":memory:"
 pubsub:
-  _provider: cbc_binary_sdk.pubsub.builtin.Provider
+  _provider: cbc_binary_toolkit.pubsub.builtin.Provider
   result_queue_name: results
 engine:
   name: example

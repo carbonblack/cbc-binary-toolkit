@@ -2,7 +2,7 @@
 """Unit tests for input functions"""
 
 import pytest
-from cbc_binary_sdk.ubs import (_download_hashes,
+from cbc_binary_toolkit.ubs import (_download_hashes,
                                 _download_binary_metadata,
                                 _validate_download,
                                 download_hashes,

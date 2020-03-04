@@ -7,13 +7,13 @@ import time
 # from queue import Empty
 from thespian.actors import ActorSystem, ActorExitRequest
 
-from cbc_binary_sdk import InitializationError
-from cbc_binary_sdk.engine_results import EngineResultsThread
-from cbc_binary_sdk.ingestion_actor import IngestionActor
-from cbc_binary_sdk.report_actor import ReportActor
-from cbc_binary_sdk.state import StateManager
-from cbc_binary_sdk.pubsub import PubSubManager
-from cbc_binary_sdk.config import Config
+from cbc_binary_toolkit import InitializationError
+from cbc_binary_toolkit.engine_results import EngineResultsThread
+from cbc_binary_toolkit.ingestion_actor import IngestionActor
+from cbc_binary_toolkit.report_actor import ReportActor
+from cbc_binary_toolkit.state import StateManager
+from cbc_binary_toolkit.pubsub import PubSubManager
+from cbc_binary_toolkit.config import Config
 from cbapi.psc.threathunter import CbThreatHunterAPI
 from tests.unit.engine_fixtures.messages import MESSAGE_VALID, IOCS_1, IOCS_2, UNFINISHED_STATE, FINISHED_STATE
 
@@ -26,13 +26,13 @@ log = logging.getLogger(__name__)
 def config():
     """Configuration for all the test cases in this module."""
     return Config.load(f"""
-    id: cb-binary-analysis
+    id: cbc_binary_toolkit
     version: 0.0.1
     database:
-      _provider: cbc_binary_sdk.state.builtin.Persistor
+      _provider: cbc_binary_toolkit.state.builtin.Persistor
       location: ":memory:"
     pubsub:
-      _provider: cbc_binary_sdk.pubsub.builtin.Provider
+      _provider: cbc_binary_toolkit.pubsub.builtin.Provider
       result_queue_name: results
     engine:
       name: {ENGINE_NAME}
