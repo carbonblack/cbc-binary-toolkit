@@ -15,10 +15,18 @@ from cbc_binary_toolkit.state import StateManager
 from cbc_binary_toolkit.pubsub import PubSubManager
 from cbc_binary_toolkit.config import Config
 from cbapi.psc.threathunter import CbThreatHunterAPI
-from tests.unit.engine_fixtures.messages import MESSAGE_VALID, IOCS_1, IOCS_2, UNFINISHED_STATE, FINISHED_STATE
+from tests.unit.ubs_fixtures.CBAPIMock import CBAPIMock
+from tests.unit.engine_fixtures.messages import (MESSAGE_VALID,
+                                                 MESSAGE_INVALID,
+                                                 ENGINE_FAILURE,
+                                                 IOCS_1,
+                                                 IOCS_2,
+                                                 UNFINISHED_STATE,
+                                                 FINISHED_STATE)
 
 import logging
 ENGINE_NAME = "TEST_ENGINE"
+FEED_ID = "TEST_FEED_ID"
 log = logging.getLogger(__name__)
 
 
@@ -36,7 +44,7 @@ def config():
       result_queue_name: results
     engine:
       name: {ENGINE_NAME}
-      feed_id: TEST_FEED_ID
+      feed_id: {FEED_ID}
     """)
 
 
@@ -47,6 +55,12 @@ def cb_threat_hunter():
                              org_key="test",
                              token="abcd/1234",
                              ssl_verify=False)
+
+
+@pytest.fixture(scope="function")
+def cbapi_mock(monkeypatch, cb_threat_hunter):
+    """Mocks CBAPI for unit tests"""
+    return CBAPIMock(monkeypatch, cb_threat_hunter)
 
 
 @pytest.fixture(scope="function")
@@ -130,7 +144,9 @@ def test_check_timeout(engine_results_thread):
 
 @pytest.mark.parametrize("message,db_init", [
     [MESSAGE_VALID, {"file_size": 50, "file_name": "testFile",
-                     "os_type": "Mac", "engine_name": "TEST_ENGINE"}]
+                     "os_type": "Mac", "engine_name": "TEST_ENGINE"}],
+    [ENGINE_FAILURE, {"file_size": 50, "file_name": "testFile",
+                      "os_type": "Mac", "engine_name": "TEST_ENGINE"}]
 ])
 def test_update_state(engine_results_thread, state_manager, message, db_init):
     """Test updating hash state in state manager"""
@@ -171,10 +187,12 @@ def test_check_completion(engine_results_thread, state_manager, state, expected)
 @pytest.mark.parametrize("analysis,state", [
     (MESSAGE_VALID, UNFINISHED_STATE),
 ])
-def test_execution(engine_results_thread, config, state_manager, pub_sub_manager, analysis, state):
+def test_execution(engine_results_thread, cbapi_mock, config, state_manager, pub_sub_manager, analysis, state):
     """Test end to end of EngineResultsThread"""
     analysis["engine_name"] = ENGINE_NAME
     state["engine_name"] = ENGINE_NAME
+
+    cbapi_mock.mock_request("PUT", f"/threathunter/feedmgr/v2/orgs/test/feeds/{FEED_ID}/reports/.*", None)
 
     # Set processed state
     state_manager.set_file_state(analysis["binary_hash"], state)
@@ -191,3 +209,30 @@ def test_execution(engine_results_thread, config, state_manager, pub_sub_manager
     # Check hash has returned timestamp
     hash_state = state_manager.lookup(analysis["binary_hash"], ENGINE_NAME)
     assert hash_state["time_returned"]
+
+
+@pytest.mark.parametrize("analysis,state", [
+    (MESSAGE_INVALID, UNFINISHED_STATE),
+])
+def test_failed_execution(engine_results_thread, cbapi_mock, config, state_manager, pub_sub_manager, analysis, state):
+    """Test end to end of EngineResultsThread"""
+    analysis["engine_name"] = ENGINE_NAME
+    state["engine_name"] = ENGINE_NAME
+
+    cbapi_mock.mock_request("PUT", f"/threathunter/feedmgr/v2/orgs/test/feeds/{FEED_ID}/reports/.*", None)
+
+    # Set processed state
+    state_manager.set_file_state(analysis["binary_hash"], state)
+
+    # Add analysis to pubsub
+    pub_sub_manager.put(config.string("pubsub.result_queue_name"), analysis)
+
+    # Start analysis processing thread
+    engine_results_thread.start()
+
+    # Wait for thread to exit
+    engine_results_thread.join()
+
+    # Check hash has returned timestamp
+    hash_state = state_manager.lookup(analysis["binary_hash"], ENGINE_NAME)
+    assert "time_returned" not in hash_state

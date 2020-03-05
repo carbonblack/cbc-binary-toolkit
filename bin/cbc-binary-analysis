@@ -15,7 +15,7 @@ import os
 from datetime import datetime
 from thespian.actors import ActorSystem, ActorExitRequest
 
-from cbc_binary_toolkit import input as binary_input
+from cbc_binary_toolkit import cli_input
 from cbc_binary_toolkit import EngineResultsThread
 from cbc_binary_toolkit.config import Config
 from cbc_binary_toolkit.ingestion_actor import IngestionActor
@@ -118,8 +118,8 @@ def init(actorsys, config):
                                                  'report_actor': report,
                                                  'timeout': 30
                                                  })
-
-    engine_manager = LocalEngineManager(config, pub_sub_manager)
+    if config.get("engine.local"):
+        engine_manager = LocalEngineManager(config, pub_sub_manager)
 
     return {
         "injest": injest,
@@ -127,6 +127,18 @@ def init(actorsys, config):
         "report": report,
         "results_engine": results_engine
     }
+
+
+def clean_up(actorsys, config, actors):
+    """Clean up actors"""
+    actorsys.ask(actors["injest"], ActorExitRequest())
+
+    # Wait for results engine to finish processing results
+    actors["results_engine"].join()
+    if config.get("engine.local"):
+        actors["engine_manager"].stop()
+
+    actorsys.ask(actors["report"], ActorExitRequest())
 
 
 def yes_or_no(question):
@@ -158,9 +170,9 @@ def main():
         log.info("Analyzing hashes")
         actors = init(actorsys, config)
         if args.file is not None:
-            hash_group = binary_input.read_csv(args.file)
+            hash_group = cli_input.read_csv(args.file)
         else:
-            hash_group = binary_input.read_json(args.list)
+            hash_group = cli_input.read_json(args.list)
 
         for group in hash_group:
             actorsys.tell(actors["injest"], group)
@@ -168,13 +180,13 @@ def main():
         actors["results_engine"].start()
         actors["engine_manager"].start()
 
-        # Clean up actor
-        actorsys.listen()
-        actorsys.ask(actors["injest"], ActorExitRequest())
+        # Wait for injestion to finish before waiting on clean_up
+        for n in range(len(hash_group)):
+            log.info(actorsys.listen())
 
-        # Wait for results engine to finish processing results
-        actors["results_engine"].join()
-        actors["engine_manager"].stop()
+        # Clean up actor
+        clean_up(actorsys, config, actors)
+
     elif args.command_name == "clear":
         log.info("Clear cache")
 
@@ -190,6 +202,8 @@ def main():
         state_manager.prune(timestamp)
     elif args.command_name == "restart":
         log.info("Restart")
+
+    log.info("Finished: {}".format(datetime.now()))
 
 
 if __name__ == '__main__':

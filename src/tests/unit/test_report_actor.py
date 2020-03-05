@@ -80,8 +80,11 @@ def test_receiveMessage_ask(actor, cbapi_mock, input):
     for ioc in input:
         SENT = False
         for report in cbapi_mock._all_request_data:
-            if ioc["severity"] == report["severity"] and ioc in report["iocs_v2"]:
-                SENT = True
+            if ioc["severity"] == report["severity"]:
+                # Remove severity before comparison
+                del ioc["severity"]
+                if ioc in report["iocs_v2"]:
+                    SENT = True
                 break
         assert SENT
 
@@ -132,8 +135,11 @@ def test_receiveMessage_tell(actor, cbapi_mock, input):
     for ioc in input:
         SENT = False
         for report in cbapi_mock._all_request_data:
-            if ioc["severity"] == report["severity"] and ioc in report["iocs_v2"]:
-                SENT = True
+            if ioc["severity"] == report["severity"]:
+                # Remove severity before comparison
+                del ioc["severity"]
+                if ioc in report["iocs_v2"]:
+                    SENT = True
                 break
         assert SENT
 

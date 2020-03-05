@@ -99,9 +99,13 @@ class EngineResultsThread(Thread):
                 iocs = engine_response_valid.get("iocs", None)
                 engine_name = engine_response_valid.get("engine_name", None)
                 binary_hash = engine_response_valid.get("binary_hash", None)
+                success = engine_response_valid.get("binary_hash", False)
 
                 self._update_state(binary_hash, engine_name)
-                self._accept_report(engine_name, iocs)
+                if success:
+                    self._accept_report(engine_name, iocs)
+                else:
+                    log.error(f"Analysis Engine ({engine_name}) failed to process binary: {binary_hash}")
                 completed_engine_analysis = self._check_completion(engine_name)
 
                 if completed_engine_analysis:

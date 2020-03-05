@@ -145,4 +145,4 @@ class IngestionActor(Actor):
             # Wait until all jobs are completed
             self.task_queue.join()
 
-        self.send(sender, f"Completed: {datetime.now()}")
+        self.send(sender, f"Injested: {datetime.now()}")

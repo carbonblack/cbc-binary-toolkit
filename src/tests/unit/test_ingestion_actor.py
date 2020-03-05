@@ -121,7 +121,7 @@ def test_receiveMessage_ask(actor, cbapi_mock, state_manager, pub_sub_manager, i
 
     for item in input:
         completion = ActorSystem().ask(actor, item, 10)
-        assert "Completed" in completion
+        assert "Injested" in completion
         for hash in item["sha256"]:
             assert state_manager.lookup(hash, ENGINE_NAME)
 
@@ -150,7 +150,7 @@ def test_duplicate_hashes(actor, cbapi_mock, state_manager, pub_sub_manager, inp
 
     for item in input:
         completion = ActorSystem().ask(actor, item, 10)
-        assert "Completed" in completion
+        assert "Injested" in completion
         for hash in item["sha256"]:
             assert state_manager.lookup(hash, ENGINE_NAME)
 
@@ -181,7 +181,7 @@ def test_hash_not_found(actor, cbapi_mock, state_manager, pub_sub_manager, input
 
     for item in input:
         completion = ActorSystem().ask(actor, item, 10)
-        assert "Completed" in completion
+        assert "Injested" in completion
         for hash in item["sha256"]:
             assert state_manager.lookup(hash, ENGINE_NAME) is None
 
@@ -209,7 +209,7 @@ def test_receiveMessage_tell(actor, cbapi_mock, state_manager, pub_sub_manager, 
 
     completion = ActorSystem().listen()
     while completion is not None:
-        assert "Completed" in completion
+        assert "Injested" in completion
         completion = ActorSystem().listen()
 
     for hash in hash_to_check:

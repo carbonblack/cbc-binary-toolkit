@@ -53,5 +53,18 @@ FINISHED_STATE = {
 MESSAGE_VALID = {
     "iocs": IOCS_1,
     "engine_name": "TEST_ENGINE",
+    "binary_hash": "0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc",
+    "success": True
+}
+
+ENGINE_FAILURE = {
+    "iocs": [],
+    "engine_name": "TEST_ENGINE",
+    "binary_hash": "0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc",
+    "success": False
+}
+
+MESSAGE_INVALID = {
+    "INVALID": "Bad schema",
     "binary_hash": "0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc"
 }
