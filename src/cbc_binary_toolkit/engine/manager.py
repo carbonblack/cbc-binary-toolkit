@@ -32,7 +32,7 @@ class LocalEngineManager():
         self.config = config
         self.pub_sub_manager = pub_sub_manager
 
-        if not self.config.get("engine.local"):
+        if not self.config.get("engine.local") or self.config.get("engine.num_threads") < 1:
             raise InitializationError
 
         self.num_threads = self.config.get("engine.num_threads")

@@ -24,9 +24,8 @@ class YaraEngine(Thread):
     """Local yara engine"""
     def __init__(self, group=None, target=None, name=None,
                  args=(), kwargs=None, verbose=None):
-        """Engine Results processing thread, pulling from results pub/sub queue"""
+        """Yara engine thread, pulling from engine pub/sub queue"""
         super(YaraEngine, self).__init__(group=group, target=target, name=name)
-        """Constructor"""
         self.name = "Yara"
         self.config = kwargs.get("config", None)
         self.pub_sub_manager = kwargs.get("pub_sub_manager", None)
