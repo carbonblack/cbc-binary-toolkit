@@ -16,9 +16,12 @@ from datetime import datetime
 from thespian.actors import ActorSystem, ActorExitRequest
 
 from cbc_binary_toolkit import input as binary_input
+from cbc_binary_toolkit import EngineResultsThread
 from cbc_binary_toolkit.config import Config
 from cbc_binary_toolkit.ingestion_actor import IngestionActor
+from cbc_binary_toolkit.engine import LocalEngineManager
 from cbc_binary_toolkit.pubsub import PubSubManager
+from cbc_binary_toolkit.report_actor import ReportActor
 from cbc_binary_toolkit.state import StateManager
 
 from cbapi import CbThreatHunterAPI
@@ -85,8 +88,11 @@ def parse_args(args):
 def init(actorsys, config):
     """Initialize actors"""
     state_manager = StateManager(config)
+
     pub_sub_manager = PubSubManager(config)
     pub_sub_manager.create_queue(config.get("engine.name"))
+    pub_sub_manager.create_queue(config.get("pubsub.result_queue_name"))
+
     cbth = CbThreatHunterAPI(url=config.get("carbonblackcloud.url"),
                              org_key=config.get("carbonblackcloud.org_key"),
                              token=config.get("carbonblackcloud.api_token"),
@@ -100,7 +106,27 @@ def init(actorsys, config):
     actorsys.ask(injest, pub_sub_manager)
     actorsys.ask(injest, state_manager)
 
-    return {"injest": injest}
+    report = actorsys.createActor(ReportActor)
+
+    # Send requried init objects
+    ActorSystem().ask(report, cbth)
+    ActorSystem().ask(report, config.get("engine.name"))
+
+    results_engine = EngineResultsThread(kwargs={'state_manager': state_manager,
+                                                 'pub_sub_manager': pub_sub_manager,
+                                                 'config': config,
+                                                 'report_actor': report,
+                                                 'timeout': 30
+                                                 })
+
+    engine_manager = LocalEngineManager(config, pub_sub_manager)
+
+    return {
+        "injest": injest,
+        "engine_manager": engine_manager,
+        "report": report,
+        "results_engine": results_engine
+    }
 
 
 def yes_or_no(question):
@@ -137,15 +163,21 @@ def main():
             hash_group = binary_input.read_json(args.list)
 
         for group in hash_group:
-            completion = actorsys.tell(actors["injest"], group)
-            log.info(completion)
+            actorsys.tell(actors["injest"], group)
+
+        actors["results_engine"].start()
+        actors["engine_manager"].start()
 
         # Clean up actor
         actorsys.listen()
         actorsys.ask(actors["injest"], ActorExitRequest())
+
+        # Wait for results engine to finish processing results
+        actors["results_engine"].join()
+        actors["engine_manager"].stop()
     elif args.command_name == "clear":
         log.info("Clear cache")
-        # TODO: Add support for specifying the engine to clear
+
         timestamp = args.timestamp
         if timestamp is None:
             timestamp = str(datetime.now())

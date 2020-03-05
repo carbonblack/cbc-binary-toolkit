@@ -15,8 +15,10 @@ install_reqs = [
     "cbapi",
     "python-dateutil",
     "pyyaml",
+    "requests",
     "schema",
-    "thespian"
+    "thespian",
+    "yara"
 ]
 
 setup(

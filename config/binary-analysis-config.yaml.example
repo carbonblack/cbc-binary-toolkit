@@ -2,16 +2,21 @@
 id: cbc_binary_toolkit
 version: 0.0.1
 carbonblackcloud:
-  url: https://defense-dev01.cbdtest.io
-  api_token: ABCDEFGHIJKLMNOPQRSTUVWXYZ/1234567890
-  org_key: abcdefgh
-  ssl_verify: True
+  url: https://defense-eap01.conferdeploy.net
+  api_token: S3MLKZVH8QVL5A721Q96Q7HD/ALDS6YAEIL
+  org_key: WNEXFKQ7
+  ssl_verify: False
 database:
   _provider: cbc_binary_toolkit.state.builtin.Persistor
   location: ":memory:"
 pubsub:
   _provider: cbc_binary_toolkit.pubsub.builtin.Provider
   result_queue_name: results
+  persisted: False
 engine:
-  name: example
-  feed_id: example-feed-id
+  name: Yara
+  feed_id: 952fTEFQNWXHLPGIXD4RA
+  local: True
+  num_threads: 1
+  _provider: cbc_binary_toolkit_examples.engine.yara_local.yara_engine.YaraFactory
+  rules_dir: src/cbc_binary_toolkit_examples/engine/yara_local/example_rule.yara

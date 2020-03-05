@@ -1,3 +1,2 @@
-class InitializationError(Exception):
-    """Raised when the actor does not received the correct objects for initialization"""
-    pass
+from .engine_results import EngineResultsThread
+from .errors import InitializationError

@@ -12,7 +12,7 @@ from threading import Thread
 from types import MethodType
 from datetime import datetime
 from cbapi.psc.threathunter import CbThreatHunterAPI
-from cbc_binary_toolkit import InitializationError
+from .errors import InitializationError
 from cbc_binary_toolkit.state import StateManager
 from cbc_binary_toolkit.pubsub import PubSubManager
 from .ubs import download_hashes, get_metadata

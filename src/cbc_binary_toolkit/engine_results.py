@@ -12,10 +12,10 @@ from thespian.actors import ActorAddress, ActorSystem
 
 from schema import SchemaError
 from .schemas import EngineResponseSchema
+from .errors import InitializationError
 from cbc_binary_toolkit.state import StateManager
 from cbc_binary_toolkit.pubsub import PubSubManager
 from cbc_binary_toolkit.config import Config
-from cbc_binary_toolkit import InitializationError
 log = logging.getLogger(__name__)
 
 DEFAULT_TIMEOUT_SEC = 300

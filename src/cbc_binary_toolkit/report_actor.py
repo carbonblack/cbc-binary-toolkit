@@ -11,7 +11,7 @@ from thespian.initmsgs import initializing_messages
 from schema import SchemaError
 from cbapi.psc.threathunter import CbThreatHunterAPI, Report
 from .schemas import IOCV2Schema
-from cbc_binary_toolkit import InitializationError
+from .errors import InitializationError
 
 log = logging.getLogger(__name__)
 
@@ -78,9 +78,9 @@ class ReportActor(ActorTypeDispatcher):
                         "iocs_v2": self.iocs[sev]
                     }
 
-                    log.info(f"Sending report to feed {feed_id}: {report_meta['title']}")
                     report = Report(self.cbth, initial_data=report_meta, feed_id=feed_id)
                     report.update()
+                    log.info(f"Report ({report_meta['title']}) sent to feed {feed_id}")
             return True
         except Exception as e:
             log.error(f"Error while sending reports to feed {feed_id}: {e}")
@@ -152,6 +152,7 @@ class ReportActor(ActorTypeDispatcher):
 
             severity = message.get("severity", None)
             if severity is not None and isinstance(severity, int) and severity > 0 and severity <= SEVERITY_RANGE:
+                del ioc_valid["severity"]
                 self.iocs[severity - 1].append(ioc_valid)
                 return self.send(sender, True)
 
