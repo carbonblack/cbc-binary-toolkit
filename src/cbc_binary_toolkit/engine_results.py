@@ -34,7 +34,7 @@ class EngineResultsThread(Thread):
         self.state_manager = kwargs.get("state_manager", None)
         self.config = kwargs.get("config", None)
         self.pub_sub_manager = kwargs.get("pub_sub_manager", None)
-        self.timeout = kwargs.get("timeout", DEFAULT_TIMEOUT_SEC)
+        self.timeout = self.config.get("engine.timeout", DEFAULT_TIMEOUT_SEC)
 
         self.result_queue_name = self.config.string("pubsub.result_queue_name")
 
@@ -50,8 +50,7 @@ class EngineResultsThread(Thread):
            not isinstance(self.kwargs.get("state_manager", None), StateManager) or \
            not isinstance(self.kwargs.get("pub_sub_manager", None), PubSubManager) or \
            not isinstance(self.kwargs.get("config", None), Config) or \
-           not isinstance(self.kwargs.get("report_actor", None), ActorAddress) or \
-           not isinstance(self.kwargs.get("timeout", DEFAULT_TIMEOUT_SEC), int):
+           not isinstance(self.kwargs.get("report_actor", None), ActorAddress):
             raise InitializationError
 
     def _check_timeout(self):

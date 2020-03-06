@@ -16,4 +16,5 @@ pubsub:
 engine:
   name: engine-name
   feed_id: 578fTEQBNWXHCPGIXD4RA
+  timeout: 300
   local: False

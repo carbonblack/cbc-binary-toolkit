@@ -120,11 +120,15 @@ class Config:
             return Config(v)
         raise ConfigError('value not valid section: ' + path)
 
-    def get(self, path):
+    def get(self, path, defaultval=None):
         """
-        Returns the desired property
+        Returns the desired property with the yaml property type
 
         :param path: The path to the configuration variable (with components separated by '.')
+        :param defaultval: The default value to use if the configuration value isn't specified (default None).
         :return: The value.
         """
-        return self._seek_path(path)
+        v = self._seek_path(path, True)
+        if v is not None:
+            return v
+        return defaultval

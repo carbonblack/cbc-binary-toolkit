@@ -44,6 +44,7 @@ def config():
     engine:
       name: {ENGINE_NAME}
       feed_id: {FEED_ID}
+      timeout: 5
     """)
 
 
@@ -90,13 +91,12 @@ def report_actor(cb_threat_hunter, state_manager):
 
 
 @pytest.fixture(scope="function")
-def engine_results_thread(state_manager, pub_sub_manager, config, report_actor, timeout=5):
+def engine_results_thread(state_manager, pub_sub_manager, config, report_actor):
     """Create engine results thread"""
     return EngineResultsThread(kwargs={'state_manager': state_manager,
                                        'pub_sub_manager': pub_sub_manager,
                                        'config': config,
-                                       'report_actor': report_actor,
-                                       'timeout': timeout})
+                                       'report_actor': report_actor})
 
 
 # ==================================== TESTS BELOW ====================================
@@ -114,7 +114,7 @@ def test_init(config, state_manager, pub_sub_manager, engine_results_thread, eng
 
 @pytest.mark.parametrize("kwargs", [
     None,
-    {"timeout": 5}
+    {"invalid": "invalid"}
 ])
 def test_init_exception(kwargs):
     """Test invalid init"""

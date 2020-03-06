@@ -116,8 +116,7 @@ def init(actorsys, config):
     results_engine = EngineResultsThread(kwargs={'state_manager': state_manager,
                                                  'pub_sub_manager': pub_sub_manager,
                                                  'config': config,
-                                                 'report_actor': report,
-                                                 'timeout': 30
+                                                 'report_actor': report
                                                  })
     if config.get("engine.local"):
         engine_manager = LocalEngineManager(config, pub_sub_manager)
