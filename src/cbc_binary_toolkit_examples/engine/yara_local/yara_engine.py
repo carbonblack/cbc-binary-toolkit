@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 class YaraFactory(LocalEngineFactory):
     """Yara Factory"""
     def create_engine(self, config, pub_sub_manager):
-        """Create yara engine thread"""
+        """Creates yara engine threads"""
         return YaraEngine(kwargs={"config": config, "pub_sub_manager": pub_sub_manager})
 
 
@@ -51,17 +51,6 @@ class YaraEngine(Thread):
                 resp.raise_for_status()
 
                 matches = self.rules.match(data=resp.raw.read())
-
-                """
-                {
-                  'tags': ['foo', 'bar'],
-                  'matches': True,
-                  'namespace': 'default',
-                  'rule': 'my_rule',
-                  'meta': {},
-                  'strings': [(81L, '$a', 'abc'), (141L, '$b', 'def')]
-                }
-                """
 
                 highest_severity = 0
                 for match in matches["main"]:

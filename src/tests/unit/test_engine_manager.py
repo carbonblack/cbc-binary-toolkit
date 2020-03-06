@@ -31,7 +31,7 @@ def config():
 
 @pytest.fixture(scope="function")
 def pub_sub_manager(config):
-    """Creates pub_sub for IngestionActor"""
+    """Creates pub_sub for LocalEngineManager"""
     manager = PubSubManager(config)
     manager.create_queue(config.get("engine.name"))
     manager.create_queue(config.get("pubsub.result_queue_name"))
@@ -85,7 +85,7 @@ def test_execution(config, pub_sub_manager):
     """, NotImplementedError]
 ])
 def test_failed_init(engine_config, exception):
-    """Test successful execution of LocalEngineManager"""
+    """Test raised exceptions on init of LocalEngineManager"""
     config = Config.load(engine_config)
     with pytest.raises(exception):
         LocalEngineManager(config, pub_sub_manager)

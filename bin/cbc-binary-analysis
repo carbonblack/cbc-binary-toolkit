@@ -110,6 +110,7 @@ def init(actorsys, config):
 
     # Send requried init objects
     ActorSystem().ask(report, cbth)
+    ActorSystem().ask(report, state_manager)
     ActorSystem().ask(report, config.get("engine.name"))
 
     results_engine = EngineResultsThread(kwargs={'state_manager': state_manager,

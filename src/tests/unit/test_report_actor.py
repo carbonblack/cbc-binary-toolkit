@@ -4,12 +4,26 @@
 
 import pytest
 from thespian.actors import ActorSystem, ActorExitRequest
+from cbc_binary_toolkit.config import Config
 from cbc_binary_toolkit.report_actor import ReportActor
+from cbc_binary_toolkit.state import StateManager
 from cbapi.psc.threathunter import CbThreatHunterAPI
 from tests.unit.ubs_fixtures.CBAPIMock import CBAPIMock
 
 ENGINE_NAME = "TEST_ENGINE"
 FEED_ID = "id1"
+
+
+@pytest.fixture(scope="session")
+def config():
+    """Configuration for all the test cases in this module."""
+    return Config.load(f"""
+    id: cbc_binary_toolkit
+    version: 0.0.1
+    database:
+      _provider: cbc_binary_toolkit.state.builtin.Persistor
+      location: ":memory:"
+    """)
 
 
 @pytest.fixture(scope="session")
@@ -22,11 +36,18 @@ def cb_threat_hunter():
 
 
 @pytest.fixture(scope="function")
-def actor(cb_threat_hunter):
+def state_manager(config):
+    """Creates state manager for ReportActor"""
+    return StateManager(config)
+
+
+@pytest.fixture(scope="function")
+def actor(cb_threat_hunter, state_manager):
     """Creates actor to unit test"""
     actor = ActorSystem().createActor(ReportActor)
 
     ActorSystem().ask(actor, cb_threat_hunter)
+    ActorSystem().ask(actor, state_manager)
     ActorSystem().ask(actor, ENGINE_NAME)
     yield actor
     ActorSystem().ask(actor, ActorExitRequest())
@@ -64,9 +85,10 @@ def cbapi_mock(monkeypatch, cb_threat_hunter):
         "severity": 3,
     }],
 ])
-def test_receiveMessage_ask(actor, cbapi_mock, input):
+def test_receiveMessage_ask(actor, cbapi_mock, state_manager, input):
     """Test receiveMessage"""
     for ioc in input:
+        state_manager.add_report_item(ioc["severity"], ENGINE_NAME, ioc)
         valid = ActorSystem().ask(actor, ioc, 1)
         assert valid is True
 
@@ -81,6 +103,8 @@ def test_receiveMessage_ask(actor, cbapi_mock, input):
         SENT = False
         for report in cbapi_mock._all_request_data:
             if ioc["severity"] == report["severity"]:
+                assert len(state_manager.get_current_report_items(ioc["severity"], ENGINE_NAME)) == 0
+
                 # Remove severity before comparison
                 del ioc["severity"]
                 if ioc in report["iocs_v2"]:
@@ -115,9 +139,10 @@ def test_receiveMessage_ask(actor, cbapi_mock, input):
         "severity": 3,
     }],
 ])
-def test_receiveMessage_tell(actor, cbapi_mock, input):
+def test_receiveMessage_tell(actor, cbapi_mock, state_manager, input):
     """Test receiveMessage"""
     for ioc in input:
+        state_manager.add_report_item(ioc["severity"], ENGINE_NAME, ioc)
         ActorSystem().tell(actor, ioc)
         valid = ActorSystem().listen()
         assert valid is True
@@ -136,6 +161,8 @@ def test_receiveMessage_tell(actor, cbapi_mock, input):
         SENT = False
         for report in cbapi_mock._all_request_data:
             if ioc["severity"] == report["severity"]:
+                assert len(state_manager.get_current_report_items(ioc["severity"], ENGINE_NAME)) == 0
+
                 # Remove severity before comparison
                 del ioc["severity"]
                 if ioc in report["iocs_v2"]:

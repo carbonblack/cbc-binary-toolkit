@@ -9,7 +9,6 @@ from thespian.actors import ActorSystem, ActorExitRequest
 
 from cbc_binary_toolkit import InitializationError
 from cbc_binary_toolkit.engine_results import EngineResultsThread
-from cbc_binary_toolkit.ingestion_actor import IngestionActor
 from cbc_binary_toolkit.report_actor import ReportActor
 from cbc_binary_toolkit.state import StateManager
 from cbc_binary_toolkit.pubsub import PubSubManager
@@ -65,13 +64,13 @@ def cbapi_mock(monkeypatch, cb_threat_hunter):
 
 @pytest.fixture(scope="function")
 def state_manager(config):
-    """Creates state manager for IngestionActor"""
+    """Creates state manager for ReportActor and EngineResultsThread"""
     return StateManager(config)
 
 
 @pytest.fixture(scope="function")
 def pub_sub_manager(config):
-    """Creates pub_sub for IngestionActor"""
+    """Creates pub_sub for EngineResultsThread"""
     manager = PubSubManager(config)
     manager.create_queue(ENGINE_NAME)
     manager.create_queue(config.string("pubsub.result_queue_name"))
@@ -79,23 +78,12 @@ def pub_sub_manager(config):
 
 
 @pytest.fixture(scope="function")
-def ingestion_actor(cb_threat_hunter, config, state_manager, pub_sub_manager):
-    """Creates ingestion actor to unit test"""
-    actor = ActorSystem().createActor(IngestionActor)
-    ActorSystem().ask(actor, cb_threat_hunter)
-    ActorSystem().ask(actor, config)
-    ActorSystem().ask(actor, state_manager)
-    ActorSystem().ask(actor, pub_sub_manager)
-    yield actor
-    ActorSystem().ask(actor, ActorExitRequest())
-
-
-@pytest.fixture(scope="function")
-def report_actor(cb_threat_hunter):
+def report_actor(cb_threat_hunter, state_manager):
     """Creates report actor to unit test"""
     log.debug("Init report_actor in pytest")
     actor = ActorSystem().createActor(ReportActor)
     ActorSystem().ask(actor, cb_threat_hunter)
+    ActorSystem().ask(actor, state_manager)
     ActorSystem().ask(actor, ENGINE_NAME)
     yield actor
     ActorSystem().ask(actor, ActorExitRequest())

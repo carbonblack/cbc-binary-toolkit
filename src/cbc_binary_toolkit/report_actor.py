@@ -12,13 +12,18 @@ from schema import SchemaError
 from cbapi.psc.threathunter import CbThreatHunterAPI, Report
 from .schemas import IOCV2Schema
 from .errors import InitializationError
+from .state import StateManager
 
 log = logging.getLogger(__name__)
 
 SEVERITY_RANGE = 10
 
 
-@initializing_messages([("cbth", CbThreatHunterAPI), ("engine_name", str)], initdone='_verify_init')
+@initializing_messages([
+    ("cbth", CbThreatHunterAPI),
+    ("state_manager", StateManager),
+    ("engine_name", str)],
+    initdone='_verify_init')
 class ReportActor(ActorTypeDispatcher):
     """
     ReportActor
@@ -50,6 +55,7 @@ class ReportActor(ActorTypeDispatcher):
     def _verify_init(self):
         """Verifies that the actor has the necessary properties to initialize"""
         if not isinstance(self.cbth, CbThreatHunterAPI) or \
+           not isinstance(self.state_manager, StateManager) or \
            not isinstance(self.engine_name, str):
             raise InitializationError
 
@@ -81,6 +87,9 @@ class ReportActor(ActorTypeDispatcher):
                     report = Report(self.cbth, initial_data=report_meta, feed_id=feed_id)
                     report.update()
                     log.info(f"Report ({report_meta['title']}) sent to feed {feed_id}")
+
+                    # Clear report items from the database
+                    self.state_manager.clear_report_items(sev + 1, self.engine_name)
             return True
         except Exception as e:
             log.error(f"Error while sending reports to feed {feed_id}: {e}")
