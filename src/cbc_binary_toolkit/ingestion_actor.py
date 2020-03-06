@@ -5,7 +5,7 @@
 import logging
 import traceback
 
-from thespian.actors import Actor, ActorExitRequest
+from thespian.actors import ActorTypeDispatcher
 from thespian.initmsgs import initializing_messages
 from queue import Queue
 from threading import Thread
@@ -45,7 +45,7 @@ def worker(queue: Queue, func: MethodType):
                        ("pub_sub_manager", PubSubManager),
                        ("config", Config)
                        ], initdone='_verify_init')
-class IngestionActor(Actor):
+class IngestionActor(ActorTypeDispatcher):
     """
     IngestionActor
 
@@ -103,22 +103,70 @@ class IngestionActor(Actor):
            not isinstance(self.pub_sub_manager, PubSubManager):
             raise InitializationError
 
-    def receiveMessage(self, message, sender):
+    def receiveMsg_ActorExitRequest(self, message, sender):
+        """
+        Clean up handler
+
+        Args:
+            message (ActorExitRequest): thespian.actors.ActorExitRequest that terminates actor
+            sender (address): The address to send result too
+
+        """
+        self._clean_up()
+
+    def receiveUnrecognizedMessage(self, message, sender):
+        """
+        Unrecognized message handler
+
+        Args:
+            message (?): Any message type not explicitly handled
+            sender (address): The address to send result too
+
+        """
+        log.error(f"Unrecognized message type: {type(message)}")
+        self.send(sender, 'Invalid message format expected: {"sha256": [str, ...], "expiration_seconds": int }')
+
+    def receiveMsg_tuple(self, message, sender):
+        """
+        Command handler
+
+        Args:
+            message (tuple): ( command , ... )
+            sender (address): The address to send result too
+
+        Commands:
+            Restart: ( "RESTART",)
+
+        """
+        if message[0] == "RESTART":
+            log.info(f"Reprocessing unfinished states")
+            # Reprocess unfinished states
+            unfinished_states = self.state_manager.get_unfinished_states(self.config.get("engine.name"))
+            reprocess = {"sha256": []}
+            for state in unfinished_states:
+                reprocess["sha256"].append(state["file_hash"])
+                if len(reprocess["sha256"]) == 100:
+                    self.send(self.myAddress, reprocess)
+                    reprocess["sha256"] = []
+
+            self.send(sender, True)
+        else:
+            log.error(f"Unsupported command: {message[0]}")
+            self.send(sender, False)
+
+    def receiveMsg_dict(self, message, sender):
         """
         Entry Point
 
         Args:
-            message (str): JSON string
+            message (dict): dict of sha256 hashes to process
             sender (address): The address to send result too
 
         Expected Format:
             {"sha256": [str, ...], "expiration_seconds": int }
 
         """
-        if isinstance(message, ActorExitRequest):
-            self._clean_up()
-            return
-        elif not isinstance(message, dict) or not isinstance(message.get("sha256", None), list):
+        if not isinstance(message.get("sha256", None), list):
             self.send(sender, 'Invalid message format expected: {"sha256": [str, ...], "expiration_seconds": int }')
             return
 

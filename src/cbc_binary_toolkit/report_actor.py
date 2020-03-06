@@ -142,7 +142,7 @@ class ReportActor(ActorTypeDispatcher):
         IOC handler
 
         Args:
-            message (str): JSON string
+            message (dict): JSON matching IOCV2Schema
             sender (address): The address to send result too
 
         Expected Format:
@@ -169,3 +169,41 @@ class ReportActor(ActorTypeDispatcher):
         except SchemaError as e:
             log.error(f"IOC format invalid: {e}")
         self.send(sender, False)
+
+    def receiveMsg_list(self, message, sender):
+        """
+        IOC handler
+
+        Args:
+            message (list): List of JSON matching IOCV2Schema
+            sender (address): The address to send result too
+
+        Expected Format:
+            [{
+                "id": And(str, len),
+                "match_type": And(str, lambda type: type in ["query", "equality", "regex"]),
+                "values": And([str], len),
+                 Optional("field"): And(str, len),
+                 Optional("link"): And(str, len),
+                "severity": int(1 - 10),
+            },
+            ...
+            ]
+
+        """
+        success = True
+        for ioc in message:
+            try:
+                ioc_valid = IOCV2Schema.validate(ioc)
+                severity = ioc.get("severity", None)
+                if severity is not None and isinstance(severity, int) and severity > 0 and severity <= SEVERITY_RANGE:
+                    del ioc_valid["severity"]
+                    self.iocs[severity - 1].append(ioc_valid)
+                    continue
+
+                log.error("Severity not provide with IOC")
+            except SchemaError as e:
+                log.error(f"IOC format invalid: {e}")
+            success = False
+
+        self.send(sender, success)

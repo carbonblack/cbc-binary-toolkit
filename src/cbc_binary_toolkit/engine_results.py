@@ -19,6 +19,7 @@ from cbc_binary_toolkit.config import Config
 log = logging.getLogger(__name__)
 
 DEFAULT_TIMEOUT_SEC = 300
+SEVERITY_RANGE = 10
 
 
 class EngineResultsThread(Thread):
@@ -43,7 +44,11 @@ class EngineResultsThread(Thread):
         self.timeout_check = Event()
         self.completion_check = Event()
         self.timeout_thread = Thread(target=self._check_timeout)
-        return
+
+        # Reload report actor
+        for sev in range(SEVERITY_RANGE):
+            iocs = self.state_manager.get_current_report_items(sev, self.config.get("engine_name"))
+            ActorSystem().ask(self.report_actor, iocs)
 
     def _verify_init(self):
         if not self.kwargs or \

@@ -125,7 +125,8 @@ def init(actorsys, config):
         "injest": injest,
         "engine_manager": engine_manager,
         "report": report,
-        "results_engine": results_engine
+        "results_engine": results_engine,
+        "state_manager": state_manager
     }
 
 
@@ -153,6 +154,38 @@ def yes_or_no(question):
         return yes_or_no(question)
 
 
+def analyze(args, actorsys, config, actors):
+    """Analyze operation"""
+    if args.file is not None:
+        hash_group = cli_input.read_csv(args.file)
+    else:
+        hash_group = cli_input.read_json(args.list)
+
+    for group in hash_group:
+        actorsys.tell(actors["injest"], group)
+
+    actors["results_engine"].start()
+    actors["engine_manager"].start()
+
+    # Wait for injestion to finish before waiting on clean_up
+    for n in range(len(hash_group)):
+        log.info(actorsys.listen())
+
+    # Clean up actor
+    clean_up(actorsys, config, actors)
+
+
+def restart(actorsys, config, actors):
+    """Restart operation"""
+    actorsys.tell(actors["ingest"], ("RESTART",))
+
+    actors["results_engine"].start()
+    actors["engine_manager"].start()
+
+    # Wait for results engine and engine_manager to finish
+    clean_up(actorsys, config, actors)
+
+
 def main():
     """Entry point"""
     log.info("Started: {}".format(datetime.now()))
@@ -169,23 +202,8 @@ def main():
     if args.command_name == "analyze":
         log.info("Analyzing hashes")
         actors = init(actorsys, config)
-        if args.file is not None:
-            hash_group = cli_input.read_csv(args.file)
-        else:
-            hash_group = cli_input.read_json(args.list)
 
-        for group in hash_group:
-            actorsys.tell(actors["injest"], group)
-
-        actors["results_engine"].start()
-        actors["engine_manager"].start()
-
-        # Wait for injestion to finish before waiting on clean_up
-        for n in range(len(hash_group)):
-            log.info(actorsys.listen())
-
-        # Clean up actor
-        clean_up(actorsys, config, actors)
+        analyze(args, actorsys, config, actors)
 
     elif args.command_name == "clear":
         log.info("Clear cache")
@@ -200,8 +218,12 @@ def main():
         # Clear previous states
         state_manager = StateManager(config)
         state_manager.prune(timestamp)
+
     elif args.command_name == "restart":
         log.info("Restart")
+        actors = init(actorsys, config)
+
+        restart(actorsys, config, actors)
 
     log.info("Finished: {}".format(datetime.now()))
 
