@@ -98,13 +98,13 @@ def init(actorsys, config):
                              token=config.get("carbonblackcloud.api_token"),
                              ssl_verify=config.get("carbonblackcloud.ssl_verify"))
 
-    injest = actorsys.createActor(IngestionActor)
+    ingest = actorsys.createActor(IngestionActor)
 
     # Send requried init objects
-    actorsys.ask(injest, config)
-    actorsys.ask(injest, cbth)
-    actorsys.ask(injest, pub_sub_manager)
-    actorsys.ask(injest, state_manager)
+    actorsys.ask(ingest, config)
+    actorsys.ask(ingest, cbth)
+    actorsys.ask(ingest, pub_sub_manager)
+    actorsys.ask(ingest, state_manager)
 
     report = actorsys.createActor(ReportActor)
 
@@ -122,7 +122,7 @@ def init(actorsys, config):
         engine_manager = LocalEngineManager(config, pub_sub_manager)
 
     return {
-        "injest": injest,
+        "ingest": ingest,
         "engine_manager": engine_manager,
         "report": report,
         "results_engine": results_engine,
@@ -132,7 +132,7 @@ def init(actorsys, config):
 
 def clean_up(actorsys, config, actors):
     """Clean up actors"""
-    actorsys.ask(actors["injest"], ActorExitRequest())
+    actorsys.ask(actors["ingest"], ActorExitRequest())
 
     # Wait for results engine to finish processing results
     actors["results_engine"].join()
@@ -162,12 +162,12 @@ def analyze(args, actorsys, config, actors):
         hash_group = cli_input.read_json(args.list)
 
     for group in hash_group:
-        actorsys.tell(actors["injest"], group)
+        actorsys.tell(actors["ingest"], group)
 
     actors["results_engine"].start()
     actors["engine_manager"].start()
 
-    # Wait for injestion to finish before waiting on clean_up
+    # Wait for ingestion to finish before waiting on clean_up
     for n in range(len(hash_group)):
         actorsys.listen()
 

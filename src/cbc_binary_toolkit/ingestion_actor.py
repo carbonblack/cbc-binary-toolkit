@@ -173,7 +173,8 @@ class IngestionActor(ActorTypeDispatcher):
 
         """
         if not isinstance(message.get("sha256", None), list):
-            log.error('Invalid message format expected: {"sha256": [str, ...], "expiration_seconds": int }')
+            log.error('Invalid message format received. Expected: {"sha256": [str, ...], "expiration_seconds": int }')
+            log.debug(f'Message received: {message}')
             if sender is not self.myAddress:
                 self.send(sender, False)
             return
@@ -211,6 +212,6 @@ class IngestionActor(ActorTypeDispatcher):
             # Wait until all jobs are completed
             self.task_queue.join()
 
-        log.info(f"Injested: {datetime.now()}")
+        log.info(f"Ingested: {datetime.now()}")
         if sender is not self.myAddress:
             self.send(sender, True)
