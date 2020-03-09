@@ -231,7 +231,8 @@ def test_receiveMessage_tell(actor, cbapi_mock, state_manager, pub_sub_manager, 
     None,
     True,
     {"msg": "INVALID"},
-    {"sha256": []}
+    {"sha256": []},
+    ("INVALID",)
 ])
 def test_receiveMessage_invalid_messages(actor, input):
     """Test invalid messages"""
