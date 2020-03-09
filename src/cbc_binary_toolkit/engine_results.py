@@ -147,7 +147,7 @@ class EngineResultsThread(Thread):
             state_manager = self.state_manager
             for ioc in iocs:
                 state_manager.add_report_item(ioc["severity"], engine_name, ioc)
-                resp = ActorSystem().ask(self.report_actor, ioc, 10)
+                ActorSystem().ask(self.report_actor, ioc, 10)
             if engine_name in self.received_binary_counts:
                 self.received_binary_counts[engine_name] += 1
             else:
