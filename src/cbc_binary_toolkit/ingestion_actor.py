@@ -123,8 +123,9 @@ class IngestionActor(ActorTypeDispatcher):
             sender (address): The address to send result too
 
         """
-        log.error(f"Unrecognized message type: {type(message)}")
-        self.send(sender, 'Invalid message format expected: {"sha256": [str, ...], "expiration_seconds": int }')
+        log.error(f'Unrecognized message type: {type(message)}. '
+                  f'Expected: {{"sha256": [str, ...], "expiration_seconds": int }}')
+        self.send(sender, False)
 
     def receiveMsg_tuple(self, message, sender):
         """
@@ -145,6 +146,9 @@ class IngestionActor(ActorTypeDispatcher):
             reprocess = {"sha256": []}
             for state in unfinished_states:
                 reprocess["sha256"].append(state["file_hash"])
+                # Reset time_sent
+                self.state_manager.set_file_state(state["file_hash"], {"time_sent": 0}, state["persist_id"])
+
                 if len(reprocess["sha256"]) == 100:
                     self.send(self.myAddress, reprocess)
                     reprocess["sha256"] = []
@@ -179,8 +183,12 @@ class IngestionActor(ActorTypeDispatcher):
 
         # Check previously seen hashes
         for hash in hashes:
-            if self.state_manager.lookup(hash).get("time_returned") is None and new_hashes.get(hash, True):
-                new_hashes[hash] = False
+            if self.state_manager.lookup(hash) is None or \
+               self.state_manager.lookup(hash).get("time_sent") == 0:
+                if new_hashes.get(hash, True):
+                    new_hashes[hash] = False
+                else:
+                    log.info(f"Hash {hash} has already been analyzed")
             else:
                 log.info(f"Hash {hash} has already been analyzed")
 

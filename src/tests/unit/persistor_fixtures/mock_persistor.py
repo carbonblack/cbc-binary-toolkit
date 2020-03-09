@@ -21,7 +21,8 @@ class MockPersistor(BasePersistor):
         """Mock set file state"""
         self.db[binary_hash] = attrs
         self.db[binary_hash]["file_hash"] = binary_hash
-        return uuid.uuid4()
+        self.db[binary_hash]["persist_id"] = uuid.uuid4()
+        return self.db[binary_hash]["persist_id"]
 
     def get_unfinished_states(self, engine):
         """Mock get_unfinished_states"""

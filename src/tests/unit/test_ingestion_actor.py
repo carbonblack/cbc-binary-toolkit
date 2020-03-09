@@ -150,8 +150,7 @@ def test_duplicate_hashes(actor, cbapi_mock, state_manager, pub_sub_manager, inp
     pub_sub_queue = pub_sub_manager.get_queue(ENGINE_NAME)
 
     for item in input:
-        completion = ActorSystem().ask(actor, item, 10)
-        assert completion
+        ActorSystem().ask(actor, item, 10)
         for hash in item["sha256"]:
             assert state_manager.lookup(hash, ENGINE_NAME)
 

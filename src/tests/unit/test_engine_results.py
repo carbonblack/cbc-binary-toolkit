@@ -4,6 +4,9 @@
 
 import pytest
 import time
+import logging
+import copy
+
 # from queue import Empty
 from thespian.actors import ActorSystem, ActorExitRequest
 
@@ -23,7 +26,6 @@ from tests.unit.engine_fixtures.messages import (MESSAGE_VALID,
                                                  UNFINISHED_STATE,
                                                  FINISHED_STATE)
 
-import logging
 ENGINE_NAME = "TEST_ENGINE"
 FEED_ID = "TEST_FEED_ID"
 log = logging.getLogger(__name__)
@@ -114,7 +116,7 @@ def test_init(config, state_manager, pub_sub_manager, engine_results_thread, eng
 
 
 @pytest.mark.parametrize("db_init", [
-    IOCS_1
+    copy.deepcopy(IOCS_1)
 ])
 def test_restart(config, cbapi_mock, pub_sub_manager, report_actor, state_manager, db_init):
     """Test restart of engine results thread"""
@@ -181,8 +183,8 @@ def test_update_state(engine_results_thread, state_manager, message, db_init):
 
 
 @pytest.mark.parametrize("iocs", [
-    [IOCS_1],
-    [IOCS_1, IOCS_2]
+    [copy.deepcopy(IOCS_1)],
+    [copy.deepcopy(IOCS_1), copy.deepcopy(IOCS_2)]
 ])
 def test_accept_report(engine_results_thread, state_manager, iocs):
     """Test adding report to item_list in state_manager"""

@@ -177,7 +177,8 @@ def analyze(args, actorsys, config, actors):
 
 def restart(actorsys, config, actors):
     """Restart operation"""
-    actorsys.tell(actors["ingest"], ("RESTART",))
+    if not config.get("pubsub.persisted", False):
+        actorsys.tell(actors["ingest"], ("RESTART",))
 
     actors["results_engine"].start()
     actors["engine_manager"].start()
