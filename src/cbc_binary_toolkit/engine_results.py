@@ -124,8 +124,6 @@ class EngineResultsThread(Thread):
                     # Kill timeout thread
                     self.completion_check.set()
                     return True
-                else:
-                    log.debug("Haven't finished engine")
             except SchemaError as e:
                 log.error(f"Message to Engine Results Actor does not conform to EngineResponseSchema: {e}")
             return False
@@ -150,7 +148,6 @@ class EngineResultsThread(Thread):
             for ioc in iocs:
                 state_manager.add_report_item(ioc["severity"], engine_name, ioc)
                 resp = ActorSystem().ask(self.report_actor, ioc, 10)
-                log.debug(f"Response asking {self.report_actor} an IOC: {resp}")
             if engine_name in self.received_binary_counts:
                 self.received_binary_counts[engine_name] += 1
             else:
