@@ -100,6 +100,7 @@ def engine_results_thread(state_manager, pub_sub_manager, config, report_actor):
 
 
 # ==================================== TESTS BELOW ====================================
+
 @pytest.mark.parametrize("engine_msg,db_init", [
     [MESSAGE_VALID, {"file_size": 1, "file_name": "testFile",
                      "os_type": "Mac", "engine_name": "TEST_ENGINE"}]
@@ -110,6 +111,38 @@ def test_init(config, state_manager, pub_sub_manager, engine_results_thread, eng
     state_manager.set_file_state(hash, db_init)
     engine_results_thread.start()
     pub_sub_manager.put(config.string("pubsub.result_queue_name"), engine_msg)
+
+
+@pytest.mark.parametrize("db_init", [
+    IOCS_1
+])
+def test_restart(config, cbapi_mock, pub_sub_manager, report_actor, state_manager, db_init):
+    """Test restart of engine results thread"""
+    cbapi_mock.mock_request("PUT", f"/threathunter/feedmgr/v2/orgs/test/feeds/{FEED_ID}/reports/.*", None)
+
+    for ioc in db_init:
+        state_manager.add_report_item(ioc["severity"], config.get("engine.name"), ioc)
+
+    EngineResultsThread(kwargs={'state_manager': state_manager,
+                                'pub_sub_manager': pub_sub_manager,
+                                'config': config,
+                                'report_actor': report_actor})
+
+    # Verify that EngineResultsThread loaded reports and sent them to the report actor
+    assert ActorSystem().ask(report_actor, ("SEND_REPORTS", FEED_ID), 1) is True
+
+    for ioc in db_init:
+        SENT = False
+        for report in cbapi_mock._all_request_data:
+            if ioc["severity"] == report["severity"]:
+                assert len(state_manager.get_current_report_items(ioc["severity"], ENGINE_NAME)) == 0
+
+                # Remove severity before comparison
+                del ioc["severity"]
+                if ioc in report["iocs_v2"]:
+                    SENT = True
+                break
+        assert SENT
 
 
 @pytest.mark.parametrize("kwargs", [

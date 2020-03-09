@@ -47,8 +47,9 @@ class EngineResultsThread(Thread):
 
         # Reload report actor
         for sev in range(SEVERITY_RANGE):
-            iocs = self.state_manager.get_current_report_items(sev, self.config.get("engine_name"))
-            ActorSystem().ask(self.report_actor, iocs)
+            iocs = self.state_manager.get_current_report_items(sev + 1, self.config.get("engine.name"))
+            if len(iocs) > 0:
+                ActorSystem().ask(self.report_actor, iocs)
 
     def _verify_init(self):
         if not self.kwargs or \
