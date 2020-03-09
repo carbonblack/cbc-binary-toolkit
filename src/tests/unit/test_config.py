@@ -68,3 +68,24 @@ def test_section():
     assert sect.string('dog') == cfg.string('pets.dog')
     assert sect.string('cat') == cfg.string('pets.cat')
     assert sect.string('tortoise') == cfg.string('pets.tortoise')
+
+
+def test_get():
+    """Test the get() API."""
+    cfg = Config.load("""
+    id: cbc_binary_toolkit
+    version: 0.0.1
+    pets:
+      dog: QBit
+      cat: True
+      tortoises: 2
+    """)
+    assert isinstance(cfg.get('pets.dog'), str)
+    assert cfg.get('pets.dog') == "QBit"
+    assert isinstance(cfg.get('pets.cat'), bool)
+    assert cfg.get('pets.cat') is True
+    assert isinstance(cfg.get('pets.tortoises'), int)
+    assert cfg.get('pets.tortoises') == 2
+    assert isinstance(cfg.get('pets.missing', True), bool)
+    assert cfg.get('pets.missing', True) is True
+    assert cfg.get('pets.missing') is None
