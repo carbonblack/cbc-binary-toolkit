@@ -169,7 +169,7 @@ def analyze(args, actorsys, config, actors):
 
     # Wait for injestion to finish before waiting on clean_up
     for n in range(len(hash_group)):
-        log.info(actorsys.listen())
+        actorsys.listen()
 
     # Clean up actor
     clean_up(actorsys, config, actors)

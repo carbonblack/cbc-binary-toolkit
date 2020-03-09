@@ -149,6 +149,8 @@ class IngestionActor(ActorTypeDispatcher):
                     self.send(self.myAddress, reprocess)
                     reprocess["sha256"] = []
 
+            if len(reprocess["sha256"]) > 0:
+                self.send(self.myAddress, reprocess)
             self.send(sender, True)
         else:
             log.error(f"Unsupported command: {message[0]}")
@@ -167,7 +169,9 @@ class IngestionActor(ActorTypeDispatcher):
 
         """
         if not isinstance(message.get("sha256", None), list):
-            self.send(sender, 'Invalid message format expected: {"sha256": [str, ...], "expiration_seconds": int }')
+            log.error('Invalid message format expected: {"sha256": [str, ...], "expiration_seconds": int }')
+            if sender is not self.myAddress:
+                self.send(sender, False)
             return
 
         hashes = message.get("sha256")
@@ -175,10 +179,16 @@ class IngestionActor(ActorTypeDispatcher):
 
         # Check previously seen hashes
         for hash in hashes:
-            if self.state_manager.lookup(hash) is None and new_hashes.get(hash, True):
+            if self.state_manager.lookup(hash).get("time_returned") is None and new_hashes.get(hash, True):
                 new_hashes[hash] = False
             else:
                 log.info(f"Hash {hash} has already been analyzed")
+
+        if len(new_hashes.keys()) == 0:
+            log.error('No hashes to analyze')
+            if sender is not self.myAddress:
+                self.send(sender, False)
+            return
 
         # Download binaries from UBS
         found = download_hashes(self.cbth,
@@ -193,4 +203,6 @@ class IngestionActor(ActorTypeDispatcher):
             # Wait until all jobs are completed
             self.task_queue.join()
 
-        self.send(sender, f"Injested: {datetime.now()}")
+        log.info(f"Injested: {datetime.now()}")
+        if sender is not self.myAddress:
+            self.send(sender, True)
