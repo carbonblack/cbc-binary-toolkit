@@ -15,12 +15,14 @@ install_reqs = [
     "cbapi",
     "python-dateutil",
     "pyyaml",
-    "schema"
+    "requests",
+    "schema",
     "thespian",
+    "yara"
 ]
 
 setup(
-    name="cbc_binary_sdk",
+    name="cbc_binary_toolkit",
     version=read("VERSION"),
     url="https://developer.carbonblack.com/",
     license="MIT",

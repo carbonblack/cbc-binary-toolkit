@@ -5,18 +5,18 @@
 import logging
 import traceback
 
-from thespian.actors import Actor, ActorExitRequest
+from thespian.actors import ActorTypeDispatcher
 from thespian.initmsgs import initializing_messages
 from queue import Queue
 from threading import Thread
 from types import MethodType
 from datetime import datetime
 from cbapi.psc.threathunter import CbThreatHunterAPI
-from cbc_binary_sdk import InitializationError
-from cbc_binary_sdk.state import StateManager
-from cbc_binary_sdk.pubsub import PubSubManager
+from .errors import InitializationError
+from cbc_binary_toolkit.state import StateManager
+from cbc_binary_toolkit.pubsub import PubSubManager
 from .ubs import download_hashes, get_metadata
-from cbc_binary_sdk.config import Config
+from cbc_binary_toolkit.config import Config
 
 log = logging.getLogger(__name__)
 log.disabled = False
@@ -45,7 +45,7 @@ def worker(queue: Queue, func: MethodType):
                        ("pub_sub_manager", PubSubManager),
                        ("config", Config)
                        ], initdone='_verify_init')
-class IngestionActor(Actor):
+class IngestionActor(ActorTypeDispatcher):
     """
     IngestionActor
 
@@ -103,23 +103,80 @@ class IngestionActor(Actor):
            not isinstance(self.pub_sub_manager, PubSubManager):
             raise InitializationError
 
-    def receiveMessage(self, message, sender):
+    def receiveMsg_ActorExitRequest(self, message, sender):
+        """
+        Clean up handler
+
+        Args:
+            message (ActorExitRequest): thespian.actors.ActorExitRequest that terminates actor
+            sender (address): The address to send result too
+
+        """
+        self._clean_up()
+
+    def receiveUnrecognizedMessage(self, message, sender):
+        """
+        Unrecognized message handler
+
+        Args:
+            message (?): Any message type not explicitly handled
+            sender (address): The address to send result too
+
+        """
+        log.error(f'Unrecognized message type: {type(message)}. '
+                  f'Expected: {{"sha256": [str, ...], "expiration_seconds": int }}')
+        self.send(sender, False)
+
+    def receiveMsg_tuple(self, message, sender):
+        """
+        Command handler
+
+        Args:
+            message (tuple): ( command , ... )
+            sender (address): The address to send result too
+
+        Commands:
+            Restart: ( "RESTART",)
+
+        """
+        if message[0] == "RESTART":
+            log.info(f"Reprocessing unfinished states")
+            # Reprocess unfinished states
+            unfinished_states = self.state_manager.get_unfinished_states(self.config.get("engine.name"))
+            reprocess = {"sha256": []}
+            for state in unfinished_states:
+                reprocess["sha256"].append(state["file_hash"])
+                # Reset time_sent
+                self.state_manager.set_file_state(state["file_hash"], {"time_sent": 0}, state["persist_id"])
+
+                if len(reprocess["sha256"]) == 100:
+                    self.send(self.myAddress, reprocess)
+                    reprocess["sha256"] = []
+
+            if len(reprocess["sha256"]) > 0:
+                self.send(self.myAddress, reprocess)
+            self.send(sender, True)
+        else:
+            log.error(f"Unsupported command: {message[0]}")
+            self.send(sender, False)
+
+    def receiveMsg_dict(self, message, sender):
         """
         Entry Point
 
         Args:
-            message (str): JSON string
+            message (dict): dict of sha256 hashes to process
             sender (address): The address to send result too
 
         Expected Format:
             {"sha256": [str, ...], "expiration_seconds": int }
 
         """
-        if isinstance(message, ActorExitRequest):
-            self._clean_up()
-            return
-        elif not isinstance(message, dict) or not isinstance(message.get("sha256", None), list):
-            self.send(sender, 'Invalid message format expected: {"sha256": [str, ...], "expiration_seconds": int }')
+        if not isinstance(message.get("sha256", None), list):
+            log.error('Invalid message format received. Expected: {"sha256": [str, ...], "expiration_seconds": int }')
+            log.debug(f'Message received: {message}')
+            if sender is not self.myAddress:
+                self.send(sender, False)
             return
 
         hashes = message.get("sha256")
@@ -127,10 +184,20 @@ class IngestionActor(Actor):
 
         # Check previously seen hashes
         for hash in hashes:
-            if self.state_manager.lookup(hash) is None and new_hashes.get(hash, True):
-                new_hashes[hash] = False
+            if self.state_manager.lookup(hash) is None or \
+               self.state_manager.lookup(hash).get("time_sent") == 0:
+                if new_hashes.get(hash, True):
+                    new_hashes[hash] = False
+                else:
+                    log.info(f"Hash {hash} has already been analyzed")
             else:
                 log.info(f"Hash {hash} has already been analyzed")
+
+        if len(new_hashes.keys()) == 0:
+            log.error('No hashes to analyze')
+            if sender is not self.myAddress:
+                self.send(sender, False)
+            return
 
         # Download binaries from UBS
         found = download_hashes(self.cbth,
@@ -145,4 +212,6 @@ class IngestionActor(Actor):
             # Wait until all jobs are completed
             self.task_queue.join()
 
-        self.send(sender, f"Completed: {datetime.now()}")
+        log.info(f"Ingested: {datetime.now()}")
+        if sender is not self.myAddress:
+            self.send(sender, True)

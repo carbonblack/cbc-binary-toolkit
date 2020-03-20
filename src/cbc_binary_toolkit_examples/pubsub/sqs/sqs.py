@@ -6,14 +6,13 @@
 import boto3
 import json
 import time
-from .manager import BaseQueue, BaseProvider, BaseProviderFactory
+from cbc_binary_toolkit.state import BaseQueue, BaseProvider, BaseProviderFactory
 
 
 class SQSBasedQueue(BaseQueue):
-    """
-    Default implementation of the PubSub queue that uses SQS to pass along information.
-    """
+    """Default implementation of the PubSub queue that uses SQS to pass along information."""
     def __init__(self, queue):
+        """Constructor"""
         self._queue = queue
         self._startpoint = time.time()
         self._msgcounter = 1
@@ -32,8 +31,9 @@ class SQSBasedQueue(BaseQueue):
 
     def get(self):
         """
-        Retrieves a new work item from the queue. If there are no work items available, blocks until one
-        becomes available.
+        Retrieves a new work item from the queue.
+
+        If there are no work items available, blocks until one becomes available.
 
         :return: The first work item on the queue.
         """
@@ -47,10 +47,9 @@ class SQSBasedQueue(BaseQueue):
 
 
 class SQSBasedProvider(BaseProvider):
-    """
-    Default implementation of the PubSub provider that uses SQS to pass along information.
-    """
+    """Default implementation of the PubSub provider that uses SQS to pass along information."""
     def __init__(self, client):
+        """Constructor"""
         self._client = client
 
     def create_queue(self, queue_name):
@@ -68,10 +67,8 @@ class SQSBasedProvider(BaseProvider):
         return SQSBasedQueue(sqsqueue)
 
 
-class Provider(BaseProviderFactory):
-    """
-    Default implementation of the PubSub provider factory that uses SQS to pass along information.
-    """
+class SQSBasedFactory(BaseProviderFactory):
+    """Default implementation of the PubSub provider factory that uses SQS to pass along information."""
     def create_pubsub_provider(self, config):
         """
         Creates a new PubSub provider object.

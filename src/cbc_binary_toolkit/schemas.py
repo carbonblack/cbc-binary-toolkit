@@ -34,6 +34,7 @@ EngineResponseSchema = Schema(
     {
         "iocs": And([IOCV2Schema], len),
         "engine_name": And(str, len),
-        "binary_hash": And(str, len)
+        "binary_hash": And(str, len),
+        "success": bool
     }
 )

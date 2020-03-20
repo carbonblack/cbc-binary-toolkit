@@ -6,14 +6,15 @@ import pytest
 
 from queue import Empty
 from thespian.actors import ActorSystem, ActorExitRequest
-from cbc_binary_sdk.ingestion_actor import IngestionActor
-from cbc_binary_sdk.state import StateManager
-from cbc_binary_sdk.pubsub import PubSubManager
-from cbc_binary_sdk.config import Config
+from cbc_binary_toolkit.ingestion_actor import IngestionActor
+from cbc_binary_toolkit.state import StateManager
+from cbc_binary_toolkit.pubsub import PubSubManager
+from cbc_binary_toolkit.config import Config
 from cbapi.psc.threathunter import CbThreatHunterAPI
 from tests.unit.ubs_fixtures.CBAPIMock import CBAPIMock
 from tests.unit.ubs_fixtures.metadata import HASH_METADATA
 from tests.unit.ubs_fixtures.filedownload import METADATA_DOWNLOAD_RESP
+from tests.unit.engine_fixtures.messages import UNFINISHED_STATE, FINISHED_STATE
 
 ENGINE_NAME = "TEST_ENGINE"
 
@@ -22,12 +23,12 @@ ENGINE_NAME = "TEST_ENGINE"
 def config():
     """Configuration for all the test cases in this module."""
     return Config.load(f"""
-    id: cb-binary-analysis
+    id: cbc_binary_toolkit
     version: 0.0.1
     database:
       _provider: persistor_fixtures.mock_persistor.MockPersistorFactory
     pubsub:
-      _provider: cbc_binary_sdk.pubsub.builtin.Provider
+      _provider: cbc_binary_toolkit.pubsub.builtin.Provider
     engine:
       name: {ENGINE_NAME}
     """)
@@ -121,7 +122,7 @@ def test_receiveMessage_ask(actor, cbapi_mock, state_manager, pub_sub_manager, i
 
     for item in input:
         completion = ActorSystem().ask(actor, item, 10)
-        assert "Completed" in completion
+        assert completion
         for hash in item["sha256"]:
             assert state_manager.lookup(hash, ENGINE_NAME)
 
@@ -149,8 +150,7 @@ def test_duplicate_hashes(actor, cbapi_mock, state_manager, pub_sub_manager, inp
     pub_sub_queue = pub_sub_manager.get_queue(ENGINE_NAME)
 
     for item in input:
-        completion = ActorSystem().ask(actor, item, 10)
-        assert "Completed" in completion
+        ActorSystem().ask(actor, item, 10)
         for hash in item["sha256"]:
             assert state_manager.lookup(hash, ENGINE_NAME)
 
@@ -181,7 +181,7 @@ def test_hash_not_found(actor, cbapi_mock, state_manager, pub_sub_manager, input
 
     for item in input:
         completion = ActorSystem().ask(actor, item, 10)
-        assert "Completed" in completion
+        assert completion
         for hash in item["sha256"]:
             assert state_manager.lookup(hash, ENGINE_NAME) is None
 
@@ -208,8 +208,8 @@ def test_receiveMessage_tell(actor, cbapi_mock, state_manager, pub_sub_manager, 
         hash_to_check.extend(item["sha256"])
 
     completion = ActorSystem().listen()
-    while completion is not None:
-        assert "Completed" in completion
+    while not completion:
+        assert completion
         completion = ActorSystem().listen()
 
     for hash in hash_to_check:
@@ -231,8 +231,38 @@ def test_receiveMessage_tell(actor, cbapi_mock, state_manager, pub_sub_manager, 
     None,
     True,
     {"msg": "INVALID"},
+    {"sha256": []},
+    ("INVALID",)
 ])
 def test_receiveMessage_invalid_messages(actor, input):
     """Test invalid messages"""
     response = ActorSystem().ask(actor, input, 1)
-    assert "Invalid message format expected" in response
+    assert not response
+
+
+def test_restart(actor, cbapi_mock, state_manager, pub_sub_manager):
+    """Test restart command"""
+    UNFINISHED_STATE["engine_name"] = ENGINE_NAME
+    FINISHED_STATE["engine_name"] = ENGINE_NAME
+    state_manager.set_file_state("405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4", UNFINISHED_STATE)
+    state_manager.set_file_state("0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc", FINISHED_STATE)
+
+    pub_sub_queue = pub_sub_manager.get_queue(ENGINE_NAME)
+
+    assert ActorSystem().ask(actor, ("RESTART",), 1)
+
+    loaded = False
+    processed = []
+    try:
+        while True:
+            data = pub_sub_queue._queue.get(False)
+            processed.append(data["sha256"])
+            assert data["persist_id"]
+            # Remove persist_id when comparing against METADATA_DOWNLOAD_RESP
+            del data["persist_id"]
+            assert data == METADATA_DOWNLOAD_RESP[data["sha256"]]
+            loaded = True
+    except Empty:
+        pass
+    assert loaded
+    assert "0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc" not in processed

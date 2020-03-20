@@ -4,8 +4,8 @@
 
 
 import pytest
-from cbc_binary_sdk.config import Config
-from cbc_binary_sdk.state.manager import BasePersistor, BasePersistorFactory, StateManager
+from cbc_binary_toolkit.config import Config
+from cbc_binary_toolkit.state.manager import BasePersistor, BasePersistorFactory, StateManager
 
 
 class TestPersistor(BasePersistor):
@@ -54,9 +54,9 @@ class TestPersistor(BasePersistor):
             self._gus = 1
         return [{"file_hash": "ABCDEFG", "file_name": "blort.exe"}]
 
-    def get_num_stored_states(self):
+    def get_num_unfinished_states(self):
         """
-        Returns the number of stored states in the persistence manager for each known engine.
+        Returns the number of unfinished states in the persistence manager for each known engine.
 
         :return: A dict with engine names as keys and count of results for each engine as values.
         """
@@ -142,7 +142,7 @@ class TestPersistorFactory(BasePersistorFactory):
 def local_config():
     """Configuration for all the test cases in this module."""
     return Config.load("""
-    id: cb-binary-analysis
+    id: cbc_binary_toolkit
     version: 0.0.1
     database:
       _provider: test_persistence_manager.TestPersistorFactory
@@ -197,10 +197,10 @@ def test_get_unfinished_states(local_config):
     assert getattr(manager._persistor, "_cri", 0) == 0
 
 
-def test_get_num_stored_states(local_config):
-    """Test the get_num_stored_states() API."""
+def test_get_num_unfinished_states(local_config):
+    """Test the get_num_unfinished_states() API."""
     manager = StateManager(local_config)
-    counts = manager.get_num_stored_states()
+    counts = manager.get_num_unfinished_states()
     assert counts['default'] == 2
     assert counts['another'] == 1
     assert getattr(manager._persistor, "_gfs", 0) == 0
@@ -273,7 +273,7 @@ def test_clear_report_items(local_config):
 def test_config_with_bogus_class():
     """Test the configuration while trying to load a bogus class."""
     cfg = Config.load("""
-    id: cb-binary-analysis
+    id: cbc_binary_toolkit
     version: 0.0.1
     database:
       _provider: not_exist_package.NotExist
@@ -286,7 +286,7 @@ def test_config_with_bogus_class():
 def test_config_without_provider_set():
     """Test the configuration without having a provider class set."""
     cfg = Config.load("""
-    id: cb-binary-analysis
+    id: cbc_binary_toolkit
     version: 0.0.1
     database:
       is_test: "True"

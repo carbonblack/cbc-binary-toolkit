@@ -11,14 +11,19 @@ from thespian.initmsgs import initializing_messages
 from schema import SchemaError
 from cbapi.psc.threathunter import CbThreatHunterAPI, Report
 from .schemas import IOCV2Schema
-from cbc_binary_sdk import InitializationError
+from .errors import InitializationError
+from .state import StateManager
 
 log = logging.getLogger(__name__)
 
 SEVERITY_RANGE = 10
 
 
-@initializing_messages([("cbth", CbThreatHunterAPI), ("engine_name", str)], initdone='_verify_init')
+@initializing_messages([
+    ("cbth", CbThreatHunterAPI),
+    ("state_manager", StateManager),
+    ("engine_name", str)],
+    initdone='_verify_init')
 class ReportActor(ActorTypeDispatcher):
     """
     ReportActor
@@ -50,6 +55,7 @@ class ReportActor(ActorTypeDispatcher):
     def _verify_init(self):
         """Verifies that the actor has the necessary properties to initialize"""
         if not isinstance(self.cbth, CbThreatHunterAPI) or \
+           not isinstance(self.state_manager, StateManager) or \
            not isinstance(self.engine_name, str):
             raise InitializationError
 
@@ -69,7 +75,7 @@ class ReportActor(ActorTypeDispatcher):
                 if len(self.iocs[sev]) > 0:
                     now = time.time()
                     report_meta = {
-                        "id": uuid.uuid4(),
+                        "id": str(uuid.uuid4()),
                         "timestamp": int(now),
                         "title": f"{self.engine_name} Severity {sev + 1} - "
                                  f"{time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(now))}",
@@ -78,9 +84,12 @@ class ReportActor(ActorTypeDispatcher):
                         "iocs_v2": self.iocs[sev]
                     }
 
-                    log.info(f"Sending report to feed {feed_id}: {report_meta['title']}")
                     report = Report(self.cbth, initial_data=report_meta, feed_id=feed_id)
                     report.update()
+                    log.info(f"Report ({report_meta['title']}) sent to feed {feed_id}")
+
+                    # Clear report items from the database
+                    self.state_manager.clear_report_items(sev + 1, self.engine_name)
             return True
         except Exception as e:
             log.error(f"Error while sending reports to feed {feed_id}: {e}")
@@ -133,7 +142,7 @@ class ReportActor(ActorTypeDispatcher):
         IOC handler
 
         Args:
-            message (str): JSON string
+            message (dict): JSON matching IOCV2Schema
             sender (address): The address to send result too
 
         Expected Format:
@@ -152,6 +161,7 @@ class ReportActor(ActorTypeDispatcher):
 
             severity = message.get("severity", None)
             if severity is not None and isinstance(severity, int) and severity > 0 and severity <= SEVERITY_RANGE:
+                del ioc_valid["severity"]
                 self.iocs[severity - 1].append(ioc_valid)
                 return self.send(sender, True)
 
@@ -159,3 +169,41 @@ class ReportActor(ActorTypeDispatcher):
         except SchemaError as e:
             log.error(f"IOC format invalid: {e}")
         self.send(sender, False)
+
+    def receiveMsg_list(self, message, sender):
+        """
+        IOC handler
+
+        Args:
+            message (list): List of JSON matching IOCV2Schema
+            sender (address): The address to send result too
+
+        Expected Format:
+            [{
+                "id": And(str, len),
+                "match_type": And(str, lambda type: type in ["query", "equality", "regex"]),
+                "values": And([str], len),
+                 Optional("field"): And(str, len),
+                 Optional("link"): And(str, len),
+                "severity": int(1 - 10),
+            },
+            ...
+            ]
+
+        """
+        success = True
+        for ioc in message:
+            try:
+                ioc_valid = IOCV2Schema.validate(ioc)
+                severity = ioc.get("severity", None)
+                if severity is not None and isinstance(severity, int) and severity > 0 and severity <= SEVERITY_RANGE:
+                    del ioc_valid["severity"]
+                    self.iocs[severity - 1].append(ioc_valid)
+                    continue
+
+                log.error("Severity not provide with IOC")
+            except SchemaError as e:
+                log.error(f"IOC format invalid: {e}")
+            success = False
+
+        self.send(sender, success)

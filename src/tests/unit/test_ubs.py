@@ -2,10 +2,12 @@
 """Unit tests for input functions"""
 
 import pytest
-from cbc_binary_sdk.ubs import (_download_hashes,
+from cbc_binary_toolkit.ubs import (_download_hashes,
                                     _download_binary_metadata,
-                                    _validate_download, download_hashes,
-                                    get_metadata, RedownloadHashes)
+                                    _validate_download,
+                                    download_hashes,
+                                    get_metadata,
+                                    RedownloadHashes)
 from cbapi.psc.threathunter import CbThreatHunterAPI
 from tests.unit.ubs_fixtures.metadata import METADATA_VALID
 from tests.unit.ubs_fixtures.CBAPIMock import CBAPIMock

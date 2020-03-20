@@ -5,7 +5,7 @@
 import pytest
 import os
 
-from cbc_binary_sdk.input import read_csv, read_json
+from cbc_binary_toolkit.cli_input import read_csv, read_json
 from typing import List, Dict
 from json import JSONDecodeError
 

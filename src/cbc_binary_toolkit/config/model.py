@@ -12,7 +12,7 @@ from .errors import ConfigError
 class Config:
     """Config processing and management"""
     default_location = 'config/binary-analysis-config.yaml'
-    _required_id = 'cb-binary-analysis'
+    _required_id = 'cbc_binary_toolkit'
 
     def __init__(self, data):
         """Constructor"""
@@ -119,3 +119,16 @@ class Config:
         if isinstance(v, dict):
             return Config(v)
         raise ConfigError('value not valid section: ' + path)
+
+    def get(self, path, defaultval=None):
+        """
+        Returns the desired property with the yaml property type
+
+        :param path: The path to the configuration variable (with components separated by '.')
+        :param defaultval: The default value to use if the configuration value isn't specified (default None).
+        :return: The value.
+        """
+        v = self._seek_path(path, True)
+        if v is not None:
+            return v
+        return defaultval
