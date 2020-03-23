@@ -215,5 +215,5 @@ def get_metadata(cbth, binary):
             metadata = _download_binary_metadata(cbth, binary)
         except Exception as err:
             log.error(f"Failed to download metadata: {err}")
-            raise
+            return dict()
     return metadata
