@@ -8,37 +8,39 @@ from cbc_binary_toolkit.loader import dynamic_create
 
 class BasePersistor:
     """'Abstract base class' that should be inherited by persistor objects."""
-    def set_checkpoint(self, binary_hash, engine, checkpoint_name):
+    def set_checkpoint(self, binary_hash, engine, checkpoint_name, checkpoint_time=None):
         """
         Set a checkpoint on a binary hash/engine combination.
-        
+
         :param binary_hash str: The hash value to set in the database.
         :param engine str: The engine value to set in the database.
         :param checkpoint_name str: The name of the checkpoint to set.
+        :param checkpoint_time str: The timestamp to set the checkpoint time to.  Not normally
+        used except in test code.
         """
         raise NotImplementedError("protocol not implemented: set_checkpoint")
-    
+
     def get_previous_hashes(self, engine):
         """
         Returns a sorted list of all previously-completed hashes.
-        
+
         :param engine str: The engine value to look up in the database.
         :return: A list of all the hashes that have been marked as "done" for that engine. This list
         will be in sorted order.
         """
         raise NotImplementedError("protocol not implemented: get_previous_hashes")
-    
+
     def get_unfinished_hashes(self, engine):
         """
         Returns a sorted list of all not-completed hashes.
-        
+
         :param engine str: The engine value to look up in the database.
         :return: A list of all the hashes that are in the database but have not been marked as "done"
         for that engine.  This list is in the form of tuples, the first element of which is the hash,
-        the second element of which is the last known checkpoint. 
+        the second element of which is the last known checkpoint.
         """
         raise NotImplementedError("protocol not implemented: get_unfinished_hashes")
-    
+
     def prune(self, timestamp):
         """
         Erases all entries from the database older than a specified time.
@@ -101,37 +103,39 @@ class StateManager:
         factory = dynamic_create(factory_classname)
         self._persistor = factory.create_persistor(config.section('database'))
 
-    def set_checkpoint(self, binary_hash, engine, checkpoint_name):
+    def set_checkpoint(self, binary_hash, engine, checkpoint_name, checkpoint_time=None):
         """
         Set a checkpoint on a binary hash/engine combination.
-        
+
         :param binary_hash str: The hash value to set in the database.
         :param engine str: The engine value to set in the database.
         :param checkpoint_name str: The name of the checkpoint to set.
+        :param checkpoint_time str: The timestamp to set the checkpoint time to.  Not normally
+        used except in test code.
         """
-        self._persistor.set_checkpoint(binary_hash, engine, checkpoint_name)
-    
+        self._persistor.set_checkpoint(binary_hash, engine, checkpoint_name, checkpoint_time)
+
     def get_previous_hashes(self, engine):
         """
         Returns a sorted list of all previously-completed hashes.
-        
+
         :param engine str: The engine value to look up in the database.
         :return: A list of all the hashes that have been marked as "done" for that engine. This list
         will be in sorted order.
         """
         return self._persistor.get_previous_hashes(engine)
-    
+
     def get_unfinished_hashes(self, engine):
         """
         Returns a sorted list of all not-completed hashes.
-        
+
         :param engine str: The engine value to look up in the database.
         :return: A list of all the hashes that are in the database but have not been marked as "done"
         for that engine.  This list is in the form of tuples, the first element of which is the hash,
-        the second element of which is the last known checkpoint. 
+        the second element of which is the last known checkpoint.
         """
         return self._persistor.get_unfinished_hashes(engine)
-    
+
     def prune(self, timestamp):
         """
         Erase all records older than a specified timestamp.

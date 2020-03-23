@@ -10,51 +10,53 @@ from cbc_binary_toolkit.state.manager import BasePersistor, BasePersistorFactory
 
 class TestPersistor(BasePersistor):
     """Mockup of the persistor to be used in testing."""
-        def set_checkpoint(self, binary_hash, engine, checkpoint_name):
+    def set_checkpoint(self, binary_hash, engine, checkpoint_name, checkpoint_time=None):
         """
         Set a checkpoint on a binary hash/engine combination.
-        
+
         :param binary_hash str: The hash value to set in the database.
         :param engine str: The engine value to set in the database.
         :param checkpoint_name str: The name of the checkpoint to set.
+        :param checkpoint_time str: The timestamp to set the checkpoint time to.  Not normally
+        used except in test code.
         """
-        assert "engine" == "default"
+        assert engine == "default"
         if hasattr(self, "_sc"):
             self._sc = self._sc + 1
         else:
             self._sc = 1
-    
+
     def get_previous_hashes(self, engine):
         """
         Returns a sorted list of all previously-completed hashes.
-        
+
         :param engine str: The engine value to look up in the database.
         :return: A list of all the hashes that have been marked as "done" for that engine. This list
         will be in sorted order.
         """
-        assert "engine" == "default"
+        assert engine == "default"
         if hasattr(self, "_gph"):
             self._gph = self._gph + 1
         else:
             self._gph = 1
         return ["a", "b", "c", "d", "e", "f"]
-    
+
     def get_unfinished_hashes(self, engine):
         """
         Returns a sorted list of all not-completed hashes.
-        
+
         :param engine str: The engine value to look up in the database.
         :return: A list of all the hashes that are in the database but have not been marked as "done"
         for that engine.  This list is in the form of tuples, the first element of which is the hash,
-        the second element of which is the last known checkpoint. 
+        the second element of which is the last known checkpoint.
         """
-        assert "engine" == "default"
+        assert engine == "default"
         if hasattr(self, "_guh"):
             self._guh = self._guh + 1
         else:
             self._guh = 1
         return [("a", "METADATA"), ("b", "ANALYSIS")]
-    
+
     def prune(self, timestamp):
         """
         Erases all entries from the database older than a specified time.
@@ -150,13 +152,13 @@ def test_set_checkpoint(local_config):
     assert getattr(manager._persistor, "_ari", 0) == 0
     assert getattr(manager._persistor, "_gcri", 0) == 0
     assert getattr(manager._persistor, "_cri", 0) == 0
-    
-    
+
+
 def test_get_previous_hashes(local_config):
     """Test the get_previous_hashes() API."""
     manager = StateManager(local_config)
-    l = manager.get_previous_hashes("default")
-    assert len(l) == 6
+    return_list = manager.get_previous_hashes("default")
+    assert len(return_list) == 6
     assert getattr(manager._persistor, "_sc", 0) == 0
     assert getattr(manager._persistor, "_gph", 0) == 1
     assert getattr(manager._persistor, "_guh", 0) == 0
@@ -164,13 +166,13 @@ def test_get_previous_hashes(local_config):
     assert getattr(manager._persistor, "_ari", 0) == 0
     assert getattr(manager._persistor, "_gcri", 0) == 0
     assert getattr(manager._persistor, "_cri", 0) == 0
-    
-    
+
+
 def test_get_unfinished_hashes(local_config):
     """Test the get_unfinished_hashes() API."""
     manager = StateManager(local_config)
-    l = manager.get_unfinished_hashes("default")
-    assert len(l) == 2
+    return_list = manager.get_unfinished_hashes("default")
+    assert len(return_list) == 2
     assert getattr(manager._persistor, "_sc", 0) == 0
     assert getattr(manager._persistor, "_gph", 0) == 0
     assert getattr(manager._persistor, "_guh", 0) == 1
@@ -179,7 +181,7 @@ def test_get_unfinished_hashes(local_config):
     assert getattr(manager._persistor, "_gcri", 0) == 0
     assert getattr(manager._persistor, "_cri", 0) == 0
 
-    
+
 def test_prune(local_config):
     """Test the prune() API."""
     manager = StateManager(local_config)

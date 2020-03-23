@@ -19,149 +19,89 @@ class SQLiteBasedPersistor(BasePersistor):
         self._conn = conn
         self._cursor_factory = sqlite3.Cursor
 
-    def get_file_state(self, binary_hash, engine=None):
+    def set_checkpoint(self, binary_hash, engine, checkpoint_name, checkpoint_time=None):
         """
-        Get the stored file state for a specified hash value.
-
-        :param binary_hash str: The hash value to look up in the database.
-        :param engine str: (Optional) The engine value to look up in the database.
-        :return: A dict containing the file information, or None if not found.
-        """
-        try:
-            cursor = self._conn.cursor(self._cursor_factory)
-            if engine:
-                stmt = """
-                SELECT rowid, file_size, file_name, os_type, engine_name, time_sent, time_returned, time_published
-                    FROM run_state
-                    WHERE file_hash = ? AND engine_name = ?
-                    ORDER BY max(julianday(time_sent), julianday(coalesce(time_returned, time_sent)),
-                                 julianday(coalesce(time_published, time_returned, time_sent))) DESC;
-                """
-                cursor.execute(stmt, (binary_hash, engine))
-            else:
-                stmt = """
-                SELECT rowid, file_size, file_name, os_type, engine_name, time_sent, time_returned, time_published
-                    FROM run_state
-                    WHERE file_hash = ?
-                    ORDER BY max(julianday(time_sent), julianday(coalesce(time_returned, time_sent)),
-                                 julianday(coalesce(time_published, time_returned, time_sent))) DESC;
-                """
-                cursor.execute(stmt, (binary_hash,))
-            row = cursor.fetchone()
-            if not row:
-                return None
-            value = {'persist_id': row[0], 'file_hash': binary_hash, 'file_size': row[1], 'file_name': row[2],
-                     'os_type': row[3], 'engine_name': row[4]}
-            if row[5]:
-                value['time_sent'] = row[5]
-            if row[6]:
-                value['time_returned'] = row[6]
-            if row[7]:
-                value['time_published'] = row[7]
-            return value
-        except sqlite3.OperationalError as e:
-            log.error("OperationalError in get_file_state: %s" % (e,))
-            return None
-
-    def set_file_state(self, binary_hash, attrs, persist_id=None):
-        """
-        Set the stored file state for a specified hash value.
+        Set a checkpoint on a binary hash/engine combination.
 
         :param binary_hash str: The hash value to set in the database.
-        :param attrs dict: The attributes to set as part of the hash value entry.
-        :param persist_id int: The persistence ID of the existing record we're modifying (optional).
-        :return: The persistence ID of the database row, either new or existing.
+        :param engine str: The engine value to set in the database.
+        :param checkpoint_name str: The name of the checkpoint to set.
+        :param checkpoint_time str: The timestamp to set the checkpoint time to.  Not normally
+        used except in test code.
         """
         try:
             cursor = self._conn.cursor(self._cursor_factory)
-            if persist_id:
+            if checkpoint_time is None:
                 stmt = """
-                UPDATE run_state
-                    SET time_sent = ifnull(?, time_sent), time_returned = ifnull(?, time_returned),
-                        time_published = ifnull(?, time_published)
-                    WHERE rowid = ? AND file_hash = ?;
+                UPDATE run_state SET checkpoint_name = ?, checkpoint_time = datetime('now')
+                    WHERE file_hash = ? AND engine_name = ?;
                 """
-                cursor.execute(stmt, (attrs.get('time_sent', None), attrs.get('time_returned', None),
-                                      attrs.get('time_published', None), persist_id, binary_hash))
-                return persist_id
+                cursor.execute(stmt, (checkpoint_name, binary_hash, engine))
+                if cursor.rowcount == 0:
+                    stmt = """
+                    INSERT INTO run_state(file_hash, engine_name, checkpoint_name, checkpoint_time)
+                        VALUES (?, ?, ?, datetime('now'));
+                    """
+                    cursor.execute(stmt, (binary_hash, engine, checkpoint_name))
             else:
                 stmt = """
-                INSERT INTO run_state(file_hash, file_size, file_name, os_type, engine_name, time_sent,
-                                      time_returned, time_published)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+                UPDATE run_state SET checkpoint_name = ?, checkpoint_time = ?
+                    WHERE file_hash = ? AND engine_name = ?;
                 """
-                cursor.execute(stmt, (binary_hash, attrs['file_size'], attrs['file_name'], attrs['os_type'],
-                                      attrs['engine_name'], attrs.get('time_sent', None),
-                                      attrs.get('time_returned', None), attrs.get('time_published', None)))
-                return cursor.lastrowid
+                cursor.execute(stmt, (checkpoint_name, checkpoint_time, binary_hash, engine))
+                if cursor.rowcount == 0:
+                    stmt = """
+                    INSERT INTO run_state(file_hash, engine_name, checkpoint_name, checkpoint_time)
+                        VALUES (?, ?, ?, ?);
+                    """
+                    cursor.execute(stmt, (binary_hash, engine, checkpoint_name, checkpoint_time))
         except sqlite3.OperationalError as e:
-            log.error("OperationalError in set_file_state: %s" % (e,))
-            return None
+            log.error("OperationalError in set_checkpoint: %s" % (e,))
 
-    def get_unfinished_states(self, engine=None):
+    def get_previous_hashes(self, engine):
         """
-        Returns all states not marked as "analysis finished" (possibly for a single engine).
+        Returns a sorted list of all previously-completed hashes.
 
-        :param engine str: (Optional) The engine value to look up in the database.
-        :return: A list of dicts containing all unfinished file information. Returns an empty list if none present.
+        :param engine str: The engine value to look up in the database.
+        :return: A list of all the hashes that have been marked as "done" for that engine. This list
+        will be in sorted order.
         """
         try:
             cursor = self._conn.cursor(self._cursor_factory)
-            if engine:
-                stmt = """
-                SELECT rowid, file_hash, file_size, file_name, os_type, engine_name, time_sent, time_returned
-                    FROM run_state
-                    WHERE time_returned IS NULL AND engine_name = ?
-                    ORDER BY max(julianday(time_sent), julianday(coalesce(time_returned, time_sent)),
-                                 julianday(coalesce(time_published, time_returned, time_sent))) DESC;
-                """
-                output_iterator = cursor.execute(stmt, (engine, ))
-            else:
-                stmt = """
-                SELECT rowid, file_hash, file_size, file_name, os_type, engine_name, time_sent, time_returned
-                    FROM run_state
-                    WHERE time_returned IS NULL
-                    ORDER BY max(julianday(time_sent), julianday(coalesce(time_returned, time_sent)),
-                                 julianday(coalesce(time_published, time_returned, time_sent))) DESC;
-                """
-                output_iterator = cursor.execute(stmt)
+            stmt = """
+            SELECT file_hash FROM run_state WHERE engine_name = ? AND checkpoint_name = 'DONE'
+                ORDER BY file_hash;
+            """
             return_list = []
-            for row in output_iterator:
-                value = {'persist_id': row[0], 'file_hash': row[1], 'file_size': row[2], 'file_name': row[3],
-                         'os_type': row[4], 'engine_name': row[5]}
-                if row[6]:
-                    value['time_sent'] = row[6]
-                if row[7]:
-                    value['time_returned'] = row[7]
-                return_list.append(value)
+            for row in cursor.execute(stmt, (engine,)):
+                return_list.append(row[0])
             return return_list
         except sqlite3.OperationalError as e:
-            log.error("OperationalError in get_unfinished_states: %s" % (e,))
+            log.error("OperationalError in get_previous_hashes: %s" % (e,))
             return []
 
-    def get_num_unfinished_states(self, engine=None):
+    def get_unfinished_hashes(self, engine):
         """
-        Returns the number of unfinished states in the persistence manager for each known engine.
+        Returns a sorted list of all not-completed hashes.
 
-        :return: A dict with engine names as keys and count of results for each engine as values.
+        :param engine str: The engine value to look up in the database.
+        :return: A list of all the hashes that are in the database but have not been marked as "done"
+        for that engine.  This list is in the form of tuples, the first element of which is the hash,
+        the second element of which is the last known checkpoint.
         """
         try:
             cursor = self._conn.cursor(self._cursor_factory)
-            stmt = "SELECT engine_name, count(*) FROM run_state WHERE time_returned IS NULL GROUP BY engine_name;"
-            output_iterator = cursor.execute(stmt)
-            return_dict = {}
-            for row in output_iterator:
-                return_dict[row[0]] = row[1]
-
-            get_names = "SELECT DISTINCT engine_name FROM run_state;"
-            engine_names = cursor.execute(get_names)
-            for row in engine_names:
-                if row[0] not in return_dict:
-                    return_dict[row[0]] = 0
-            return return_dict
+            stmt = """
+            SELECT file_hash, checkpoint_name FROM run_state
+                WHERE engine_name = ? AND checkpoint_name <> 'DONE';
+            """
+            return_list = []
+            for row in cursor.execute(stmt, (engine,)):
+                return_list.append((row[0], row[1]))
+            return return_list
         except sqlite3.OperationalError as e:
-            log.error("OperationalError in get_num_unfinished_states: %s" % (e,))
-            return {}
+            log.error("OperationalError in get_unfinished_hashes: %s" % (e,))
+            return []
 
     def prune(self, timestamp):
         """
@@ -172,9 +112,7 @@ class SQLiteBasedPersistor(BasePersistor):
         try:
             cursor = self._conn.cursor(self._cursor_factory)
             stmt = """
-            DELETE FROM run_state
-                WHERE max(julianday(time_sent), julianday(coalesce(time_returned, time_sent)),
-                          julianday(coalesce(time_published, time_returned, time_sent))) < julianday(?);
+            DELETE FROM run_state WHERE julianday(checkpoint_time) < julianday(?);
             """
             cursor.execute(stmt, (timestamp, ))
             cursor.close()
@@ -259,14 +197,18 @@ class Persistor(BasePersistorFactory):
         stmt = """
         CREATE TABLE IF NOT EXISTS run_state (
             file_hash TEXT NOT NULL,
-            file_size INTEGER NOT NULL,
-            file_name TEXT NOT NULL,
-            os_type TEXT NOT NULL,
             engine_name TEXT NOT NULL,
-            time_sent TEXT,
-            time_returned TEXT,
-            time_published TEXT
+            checkpoint_name TEXT NOT NULL,
+            checkpoint_time TEXT
         );
+        """
+        cursor.execute(stmt)
+        stmt = """
+        CREATE INDEX IF NOT EXISTS run_hashes ON run_state (engine_name, file_hash);
+        """
+        cursor.execute(stmt)
+        stmt = """
+        CREATE INDEX IF NOT EXISTS run_checkpoints ON run_state (engine_name, checkpoint_name);
         """
         cursor.execute(stmt)
         stmt = """
