@@ -8,44 +8,37 @@ from cbc_binary_toolkit.loader import dynamic_create
 
 class BasePersistor:
     """'Abstract base class' that should be inherited by persistor objects."""
-    def get_file_state(self, binary_hash, engine=None):
+    def set_checkpoint(self, binary_hash, engine, checkpoint_name):
         """
-        Get the stored file state for a specified hash value.
-
-        :param binary_hash str: The hash value to look up in the database.
-        :param engine str: (Optional) The engine value to look up in the database.
-        :return: A dict containing the file information, or None if not found.
-        """
-        raise NotImplementedError("protocol not implemented: get_file_state")
-
-    def set_file_state(self, binary_hash, attrs, persist_id=None):
-        """
-        Set the stored file state for a specified hash value.
-
+        Set a checkpoint on a binary hash/engine combination.
+        
         :param binary_hash str: The hash value to set in the database.
-        :param attrs dict: The attributes to set as part of the hash value entry.
-        :param persist_id int: The persistence ID of the existing record we're modifying (optional).
-        :return: The persistence ID of the database row, either new or existing.
+        :param engine str: The engine value to set in the database.
+        :param checkpoint_name str: The name of the checkpoint to set.
         """
-        raise NotImplementedError("protocol not implemented: set_file_state")
-
-    def get_unfinished_states(self, engine=None):
+        raise NotImplementedError("protocol not implemented: set_checkpoint")
+    
+    def get_previous_hashes(self, engine):
         """
-        Returns all states not marked as "analysis finished" (possibly for a single engine).
-
-        :param engine str: (Optional) The engine value to look up in the database.
-        :return: A list of dicts containing all unfinished file information. Returns an empty list if none present.
+        Returns a sorted list of all previously-completed hashes.
+        
+        :param engine str: The engine value to look up in the database.
+        :return: A list of all the hashes that have been marked as "done" for that engine. This list
+        will be in sorted order.
         """
-        raise NotImplementedError("protocol not implemented: get_unfinished_states")
-
-    def get_num_unfinished_states(self):
+        raise NotImplementedError("protocol not implemented: get_previous_hashes")
+    
+    def get_unfinished_hashes(self, engine):
         """
-        Returns the number of unfinished states in the persistence manager for each known engine.
-
-        :return: A dict with engine names as keys and count of results for each engine as values.
+        Returns a sorted list of all not-completed hashes.
+        
+        :param engine str: The engine value to look up in the database.
+        :return: A list of all the hashes that are in the database but have not been marked as "done"
+        for that engine.  This list is in the form of tuples, the first element of which is the hash,
+        the second element of which is the last known checkpoint. 
         """
-        raise NotImplementedError("protocol not implemented: get_num_unfinished_states")
-
+        raise NotImplementedError("protocol not implemented: get_unfinished_hashes")
+    
     def prune(self, timestamp):
         """
         Erases all entries from the database older than a specified time.
@@ -108,33 +101,37 @@ class StateManager:
         factory = dynamic_create(factory_classname)
         self._persistor = factory.create_persistor(config.section('database'))
 
-    def lookup(self, binary_hash, engine=None):
+    def set_checkpoint(self, binary_hash, engine, checkpoint_name):
         """
-        Look up the most recent record for a file by hash value.
-
-        :param binary_hash str: The hash value to be looked up.
-        :param engine str: (Optional) The engine name to look up the information for.
-        :return dict: A dict containing information about the file.  If no such record exists, returns None.
+        Set a checkpoint on a binary hash/engine combination.
+        
+        :param binary_hash str: The hash value to set in the database.
+        :param engine str: The engine value to set in the database.
+        :param checkpoint_name str: The name of the checkpoint to set.
         """
-        return self._persistor.get_file_state(binary_hash, engine)
-
-    def get_unfinished_states(self, engine=None):
+        self._persistor.set_checkpoint(binary_hash, engine, checkpoint_name)
+    
+    def get_previous_hashes(self, engine):
         """
-        Returns all states not marked as "analysis finished" (possibly for a single engine).
-
-        :param engine str: (Optional) The engine value to look up in the database.
-        :return: A list of dicts containing all unfinished file information. Returns an empty list if none present.
+        Returns a sorted list of all previously-completed hashes.
+        
+        :param engine str: The engine value to look up in the database.
+        :return: A list of all the hashes that have been marked as "done" for that engine. This list
+        will be in sorted order.
         """
-        return self._persistor.get_unfinished_states(engine)
-
-    def get_num_unfinished_states(self):
+        return self._persistor.get_previous_hashes(engine)
+    
+    def get_unfinished_hashes(self, engine):
         """
-        Returns the number of unfinished states in the persistence manager for each known engine.
-
-        :return: A dict with engine names as keys and count of results for each engine as values.
+        Returns a sorted list of all not-completed hashes.
+        
+        :param engine str: The engine value to look up in the database.
+        :return: A list of all the hashes that are in the database but have not been marked as "done"
+        for that engine.  This list is in the form of tuples, the first element of which is the hash,
+        the second element of which is the last known checkpoint. 
         """
-        return self._persistor.get_num_unfinished_states()
-
+        return self._persistor.get_unfinished_hashes(engine)
+    
     def prune(self, timestamp):
         """
         Erase all records older than a specified timestamp.
@@ -142,20 +139,6 @@ class StateManager:
         :param timestamp str: The timestamp of the oldest records to retain in the data store.
         """
         self._persistor.prune(timestamp)
-
-    # AGRB 1/30/2020 - the following method is just a pass-through to the lower-level persistor.
-    # If it is needful to do some more adapting at the manager level it can be rewritten.
-
-    def set_file_state(self, binary_hash, attrs, rowid=None):
-        """
-        Set the stored file state for a specified hash value.
-
-        :param binary_hash str: The hash value to set in the database.
-        :param attrs dict: The attributes to set as part of the hash value entry.
-        :param rowid int: The row ID of the existing record we're modifying (optional).
-        :return: The row ID of the database row, either new or existing.
-        """
-        return self._persistor.set_file_state(binary_hash, attrs, rowid)
 
     def add_report_item(self, severity, engine, data):
         """

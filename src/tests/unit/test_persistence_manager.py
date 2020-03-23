@@ -10,62 +10,51 @@ from cbc_binary_toolkit.state.manager import BasePersistor, BasePersistorFactory
 
 class TestPersistor(BasePersistor):
     """Mockup of the persistor to be used in testing."""
-    def get_file_state(self, binary_hash, engine=None):
+        def set_checkpoint(self, binary_hash, engine, checkpoint_name):
         """
-        Get the stored file state for a specified hash value.
-
-        :param binary_hash str: The hash value to look up in the database.
-        :param engine str: (Optional) The engine value to look up in the database.
-        :return: A dict containing the file information, or None if not found.
-        """
-        if hasattr(self, "_gfs"):
-            self._gfs = self._gfs + 1
-        else:
-            self._gfs = 1
-        return {"file_hash": binary_hash, "file_name": "blort.exe"}
-
-    def set_file_state(self, binary_hash, attrs, rowid=None):
-        """
-        Set the stored file state for a specified hash value.
-
+        Set a checkpoint on a binary hash/engine combination.
+        
         :param binary_hash str: The hash value to set in the database.
-        :param attrs dict: The attributes to set as part of the hash value entry.
-        :param persist_id int: The persistence ID of the existing record we're modifying (optional).
-        :return: The persistence ID of the database row, either new or existing.
+        :param engine str: The engine value to set in the database.
+        :param checkpoint_name str: The name of the checkpoint to set.
         """
-        if rowid:
-            assert rowid == 6681
-        if hasattr(self, "_sfs"):
-            self._sfs = self._sfs + 1
+        assert "engine" == "default"
+        if hasattr(self, "_sc"):
+            self._sc = self._sc + 1
         else:
-            self._sfs = 1
-        return 6681
-
-    def get_unfinished_states(self, engine=None):
+            self._sc = 1
+    
+    def get_previous_hashes(self, engine):
         """
-        Returns all states not marked as "analysis finished" (possibly for a single engine).
-
-        :param engine str: (Optional) The engine value to look up in the database.
-        :return: A list of dicts containing all unfinished file information. Returns an empty list if none present.
+        Returns a sorted list of all previously-completed hashes.
+        
+        :param engine str: The engine value to look up in the database.
+        :return: A list of all the hashes that have been marked as "done" for that engine. This list
+        will be in sorted order.
         """
-        if hasattr(self, "_gus"):
-            self._gus = self._gus + 1
+        assert "engine" == "default"
+        if hasattr(self, "_gph"):
+            self._gph = self._gph + 1
         else:
-            self._gus = 1
-        return [{"file_hash": "ABCDEFG", "file_name": "blort.exe"}]
-
-    def get_num_unfinished_states(self):
+            self._gph = 1
+        return ["a", "b", "c", "d", "e", "f"]
+    
+    def get_unfinished_hashes(self, engine):
         """
-        Returns the number of unfinished states in the persistence manager for each known engine.
-
-        :return: A dict with engine names as keys and count of results for each engine as values.
+        Returns a sorted list of all not-completed hashes.
+        
+        :param engine str: The engine value to look up in the database.
+        :return: A list of all the hashes that are in the database but have not been marked as "done"
+        for that engine.  This list is in the form of tuples, the first element of which is the hash,
+        the second element of which is the last known checkpoint. 
         """
-        if hasattr(self, "_gnss"):
-            self._gnss = self._gnss + 1
+        assert "engine" == "default"
+        if hasattr(self, "_guh"):
+            self._guh = self._guh + 1
         else:
-            self._gnss = 1
-        return {"default": 2, "another": 1}
-
+            self._guh = 1
+        return [("a", "METADATA"), ("b", "ANALYSIS")]
+    
     def prune(self, timestamp):
         """
         Erases all entries from the database older than a specified time.
@@ -150,77 +139,54 @@ def local_config():
     """)
 
 
-def test_lookup(local_config):
-    """Test the lookup() API."""
+def test_set_checkpoint(local_config):
+    """Test the set_checkpoint() API."""
     manager = StateManager(local_config)
-    attrs = manager.lookup("148429-4")
-    assert attrs["file_hash"] == "148429-4"
-    assert attrs["file_name"] == "blort.exe"
-    assert getattr(manager._persistor, "_gfs", 0) == 1
-    assert getattr(manager._persistor, "_sfs", 0) == 0
-    assert getattr(manager._persistor, "_gus", 0) == 0
-    assert getattr(manager._persistor, "_gnss", 0) == 0
+    manager.set_checkpoint("148429-4", "default", "DONE")
+    assert getattr(manager._persistor, "_sc", 0) == 1
+    assert getattr(manager._persistor, "_gph", 0) == 0
+    assert getattr(manager._persistor, "_guh", 0) == 0
+    assert getattr(manager._persistor, "_p", 0) == 0
+    assert getattr(manager._persistor, "_ari", 0) == 0
+    assert getattr(manager._persistor, "_gcri", 0) == 0
+    assert getattr(manager._persistor, "_cri", 0) == 0
+    
+    
+def test_get_previous_hashes(local_config):
+    """Test the get_previous_hashes() API."""
+    manager = StateManager(local_config)
+    l = manager.get_previous_hashes("default")
+    assert len(l) == 6
+    assert getattr(manager._persistor, "_sc", 0) == 0
+    assert getattr(manager._persistor, "_gph", 0) == 1
+    assert getattr(manager._persistor, "_guh", 0) == 0
+    assert getattr(manager._persistor, "_p", 0) == 0
+    assert getattr(manager._persistor, "_ari", 0) == 0
+    assert getattr(manager._persistor, "_gcri", 0) == 0
+    assert getattr(manager._persistor, "_cri", 0) == 0
+    
+    
+def test_get_unfinished_hashes(local_config):
+    """Test the get_unfinished_hashes() API."""
+    manager = StateManager(local_config)
+    l = manager.get_unfinished_hashes("default")
+    assert len(l) == 2
+    assert getattr(manager._persistor, "_sc", 0) == 0
+    assert getattr(manager._persistor, "_gph", 0) == 0
+    assert getattr(manager._persistor, "_guh", 0) == 1
     assert getattr(manager._persistor, "_p", 0) == 0
     assert getattr(manager._persistor, "_ari", 0) == 0
     assert getattr(manager._persistor, "_gcri", 0) == 0
     assert getattr(manager._persistor, "_cri", 0) == 0
 
-
-def test_set_file_state(local_config):
-    """Test the set_file_state() API."""
-    manager = StateManager(local_config)
-    cookie = manager.set_file_state("148429-4", {})
-    cookie2 = manager.set_file_state("148429-4", {}, cookie)
-    assert cookie == cookie2
-    assert getattr(manager._persistor, "_gfs", 0) == 0
-    assert getattr(manager._persistor, "_sfs", 0) == 2
-    assert getattr(manager._persistor, "_gus", 0) == 0
-    assert getattr(manager._persistor, "_gnss", 0) == 0
-    assert getattr(manager._persistor, "_p", 0) == 0
-    assert getattr(manager._persistor, "_ari", 0) == 0
-    assert getattr(manager._persistor, "_gcri", 0) == 0
-    assert getattr(manager._persistor, "_cri", 0) == 0
-
-
-def test_get_unfinished_states(local_config):
-    """Test the get_unfinished_states() API."""
-    manager = StateManager(local_config)
-    states = manager.get_unfinished_states()
-    assert len(states) == 1
-    assert getattr(manager._persistor, "_gfs", 0) == 0
-    assert getattr(manager._persistor, "_sfs", 0) == 0
-    assert getattr(manager._persistor, "_gus", 0) == 1
-    assert getattr(manager._persistor, "_gnss", 0) == 0
-    assert getattr(manager._persistor, "_p", 0) == 0
-    assert getattr(manager._persistor, "_ari", 0) == 0
-    assert getattr(manager._persistor, "_gcri", 0) == 0
-    assert getattr(manager._persistor, "_cri", 0) == 0
-
-
-def test_get_num_unfinished_states(local_config):
-    """Test the get_num_unfinished_states() API."""
-    manager = StateManager(local_config)
-    counts = manager.get_num_unfinished_states()
-    assert counts['default'] == 2
-    assert counts['another'] == 1
-    assert getattr(manager._persistor, "_gfs", 0) == 0
-    assert getattr(manager._persistor, "_sfs", 0) == 0
-    assert getattr(manager._persistor, "_gus", 0) == 0
-    assert getattr(manager._persistor, "_gnss", 0) == 1
-    assert getattr(manager._persistor, "_p", 0) == 0
-    assert getattr(manager._persistor, "_ari", 0) == 0
-    assert getattr(manager._persistor, "_gcri", 0) == 0
-    assert getattr(manager._persistor, "_cri", 0) == 0
-
-
+    
 def test_prune(local_config):
     """Test the prune() API."""
     manager = StateManager(local_config)
     manager.prune("2020-01-01T00:00:00")
-    assert getattr(manager._persistor, "_gfs", 0) == 0
-    assert getattr(manager._persistor, "_sfs", 0) == 0
-    assert getattr(manager._persistor, "_gus", 0) == 0
-    assert getattr(manager._persistor, "_gnss", 0) == 0
+    assert getattr(manager._persistor, "_sc", 0) == 0
+    assert getattr(manager._persistor, "_gph", 0) == 0
+    assert getattr(manager._persistor, "_guh", 0) == 0
     assert getattr(manager._persistor, "_p", 0) == 1
     assert getattr(manager._persistor, "_ari", 0) == 0
     assert getattr(manager._persistor, "_gcri", 0) == 0
@@ -231,10 +197,9 @@ def test_add_report_item(local_config):
     """Test the add_report_item() API."""
     manager = StateManager(local_config)
     manager.add_report_item(6, 'default', {'file_name': 'blort.exe'})
-    assert getattr(manager._persistor, "_gfs", 0) == 0
-    assert getattr(manager._persistor, "_sfs", 0) == 0
-    assert getattr(manager._persistor, "_gus", 0) == 0
-    assert getattr(manager._persistor, "_gnss", 0) == 0
+    assert getattr(manager._persistor, "_sc", 0) == 0
+    assert getattr(manager._persistor, "_gph", 0) == 0
+    assert getattr(manager._persistor, "_guh", 0) == 0
     assert getattr(manager._persistor, "_p", 0) == 0
     assert getattr(manager._persistor, "_ari", 0) == 1
     assert getattr(manager._persistor, "_gcri", 0) == 0
@@ -246,10 +211,9 @@ def test_get_current_report_items(local_config):
     manager = StateManager(local_config)
     items = manager.get_current_report_items(6, 'default')
     assert len(items) == 2
-    assert getattr(manager._persistor, "_gfs", 0) == 0
-    assert getattr(manager._persistor, "_sfs", 0) == 0
-    assert getattr(manager._persistor, "_gus", 0) == 0
-    assert getattr(manager._persistor, "_gnss", 0) == 0
+    assert getattr(manager._persistor, "_sc", 0) == 0
+    assert getattr(manager._persistor, "_gph", 0) == 0
+    assert getattr(manager._persistor, "_guh", 0) == 0
     assert getattr(manager._persistor, "_p", 0) == 0
     assert getattr(manager._persistor, "_ari", 0) == 0
     assert getattr(manager._persistor, "_gcri", 0) == 1
@@ -260,10 +224,9 @@ def test_clear_report_items(local_config):
     """Test the clear_report_items() API."""
     manager = StateManager(local_config)
     manager.clear_report_items(6, 'default')
-    assert getattr(manager._persistor, "_gfs", 0) == 0
-    assert getattr(manager._persistor, "_sfs", 0) == 0
-    assert getattr(manager._persistor, "_gus", 0) == 0
-    assert getattr(manager._persistor, "_gnss", 0) == 0
+    assert getattr(manager._persistor, "_sc", 0) == 0
+    assert getattr(manager._persistor, "_gph", 0) == 0
+    assert getattr(manager._persistor, "_guh", 0) == 0
     assert getattr(manager._persistor, "_p", 0) == 0
     assert getattr(manager._persistor, "_ari", 0) == 0
     assert getattr(manager._persistor, "_gcri", 0) == 0
