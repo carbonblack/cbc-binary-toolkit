@@ -8,33 +8,33 @@ from cbc_binary_toolkit.loader import dynamic_create
 
 class BasePersistor:
     """'Abstract base class' that should be inherited by persistor objects."""
-    def set_checkpoint(self, binary_hash, engine, checkpoint_name, checkpoint_time=None):
+    def set_checkpoint(self, binary_hash, engine_name, checkpoint_name, checkpoint_time=None):
         """
         Set a checkpoint on a binary hash/engine combination.
 
         :param binary_hash str: The hash value to set in the database.
-        :param engine str: The engine value to set in the database.
+        :param engine_name str: The engine value to set in the database.
         :param checkpoint_name str: The name of the checkpoint to set.
         :param checkpoint_time str: The timestamp to set the checkpoint time to.  Not normally
         used except in test code.
         """
         raise NotImplementedError("protocol not implemented: set_checkpoint")
 
-    def get_previous_hashes(self, engine):
+    def get_previous_hashes(self, engine_name):
         """
         Returns a sorted list of all previously-completed hashes.
 
-        :param engine str: The engine value to look up in the database.
+        :param engine_name str: The engine value to look up in the database.
         :return: A list of all the hashes that have been marked as "done" for that engine. This list
         will be in sorted order.
         """
         raise NotImplementedError("protocol not implemented: get_previous_hashes")
 
-    def get_unfinished_hashes(self, engine):
+    def get_unfinished_hashes(self, engine_name):
         """
         Returns a sorted list of all not-completed hashes.
 
-        :param engine str: The engine value to look up in the database.
+        :param engine_name str: The engine value to look up in the database.
         :return: A list of all the hashes that are in the database but have not been marked as "done"
         for that engine.  This list is in the form of tuples, the first element of which is the hash,
         the second element of which is the last known checkpoint.
@@ -45,36 +45,36 @@ class BasePersistor:
         """
         Erases all entries from the database older than a specified time.
 
-        :param timestamp str: The basic timestamp. Everything older than this will be erased.
+        :param timestamp str: The basic timestamp (ISO 8601 format). Everything older than this will be erased.
         """
         raise NotImplementedError("protocol not implemented: prune")
 
-    def add_report_item(self, severity, engine, data):
+    def add_report_item(self, severity, engine_name, data):
         """
         Adds a new report item (IOC record) to the current stored list.
 
         :param severity int: The severity level (1-10).
-        :param engine str: The engine value to store this data for.
+        :param engine_name str: The engine value to store this data for.
         :param data dict: The data item to be stored.
         """
         raise NotImplementedError("protocol not implemented: add_report_item")
 
-    def get_current_report_items(self, severity, engine):
+    def get_current_report_items(self, severity, engine_name):
         """
         Returns all current report items (IOC records) in the given list.
 
         :param severity int: The severity level (1-10).
-        :param engine str: The engine value to return data for.
+        :param engine_name str: The engine value to return data for.
         :return: A list of dicts, each of which represents a report item.
         """
         raise NotImplementedError("protocol not implemented: get_current_report_items")
 
-    def clear_report_items(self, severity, engine):
+    def clear_report_items(self, severity, engine_name):
         """
         Clears all report items (IOC records) from a given list.
 
         :param severity int: The severity level (1-10).
-        :param engine str: The engine value to clear data for.
+        :param engine_name str: The engine value to clear data for.
         """
         raise NotImplementedError("protocol not implemented: clear_report_items")
 
@@ -103,72 +103,72 @@ class StateManager:
         factory = dynamic_create(factory_classname)
         self._persistor = factory.create_persistor(config.section('database'))
 
-    def set_checkpoint(self, binary_hash, engine, checkpoint_name, checkpoint_time=None):
+    def set_checkpoint(self, binary_hash, engine_name, checkpoint_name, checkpoint_time=None):
         """
         Set a checkpoint on a binary hash/engine combination.
 
         :param binary_hash str: The hash value to set in the database.
-        :param engine str: The engine value to set in the database.
+        :param engine_name str: The engine value to set in the database.
         :param checkpoint_name str: The name of the checkpoint to set.
         :param checkpoint_time str: The timestamp to set the checkpoint time to.  Not normally
         used except in test code.
         """
-        self._persistor.set_checkpoint(binary_hash, engine, checkpoint_name, checkpoint_time)
+        self._persistor.set_checkpoint(binary_hash, engine_name, checkpoint_name, checkpoint_time)
 
-    def get_previous_hashes(self, engine):
+    def get_previous_hashes(self, engine_name):
         """
         Returns a sorted list of all previously-completed hashes.
 
-        :param engine str: The engine value to look up in the database.
+        :param engine_name str: The engine value to look up in the database.
         :return: A list of all the hashes that have been marked as "done" for that engine. This list
         will be in sorted order.
         """
-        return self._persistor.get_previous_hashes(engine)
+        return self._persistor.get_previous_hashes(engine_name)
 
-    def get_unfinished_hashes(self, engine):
+    def get_unfinished_hashes(self, engine_name):
         """
         Returns a sorted list of all not-completed hashes.
 
-        :param engine str: The engine value to look up in the database.
+        :param engine_name str: The engine value to look up in the database.
         :return: A list of all the hashes that are in the database but have not been marked as "done"
         for that engine.  This list is in the form of tuples, the first element of which is the hash,
         the second element of which is the last known checkpoint.
         """
-        return self._persistor.get_unfinished_hashes(engine)
+        return self._persistor.get_unfinished_hashes(engine_name)
 
     def prune(self, timestamp):
         """
         Erase all records older than a specified timestamp.
 
-        :param timestamp str: The timestamp of the oldest records to retain in the data store.
+        :param timestamp str: The basic timestamp (ISO 8601 format). Everything older than this will be erased.
         """
         self._persistor.prune(timestamp)
 
-    def add_report_item(self, severity, engine, data):
+    def add_report_item(self, severity, engine_name, data):
         """
         Adds a new report item (IOC record) to the current stored list.
 
         :param severity int: The severity level (1-10).
-        :param engine str: The engine value to store this data for.
+        :param engine_name str: The engine value to store this data for.
         :param data dict: The data item to be stored.
         """
-        self._persistor.add_report_item(severity, engine, data)
+        self._persistor.add_report_item(severity, engine_name, data)
 
-    def get_current_report_items(self, severity, engine):
+    def get_current_report_items(self, severity, engine_name):
         """
         Returns all current report items (IOC records) in the given list.
 
         :param severity int: The severity level (1-10).
-        :param engine str: The engine value to return data for.
+        :param engine_name str: The engine value to return data for.
         :return: A list of dicts, each of which represents a report item.
         """
-        return self._persistor.get_current_report_items(severity, engine)
+        return self._persistor.get_current_report_items(severity, engine_name)
 
-    def clear_report_items(self, severity, engine):
+    def clear_report_items(self, severity, engine_name):
         """
         Clears all report items (IOC records) from a given list.
 
         :param severity int: The severity level (1-10).
-        :param engine str: The engine value to clear data for.
+        :param engine_name str: The engine value to clear data for.
         """
-        self._persistor.clear_report_items(severity, engine)
+        self._persistor.clear_report_items(severity, engine_name)

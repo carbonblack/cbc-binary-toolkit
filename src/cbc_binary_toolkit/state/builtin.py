@@ -19,12 +19,12 @@ class SQLiteBasedPersistor(BasePersistor):
         self._conn = conn
         self._cursor_factory = sqlite3.Cursor
 
-    def set_checkpoint(self, binary_hash, engine, checkpoint_name, checkpoint_time=None):
+    def set_checkpoint(self, binary_hash, engine_name, checkpoint_name, checkpoint_time=None):
         """
         Set a checkpoint on a binary hash/engine combination.
 
         :param binary_hash str: The hash value to set in the database.
-        :param engine str: The engine value to set in the database.
+        :param engine_name str: The engine value to set in the database.
         :param checkpoint_name str: The name of the checkpoint to set.
         :param checkpoint_time str: The timestamp to set the checkpoint time to.  Not normally
         used except in test code.
@@ -36,33 +36,33 @@ class SQLiteBasedPersistor(BasePersistor):
                 UPDATE run_state SET checkpoint_name = ?, checkpoint_time = datetime('now')
                     WHERE file_hash = ? AND engine_name = ?;
                 """
-                cursor.execute(stmt, (checkpoint_name, binary_hash, engine))
+                cursor.execute(stmt, (checkpoint_name, binary_hash, engine_name))
                 if cursor.rowcount == 0:
                     stmt = """
                     INSERT INTO run_state(file_hash, engine_name, checkpoint_name, checkpoint_time)
                         VALUES (?, ?, ?, datetime('now'));
                     """
-                    cursor.execute(stmt, (binary_hash, engine, checkpoint_name))
+                    cursor.execute(stmt, (binary_hash, engine_name, checkpoint_name))
             else:
                 stmt = """
                 UPDATE run_state SET checkpoint_name = ?, checkpoint_time = ?
                     WHERE file_hash = ? AND engine_name = ?;
                 """
-                cursor.execute(stmt, (checkpoint_name, checkpoint_time, binary_hash, engine))
+                cursor.execute(stmt, (checkpoint_name, checkpoint_time, binary_hash, engine_name))
                 if cursor.rowcount == 0:
                     stmt = """
                     INSERT INTO run_state(file_hash, engine_name, checkpoint_name, checkpoint_time)
                         VALUES (?, ?, ?, ?);
                     """
-                    cursor.execute(stmt, (binary_hash, engine, checkpoint_name, checkpoint_time))
+                    cursor.execute(stmt, (binary_hash, engine_name, checkpoint_name, checkpoint_time))
         except sqlite3.OperationalError as e:
             log.error("OperationalError in set_checkpoint: %s" % (e,))
 
-    def get_previous_hashes(self, engine):
+    def get_previous_hashes(self, engine_name):
         """
         Returns a sorted list of all previously-completed hashes.
 
-        :param engine str: The engine value to look up in the database.
+        :param engine_name str: The engine value to look up in the database.
         :return: A list of all the hashes that have been marked as "done" for that engine. This list
         will be in sorted order.
         """
@@ -73,18 +73,18 @@ class SQLiteBasedPersistor(BasePersistor):
                 ORDER BY file_hash;
             """
             return_list = []
-            for row in cursor.execute(stmt, (engine,)):
+            for row in cursor.execute(stmt, (engine_name,)):
                 return_list.append(row[0])
             return return_list
         except sqlite3.OperationalError as e:
             log.error("OperationalError in get_previous_hashes: %s" % (e,))
             return []
 
-    def get_unfinished_hashes(self, engine):
+    def get_unfinished_hashes(self, engine_name):
         """
         Returns a sorted list of all not-completed hashes.
 
-        :param engine str: The engine value to look up in the database.
+        :param engine_name str: The engine value to look up in the database.
         :return: A list of all the hashes that are in the database but have not been marked as "done"
         for that engine.  This list is in the form of tuples, the first element of which is the hash,
         the second element of which is the last known checkpoint.
@@ -96,7 +96,7 @@ class SQLiteBasedPersistor(BasePersistor):
                 WHERE engine_name = ? AND checkpoint_name <> 'DONE';
             """
             return_list = []
-            for row in cursor.execute(stmt, (engine,)):
+            for row in cursor.execute(stmt, (engine_name,)):
                 return_list.append((row[0], row[1]))
             return return_list
         except sqlite3.OperationalError as e:
@@ -107,7 +107,7 @@ class SQLiteBasedPersistor(BasePersistor):
         """
         Erases all entries from the database older than a specified time.
 
-        :param timestamp str: The basic timestamp. Everything older than this will be erased.
+        :param timestamp str: The basic timestamp (ISO 8601 format). Everything older than this will be erased.
         """
         try:
             cursor = self._conn.cursor(self._cursor_factory)
@@ -121,12 +121,12 @@ class SQLiteBasedPersistor(BasePersistor):
         except sqlite3.OperationalError as e:
             log.error("OperationalError in prune: %s" % (e,))
 
-    def add_report_item(self, severity, engine, data):
+    def add_report_item(self, severity, engine_name, data):
         """
         Adds a new report item (IOC record) to the current stored list.
 
         :param severity int: The severity level (1-10).
-        :param engine str: The engine value to store this data for.
+        :param engine_name str: The engine value to store this data for.
         :param data dict: The data item to be stored.
         """
         try:
@@ -135,40 +135,40 @@ class SQLiteBasedPersistor(BasePersistor):
             INSERT INTO report_item (severity, engine_name, data)
                 VALUES (?, ?, ?);
             """
-            cursor.execute(stmt, (severity, engine, json.dumps(data)))
+            cursor.execute(stmt, (severity, engine_name, json.dumps(data)))
         except sqlite3.OperationalError as e:
             log.error("OperationalError in add_report_item: %s" % (e,))
 
-    def get_current_report_items(self, severity, engine):
+    def get_current_report_items(self, severity, engine_name):
         """
         Returns all current report items (IOC records) in the given list.
 
         :param severity int: The severity level (1-10).
-        :param engine str: The engine value to return data for.
+        :param engine_name str: The engine value to return data for.
         :return: A list of dicts, each of which represents a report item.
         """
         try:
             cursor = self._conn.cursor(self._cursor_factory)
             stmt = "SELECT data FROM report_item WHERE severity = ? AND engine_name = ?;"
             return_list = []
-            for row in cursor.execute(stmt, (severity, engine)):
+            for row in cursor.execute(stmt, (severity, engine_name)):
                 return_list.append(json.loads(row[0]))
             return return_list
         except sqlite3.OperationalError as e:
             log.error("OperationalError in get_current_report_items: %s" % (e,))
             return []
 
-    def clear_report_items(self, severity, engine):
+    def clear_report_items(self, severity, engine_name):
         """
         Clears all report items (IOC records) from a given list.
 
         :param severity int: The severity level (1-10).
-        :param engine str: The engine value to clear data for.
+        :param engine_name str: The engine value to clear data for.
         """
         try:
             cursor = self._conn.cursor(self._cursor_factory)
             stmt = "DELETE FROM report_item WHERE severity = ? AND engine_name = ?;"
-            cursor.execute(stmt, (severity, engine))
+            cursor.execute(stmt, (severity, engine_name))
         except sqlite3.OperationalError as e:
             log.error("OperationalError in clear_report_items: %s" % (e,))
 

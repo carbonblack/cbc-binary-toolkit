@@ -10,47 +10,47 @@ from cbc_binary_toolkit.state.manager import BasePersistor, BasePersistorFactory
 
 class TestPersistor(BasePersistor):
     """Mockup of the persistor to be used in testing."""
-    def set_checkpoint(self, binary_hash, engine, checkpoint_name, checkpoint_time=None):
+    def set_checkpoint(self, binary_hash, engine_name, checkpoint_name, checkpoint_time=None):
         """
         Set a checkpoint on a binary hash/engine combination.
 
         :param binary_hash str: The hash value to set in the database.
-        :param engine str: The engine value to set in the database.
+        :param engine_name str: The engine value to set in the database.
         :param checkpoint_name str: The name of the checkpoint to set.
         :param checkpoint_time str: The timestamp to set the checkpoint time to.  Not normally
         used except in test code.
         """
-        assert engine == "default"
+        assert engine_name == "default"
         if hasattr(self, "_sc"):
             self._sc = self._sc + 1
         else:
             self._sc = 1
 
-    def get_previous_hashes(self, engine):
+    def get_previous_hashes(self, engine_name):
         """
         Returns a sorted list of all previously-completed hashes.
 
-        :param engine str: The engine value to look up in the database.
+        :param engine_name str: The engine value to look up in the database.
         :return: A list of all the hashes that have been marked as "done" for that engine. This list
         will be in sorted order.
         """
-        assert engine == "default"
+        assert engine_name == "default"
         if hasattr(self, "_gph"):
             self._gph = self._gph + 1
         else:
             self._gph = 1
         return ["a", "b", "c", "d", "e", "f"]
 
-    def get_unfinished_hashes(self, engine):
+    def get_unfinished_hashes(self, engine_name):
         """
         Returns a sorted list of all not-completed hashes.
 
-        :param engine str: The engine value to look up in the database.
+        :param engine_name str: The engine value to look up in the database.
         :return: A list of all the hashes that are in the database but have not been marked as "done"
         for that engine.  This list is in the form of tuples, the first element of which is the hash,
         the second element of which is the last known checkpoint.
         """
-        assert engine == "default"
+        assert engine_name == "default"
         if hasattr(self, "_guh"):
             self._guh = self._guh + 1
         else:
@@ -61,7 +61,7 @@ class TestPersistor(BasePersistor):
         """
         Erases all entries from the database older than a specified time.
 
-        :param timestamp str: The basic timestamp. Everything older than this will be erased.
+        :param timestamp str: The basic timestamp (ISO 8601 format). Everything older than this will be erased.
         """
         assert timestamp == "2020-01-01T00:00:00"
         if hasattr(self, "_p"):
@@ -69,47 +69,47 @@ class TestPersistor(BasePersistor):
         else:
             self._p = 1
 
-    def add_report_item(self, severity, engine, data):
+    def add_report_item(self, severity, engine_name, data):
         """
         Adds a new report item (IOC record) to the current stored list.
 
         :param severity int: The severity level (1-10).
-        :param engine str: The engine value to store this data for.
+        :param engine_name str: The engine value to store this data for.
         :param data dict: The data item to be stored.
         """
         assert severity == 6
-        assert engine == 'default'
+        assert engine_name == 'default'
         assert data['file_name'] == 'blort.exe'
         if hasattr(self, "_ari"):
             self._ari = self._ari + 1
         else:
             self._ari = 1
 
-    def get_current_report_items(self, severity, engine):
+    def get_current_report_items(self, severity, engine_name):
         """
         Returns all current report items (IOC records) in the given list.
 
         :param severity int: The severity level (1-10).
-        :param engine str: The engine value to return data for.
+        :param engine_name str: The engine value to return data for.
         :return: A list of dicts, each of which represents a report item.
         """
         assert severity == 6
-        assert engine == 'default'
+        assert engine_name == 'default'
         if hasattr(self, "_gcri"):
             self._gcri = self._gcri + 1
         else:
             self._gcri = 1
         return [{'file_name': 'blort.exe'}, {'file_name': 'foobar.exe'}]
 
-    def clear_report_items(self, severity, engine):
+    def clear_report_items(self, severity, engine_name):
         """
         Clears all report items (IOC records) from a given list.
 
         :param severity int: The severity level (1-10).
-        :param engine str: The engine value to clear data for.
+        :param engine_name str: The engine value to clear data for.
         """
         assert severity == 6
-        assert engine == 'default'
+        assert engine_name == 'default'
         if hasattr(self, "_cri"):
             self._cri = self._cri + 1
         else:
