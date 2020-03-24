@@ -29,7 +29,7 @@ def read_csv(file: TextIOWrapper) -> List[Dict]:
         List of hashes
 
     """
-    hash_dict: (Dict) = {}
+    hashes = list()
 
     try:
         with file as csvfile:
@@ -38,12 +38,11 @@ def read_csv(file: TextIOWrapper) -> List[Dict]:
                 hash = row[0]
                 if len(hash) != 64:
                     raise AssertionError(f'Hash should be 64 chars, instead is {len(hash)} chars: {hash}')
-                if hash not in hash_dict:
-                    hash_dict[hash] = 1
-        if not hash_dict:
+                hashes.append(str(hash))
+        if not hashes:
             raise AssertionError(f'There are no hashes in File {file.name}')
 
-        return hash_dict.keys()
+        return hashes
 
     except (AssertionError, OSError) as err:
         log.exception(err)

@@ -4,6 +4,7 @@
 
 import pytest
 import os
+import json
 
 from cbc_binary_toolkit.cli_input import read_csv, read_json
 from typing import List, Dict
@@ -11,13 +12,13 @@ from json import JSONDecodeError
 
 from tests.unit.input_fixtures.file_path_constants import (
     BASIC_INPUT_FILE,
-    # LARGE_INPUT_FILE,
+    LARGE_INPUT_FILE,
     BASIC_JSON_INPUT_FILE,
-    # LARGE_JSON_INPUT_FILE,
+    LARGE_JSON_INPUT_FILE,
     BASIC_INPUT_ANSWER_PATH,
-    # LARGE_INPUT_ANSWER_PATH,
+    LARGE_INPUT_ANSWER_PATH,
     BASIC_JSON_ANSWER_PATH,
-    # LARGE_JSON_ANSWER_PATH,
+    LARGE_JSON_ANSWER_PATH,
     BASIC_JSON_WRONG_HASHLEN,
     BASIC_JSON_MALFORMED_FILE,
     BASIC_INPUT_CSV_WRONG_HASHLEN,
@@ -36,8 +37,8 @@ def attach_path(path):
 class TestInputFunctions():
     """Unit tests for input.py functions"""
     @pytest.mark.parametrize("input_file_path, answer_file_path", [
-        (BASIC_INPUT_FILE, BASIC_INPUT_ANSWER_PATH)
-        # (LARGE_INPUT_FILE, LARGE_INPUT_ANSWER_PATH)
+        (BASIC_INPUT_FILE, BASIC_INPUT_ANSWER_PATH),
+        (LARGE_INPUT_FILE, LARGE_INPUT_ANSWER_PATH)
     ])
     def test_csv(self, input_file_path: str, answer_file_path: List[Dict]):
         """Unit testing read_csv function"""
@@ -46,8 +47,8 @@ class TestInputFunctions():
             assert str(read_csv(csv_file)) == answer_file.read().strip()
 
     @pytest.mark.parametrize("input_file_path, answer_file_path", [
-        (BASIC_JSON_INPUT_FILE, BASIC_JSON_ANSWER_PATH)
-        # (LARGE_JSON_INPUT_FILE, LARGE_JSON_ANSWER_PATH)
+        (BASIC_JSON_INPUT_FILE, BASIC_JSON_ANSWER_PATH),
+        (LARGE_JSON_INPUT_FILE, LARGE_JSON_ANSWER_PATH)
     ])
     def test_json(self, input_file_path: str, answer_file_path: List[Dict]):
         """Unit testing read_json function"""
@@ -72,14 +73,13 @@ class TestInputFunctions():
         assert str(context.value) == msg
 
     @pytest.mark.parametrize("error, input_file_path, msg", [
-        (KeyError, WRONG_KEY_JSON, "'There is no sha256 array in JSON object received from command line'"),
         (AssertionError, EMPTY_HASHES_DICT_JSON, "Hashes array contains no hashes"),
         (
             AssertionError,
             BASIC_JSON_WRONG_HASHLEN,
             "Found hash with 63 chars instead of 64 chars for hash: "
             "zhfsxqdiovvniajycvnnluubnsgdrqdczzarsxjoozfdbolnovnqacbtelxcnve"),
-        (JSONDecodeError, BASIC_JSON_MALFORMED_FILE, "Expecting ':' delimiter: line 1 column 13 (char 12)")
+        (JSONDecodeError, BASIC_JSON_MALFORMED_FILE, "Expecting value: line 1 column 2 (char 1)")
     ])
     def test_json_exceptions(self, error, input_file_path: str, msg: str):
         """Unit testing read_json exceptions"""
