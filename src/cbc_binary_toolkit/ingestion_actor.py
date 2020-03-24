@@ -30,9 +30,10 @@ class IngestionComponent():
 
     def reload(self):
         """Reloads unfinished binaries"""
-        fetch_metadata = list()
+        engine_name = self.config.string("engine.name")
+        unfinished_hashes = self.state_manager.get_unfinished_hashes(engine_name)
 
-        return fetch_metadata
+        return self.fetch_metadata(unfinished_hashes)
 
     def fetch_metadata(self, hashes):
         """
@@ -93,13 +94,10 @@ class IngestionComponent():
             metadata.update(get_metadata(self.cb_threathunter, download_data["sha256"]))
 
             # Save hash entry to state manager
-            metadata["persist_id"] = self.state_manager.set_file_state(download_data["sha256"],
-                                                                       {
-                                                                       "current_checkpoint": "injested",
-                                                                       "engine_name": engine_name,
-                                                                       "last_checkpoint_timestamp": datetime.now()
-                                                                       })
+            metadata["persist_id"] = self.state_manager.set_checkpoint(download_data["sha256"],
+                                                                       engine_name,
+                                                                       "INJESTED")
             fetched_metadata.append(metadata)
 
-        log.info(f"Ingested: {datetime.now()}")
+        log.info(f"Injested: {datetime.now()}")
         return fetched_metadata
