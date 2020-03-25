@@ -28,7 +28,8 @@ class SQLiteBasedPersistor(BasePersistor):
             engine_name (str): The engine value to set in the database.
             checkpoint_name (str): The name of the checkpoint to set.
             checkpoint_time (str): The timestamp to set the checkpoint time to.  Not normally
-            used except in test code.
+                                   used except in test code.
+
         """
         try:
             cursor = self._conn.cursor(self._cursor_factory)
@@ -68,7 +69,8 @@ class SQLiteBasedPersistor(BasePersistor):
 
         Returns:
             list: A list of all the hashes that have been marked as "done" for that engine. This list
-            will be in sorted order.
+                  will be in sorted order.
+
         """
         try:
             cursor = self._conn.cursor(self._cursor_factory)
@@ -93,8 +95,9 @@ class SQLiteBasedPersistor(BasePersistor):
 
         Returns:
             list: A list of all the hashes that are in the database but have not been marked as "done"
-            for that engine.  This list is in the form of tuples, the first element of which is the hash,
-            the second element of which is the last known checkpoint.
+                  for that engine.  This list is in the form of tuples, the first element of which is
+                  the hash, the second element of which is the last known checkpoint.
+
         """
         try:
             cursor = self._conn.cursor(self._cursor_factory)
@@ -116,6 +119,7 @@ class SQLiteBasedPersistor(BasePersistor):
 
         Args:
             timestamp (str): The basic timestamp (ISO 8601 format). Everything older than this will be erased.
+
         """
         try:
             cursor = self._conn.cursor(self._cursor_factory)
@@ -137,6 +141,7 @@ class SQLiteBasedPersistor(BasePersistor):
             severity (int): The severity level (1-10).
             engine_name (str): The engine value to store this data for.
             data (dict): The data item to be stored.
+
         """
         try:
             cursor = self._conn.cursor(self._cursor_factory)
@@ -158,6 +163,7 @@ class SQLiteBasedPersistor(BasePersistor):
 
         Returns:
             list: A list of dicts, each of which represents a report item.
+
         """
         try:
             cursor = self._conn.cursor(self._cursor_factory)
@@ -177,6 +183,7 @@ class SQLiteBasedPersistor(BasePersistor):
         Args:
             severity (int): The severity level (1-10).
             engine_name (str): The engine value to clear data for.
+
         """
         try:
             cursor = self._conn.cursor(self._cursor_factory)
@@ -197,6 +204,7 @@ class Persistor(BasePersistorFactory):
 
         Returns:
             Persistor: The new persistor object.
+
         """
         location = config.string('location')
         conn = sqlite3.connect(location, check_same_thread=False)
@@ -209,6 +217,7 @@ class Persistor(BasePersistorFactory):
 
         Args:
             conn (Connection): The database connection object.
+
         """
         cursor = conn.cursor()
         stmt = """
