@@ -34,9 +34,6 @@ def config():
     database:
       _provider: cbc_binary_toolkit.state.builtin.Persistor
       location: ":memory:"
-    pubsub:
-      _provider: cbc_binary_toolkit.pubsub.builtin.Provider
-      result_queue_name: results
     engine:
       name: {ENGINE_NAME}
       feed_id: {FEED_ID}
