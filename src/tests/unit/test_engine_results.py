@@ -156,7 +156,7 @@ def test_execution(state_manager, engine_results, engine_response):
 @pytest.mark.parametrize("engine_response", [
     copy.deepcopy(MESSAGE_INVALID)
 ])
-def test_execution_fail(engine_results, engine_response):
+def test_execution_fail_key_error(engine_results, engine_response):
     """Test rasing exception on end to end execution failure."""
     with pytest.raises(KeyError):
         assert not engine_results.receive_response(engine_response)
@@ -167,7 +167,7 @@ def test_execution_fail(engine_results, engine_response):
     copy.deepcopy(IOCS_2),
     copy.deepcopy(IOCS_INVALID)
 ])
-def test_execution_fail_1(engine_results, engine_response):
+def test_execution_fail_type_error(engine_results, engine_response):
     """Test rasing exception on end to end execution failure."""
     with pytest.raises(TypeError):
         assert not engine_results.receive_response(engine_response)
