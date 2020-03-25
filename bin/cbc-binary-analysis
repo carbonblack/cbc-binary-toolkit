@@ -16,7 +16,7 @@ from datetime import datetime
 from thespian.actors import ActorSystem, ActorExitRequest
 
 from cbc_binary_toolkit import cli_input
-from cbc_binary_toolkit import EngineResultsThread
+from cbc_binary_toolkit import EngineResults
 from cbc_binary_toolkit.config import Config
 from cbc_binary_toolkit.ingestion_actor import IngestionActor
 from cbc_binary_toolkit.engine import LocalEngineManager
@@ -113,11 +113,7 @@ def init(actorsys, config):
     ActorSystem().ask(report, state_manager)
     ActorSystem().ask(report, config.get("engine.name"))
 
-    results_engine = EngineResultsThread(kwargs={'state_manager': state_manager,
-                                                 'pub_sub_manager': pub_sub_manager,
-                                                 'config': config,
-                                                 'report_actor': report
-                                                 })
+    results_engine = EngineResults(state_manager)
     if config.get("engine.local"):
         engine_manager = LocalEngineManager(config, pub_sub_manager)
 
