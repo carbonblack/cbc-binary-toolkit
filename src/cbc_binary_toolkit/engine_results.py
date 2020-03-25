@@ -56,8 +56,8 @@ class EngineResults:
     def receive_response(self, engine_response):
         """Use private functions to validate engine response, update state, store IOCs"""
         if self._validate_response(engine_response):
-            state_updated = self._update_state(engine_response["binary_hash"], engine_response["engine_name"])
             report_accepted = self._accept_report(engine_response["engine_name"], engine_response["iocs"])
+            state_updated = self._update_state(engine_response["binary_hash"], engine_response["engine_name"])
             if state_updated and report_accepted:
                 return True
         else:
