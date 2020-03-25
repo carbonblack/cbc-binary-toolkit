@@ -78,8 +78,8 @@ class IngestionComponent():
         found = list()
         hashes_copy = copy.deepcopy(hashes)
         # Fetch download url from UBS
-        while not hashes_copy:
-            found.append(download_hashes(self.cb_threat_hunter,
+        while hashes_copy != []:
+            found.extend(download_hashes(self.cb_threat_hunter,
                                          hashes_copy[:100],
                                          self.config.get("carbonblackcloud.expiration_seconds",
                                                          self.DEFAULT_EXPIRATION)))
@@ -90,14 +90,14 @@ class IngestionComponent():
 
         # Fetch metadata from UBS
         for download_data in found:
-            metadata = download_data
-            metadata.update(get_metadata(self.cb_threat_hunter, download_data["sha256"]))
+            metadata = get_metadata(self.cb_threat_hunter, download_data)
 
             # Save hash entry to state manager
-            metadata["persist_id"] = self.state_manager.set_checkpoint(download_data["sha256"],
-                                                                       engine_name,
-                                                                       "INGESTED")
-            fetched_metadata.append(metadata)
+            if metadata:
+                metadata["persist_id"] = self.state_manager.set_checkpoint(download_data["sha256"],
+                                                                           engine_name,
+                                                                           "INGESTED")
+                fetched_metadata.append(metadata)
 
         log.info(f"Ingested: {datetime.now()}")
         return fetched_metadata
