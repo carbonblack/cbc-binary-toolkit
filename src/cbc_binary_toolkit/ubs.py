@@ -206,14 +206,12 @@ def get_metadata(cbth, binary):
         metadata (Dict): Dictionary containing hash, download URL, and metadata.
 
     """
-    metadata = None
     if not binary:
         log.error("Received empty binary object.")
-        return
+        return dict()
     else:
         try:
-            metadata = _download_binary_metadata(cbth, binary)
+            return _download_binary_metadata(cbth, binary)
         except Exception as err:
             log.error(f"Failed to download metadata: {err}")
             return dict()
-    return metadata

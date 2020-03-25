@@ -200,14 +200,13 @@ def test_get_metadata(cbapi_mock, hashes):
         assert key in METADATA_VALID
 
 
-def test_get_metadata_invalid(cbapi_mock):
+@pytest.mark.parametrize("found_hashes", [
+    {"something": "wedontwant"},
+    {}]
+)
+def test_get_metadata_invalid(cbapi_mock, found_hashes):
     """Unit test get_metadata function with empty input."""
-    found_hashes = {"something": "wedontwant"}
-    with pytest.raises(KeyError):
-        get_metadata(cbapi_mock.api, found_hashes)
-    empty_dict = {}
-    metadata = get_metadata(cbapi_mock.api, empty_dict)
-    assert metadata is None
+    assert get_metadata(cbapi_mock.api, found_hashes) == {}
 
 
 @pytest.mark.parametrize("hashes", [
