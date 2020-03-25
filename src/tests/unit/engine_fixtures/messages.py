@@ -32,6 +32,13 @@ IOCS_2 = [{
           "severity": 2,
           }]
 
+IOCS_INVALID = [{
+                "id": "s9dlk2m1",
+                "match_type": "query",
+                "values": ["netconn_ipv4:127.0.0.1"],
+                "severity": -10,
+                }]
+
 
 UNFINISHED_STATE = {
     "file_size": 2000000,
