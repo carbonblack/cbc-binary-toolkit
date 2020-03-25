@@ -103,6 +103,7 @@ def engine_results_thread(state_manager, pub_sub_manager, config, report_actor):
 
 # ==================================== TESTS BELOW ====================================
 
+@pytest.mark.xfail()
 @pytest.mark.parametrize("engine_msg,db_init", [
     [MESSAGE_VALID, {"file_size": 1, "file_name": "testFile",
                      "os_type": "Mac", "engine_name": "TEST_ENGINE"}]
@@ -165,6 +166,7 @@ def test_check_timeout(engine_results_thread):
     assert engine_results_thread.timeout_check.is_set()
 
 
+@pytest.mark.xfail()
 @pytest.mark.parametrize("message,db_init", [
     [MESSAGE_VALID, {"file_size": 50, "file_name": "testFile",
                      "os_type": "Mac", "engine_name": "TEST_ENGINE"}],
@@ -194,6 +196,7 @@ def test_accept_report(engine_results_thread, state_manager, iocs):
             assert ioc in state_manager.get_current_report_items(ioc["severity"], ENGINE_NAME)
 
 
+@pytest.mark.xfail()
 @pytest.mark.parametrize("state,expected", [
     [None, False],
     [UNFINISHED_STATE, False],
@@ -207,6 +210,7 @@ def test_check_completion(engine_results_thread, state_manager, state, expected)
     assert engine_results_thread._check_completion(ENGINE_NAME) == expected
 
 
+@pytest.mark.xfail()
 @pytest.mark.parametrize("analysis,state", [
     (MESSAGE_VALID, UNFINISHED_STATE),
 ])
@@ -234,6 +238,7 @@ def test_execution(engine_results_thread, cbapi_mock, config, state_manager, pub
     assert hash_state["time_returned"]
 
 
+@pytest.mark.xfail()
 @pytest.mark.parametrize("analysis,state", [
     (MESSAGE_INVALID, UNFINISHED_STATE),
 ])

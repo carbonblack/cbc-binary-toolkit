@@ -29,188 +29,97 @@ class BreakingCursor(Cursor):
         raise OperationalError('in testing')
 
 
-def test_file_state_create_and_alter(local_config):
-    """Tests the ability to create and alter file states in the persistor."""
+def _unfinished_as_map(l):
+    """
+    Utility to turn the "unfinished hashes" list into a map.
+
+    Args:
+        l (list): The list returned from get_unfinished_hashes().
+
+    Returns:
+        dict: The same hash expressed as a map.
+    """
+    return_value = {}
+    for val in l:
+        return_value[val[0]] = val[1]
+    return return_value
+
+
+def test_add_unfinished_hashes(local_config):
+    """Tests adding hashes that are unfinished and getting them with get_unfinished_hashes()."""
     manager = StateManager(local_config)
-    cookie = manager.set_file_state("ABCDEFGH", {"file_size": 2000000, "file_name": "blort.exe",
-                                                 "os_type": "WINDOWS", "engine_name": "default"})
-    state1 = manager.lookup("ABCDEFGH")
-    assert state1["persist_id"] == cookie
-    assert state1["file_size"] == 2000000
-    assert state1["file_name"] == "blort.exe"
-    assert state1["file_hash"] == "ABCDEFGH"
-    assert state1["os_type"] == "WINDOWS"
-    assert state1["engine_name"] == "default"
-    assert "time_sent" not in state1
-    assert "time_returned" not in state1
-    assert "time_published" not in state1
-    cookie2 = manager.set_file_state("ABCDEFGH", {"time_sent": "2020-02-01T04:00:00",
-                                                  "time_returned": "2020-02-01T04:05:00"}, cookie)
-    assert cookie2 == cookie
-    state2 = manager.lookup("ABCDEFGH")
-    assert state2["persist_id"] == cookie
-    assert state2["file_size"] == 2000000
-    assert state2["file_name"] == "blort.exe"
-    assert state2["file_hash"] == "ABCDEFGH"
-    assert state2["os_type"] == "WINDOWS"
-    assert state2["engine_name"] == "default"
-    assert state2["time_sent"] == "2020-02-01T04:00:00"
-    assert state2["time_returned"] == "2020-02-01T04:05:00"
-    assert "time_published" not in state2
+    manager.set_checkpoint('ABCDEFGH', 'default', 'ALPHA')
+    manager.set_checkpoint('EFGHIJKL', 'default', 'BRAVO')
+    manager.set_checkpoint('ABCDEFGH', 'another', 'CHARLIE')
+    return_list = manager.get_unfinished_hashes('default')
+    assert len(return_list) == 2
+    tmp = _unfinished_as_map(return_list)
+    assert tmp['ABCDEFGH'] == 'ALPHA'
+    assert tmp['EFGHIJKL'] == 'BRAVO'
+    return_list = manager.get_unfinished_hashes('another')
+    assert len(return_list) == 1
+    tmp = _unfinished_as_map(return_list)
+    assert tmp['ABCDEFGH'] == 'CHARLIE'
 
 
-def test_file_state_newest_selected(local_config):
-    """Tests to make sure that, when we ask for a file state, we get the newest one."""
+def test_add_finished_hashes(local_config):
+    """Tests adding hashes that are finished and getting them with get_previous_hashes()."""
     manager = StateManager(local_config)
-    cookie1 = manager.set_file_state("ABCDEFGH", {"file_size": 2000000, "file_name": "blort.exe",
-                                                  "os_type": "WINDOWS", "engine_name": "default",
-                                                  "time_sent": "2020-01-15T12:00:00",
-                                                  "time_returned": "2020-01-15T12:05:00",
-                                                  "time_published": "2020-01-15T12:05:01"})
-    manager.set_file_state("ABCDEFGH", {"file_size": 2000000, "file_name": "blort.exe",
-                                        "os_type": "WINDOWS", "engine_name": "another",
-                                        "time_sent": "2020-01-14T12:00:00",
-                                        "time_returned": "2020-01-14T12:05:00",
-                                        "time_published": "2020-01-14T12:05:01"})
-    state = manager.lookup("ABCDEFGH")
-    assert state["persist_id"] == cookie1
-    assert state["engine_name"] == "default"
-    assert state["time_sent"] == "2020-01-15T12:00:00"
-    assert state["time_returned"] == "2020-01-15T12:05:00"
-    assert state["time_published"] == "2020-01-15T12:05:01"
+    manager.set_checkpoint('DEFGHIJK', 'default', 'DONE')
+    manager.set_checkpoint('ABCDEFGH', 'default', 'DONE')
+    manager.set_checkpoint('MNOPQRST', 'default', 'DONE')
+    manager.set_checkpoint('ABCDEFGH', 'another', 'DONE')
+    return_list = manager.get_previous_hashes('default')
+    assert return_list == ['ABCDEFGH', 'DEFGHIJK', 'MNOPQRST']
+    return_list = manager.get_previous_hashes('another')
+    assert return_list == ['ABCDEFGH']
 
 
-def test_file_state_multi_engine(local_config):
-    """Tests to make sure file states work with multiple engine names."""
+def test_add_mixed_hashes(local_config):
+    """Tests adding both done and not-done hashes to make sure they're separated properly."""
     manager = StateManager(local_config)
-    cookie1 = manager.set_file_state("ABCDEFGH", {"file_size": 2000000, "file_name": "blort.exe",
-                                                  "os_type": "WINDOWS", "engine_name": "default",
-                                                  "time_sent": "2020-01-15T12:00:00",
-                                                  "time_returned": "2020-01-15T12:05:00",
-                                                  "time_published": "2020-01-15T12:05:01"})
-    cookie2 = manager.set_file_state("ABCDEFGH", {"file_size": 2000000, "file_name": "blort.exe",
-                                                  "os_type": "WINDOWS", "engine_name": "another",
-                                                  "time_sent": "2020-01-14T12:00:00",
-                                                  "time_returned": "2020-01-14T12:05:00",
-                                                  "time_published": "2020-01-14T12:05:01"})
-    state = manager.lookup("ABCDEFGH", "default")
-    assert state["persist_id"] == cookie1
-    assert state["engine_name"] == "default"
-    assert state["time_sent"] == "2020-01-15T12:00:00"
-    assert state["time_returned"] == "2020-01-15T12:05:00"
-    assert state["time_published"] == "2020-01-15T12:05:01"
-    state = manager.lookup("ABCDEFGH", "another")
-    assert state["persist_id"] == cookie2
-    assert state["engine_name"] == "another"
-    assert state["time_sent"] == "2020-01-14T12:00:00"
-    assert state["time_returned"] == "2020-01-14T12:05:00"
-    assert state["time_published"] == "2020-01-14T12:05:01"
+    manager.set_checkpoint('ABCDEFGH', 'default', 'ALPHA')
+    manager.set_checkpoint('DEFGHIJK', 'default', 'DONE')
+    return_list = manager.get_unfinished_hashes('default')
+    assert return_list == [('ABCDEFGH', 'ALPHA')]
+    return_list = manager.get_previous_hashes('default')
+    assert return_list == ['DEFGHIJK']
 
 
-def test_file_state_not_found(local_config):
-    """Tests to make sure we don't get anything for a file state that doesn't exist."""
+def test_update_existing_hash(local_config):
+    """Tests updating an exising hash in the database, and how it affects the retrieval APIs."""
     manager = StateManager(local_config)
-    state = manager.lookup("QRSTUVWXYZ")
-    assert state is None
+    manager.set_checkpoint('ABCDEFGH', 'default', 'ALPHA')
+    return_list = manager.get_unfinished_hashes('default')
+    assert return_list == [('ABCDEFGH', 'ALPHA')]
+    return_list = manager.get_previous_hashes('default')
+    assert return_list == []
+    manager.set_checkpoint('ABCDEFGH', 'default', 'DONE')
+    return_list = manager.get_unfinished_hashes('default')
+    assert return_list == []
+    return_list = manager.get_previous_hashes('default')
+    assert return_list == ['ABCDEFGH']
 
 
-def test_file_state_unfinished(local_config):
-    """Tests the get_unfinished_states() functionality."""
+def test_empty_database_retrieval(local_config):
+    """Tests the two retrieval APIs on an empty database."""
     manager = StateManager(local_config)
-    manager.set_file_state("ABCDEFGH", {"file_size": 2000000, "file_name": "blort.exe",
-                                        "os_type": "WINDOWS", "engine_name": "default",
-                                        "time_sent": "2020-01-15T12:00:00",
-                                        "time_returned": "2020-01-15T12:05:00"})
-    manager.set_file_state("MNOPQRST", {"file_size": 2000000, "file_name": "foobar.exe",
-                                        "os_type": "WINDOWS", "engine_name": "default",
-                                        "time_sent": "2020-01-14T12:00:00"})
-    output = manager.get_unfinished_states()
-    assert len(output) == 1
-    state = output[0]
-    assert state["file_name"] == "foobar.exe"
-    assert state["file_hash"] == "MNOPQRST"
-    assert state["engine_name"] == "default"
-    assert state["time_sent"] == "2020-01-14T12:00:00"
-    assert state.get('time_returned', None) is None
-    output = manager.get_unfinished_states("default")
-    assert len(output) == 1
-    state = output[0]
-    assert state["file_hash"] == "MNOPQRST"
-    output = manager.get_unfinished_states("unknown-engine")
-    assert len(output) == 0
+    return_list = manager.get_unfinished_hashes('default')
+    assert return_list == []
+    return_list = manager.get_previous_hashes('default')
+    assert return_list == []
 
 
-def test_file_state_unfinished_none(local_config):
-    """Tests the get_unfinished_states() functionality when there are no unfinished states."""
-    manager = StateManager(local_config)
-    manager.set_file_state("ABCDEFGH", {"file_size": 2000000, "file_name": "blort.exe",
-                                        "os_type": "WINDOWS", "engine_name": "default",
-                                        "time_sent": "2020-01-15T12:00:00",
-                                        "time_returned": "2020-01-15T12:05:00"})
-    manager.set_file_state("MNOPQRST", {"file_size": 2000000, "file_name": "foobar.exe",
-                                        "os_type": "WINDOWS", "engine_name": "default",
-                                        "time_sent": "2020-01-14T12:00:00",
-                                        "time_returned": "2020-01-14T12:05:00"})
-    output = manager.get_unfinished_states()
-    assert len(output) == 0
-    output = manager.get_unfinished_states("default")
-    assert len(output) == 0
-
-
-def test_file_state_unfinished_nodata(local_config):
-    """Tests the get_unfinished_states() with nothing in the database."""
-    manager = StateManager(local_config)
-    output = manager.get_unfinished_states()
-    assert len(output) == 0
-    output = manager.get_unfinished_states("default")
-    assert len(output) == 0
-
-
-def test_num_unfinished_states(local_config):
-    """Tests the get_num_unfinished_states() API."""
-    manager = StateManager(local_config)
-    manager.set_file_state("ABCDEFGH", {"file_size": 2000000, "file_name": "blort.exe",
-                                        "os_type": "WINDOWS", "engine_name": "default",
-                                        "time_sent": "2020-01-15T12:00:00"})
-    manager.set_file_state("MNOPQRST", {"file_size": 2000000, "file_name": "foobar.exe",
-                                        "os_type": "WINDOWS", "engine_name": "default",
-                                        "time_sent": "2020-01-14T12:00:00",
-                                        "time_returned": "2020-01-14T12:05:00",
-                                        "time_published": "2020-01-14T12:05:01"})
-    manager.set_file_state("BCDEFGHI", {"file_size": 1500000, "file_name": "gorply.exe",
-                                        "os_type": "WINDOWS", "engine_name": "another",
-                                        "time_sent": "2020-01-14T12:00:00"})
-    output = manager.get_num_unfinished_states()
-    assert output['default'] == 1
-    assert output['another'] == 1
-
-
-def test_num_unfinished_states_nodata(local_config):
-    """Tests get_num_unfinished_states() with no data in the database."""
-    manager = StateManager(local_config)
-    output = manager.get_num_unfinished_states()
-    assert output == {}
-
-
-def test_file_state_prune(local_config):
+def test_prune(local_config):
     """Tests the prune() functionality."""
     manager = StateManager(local_config)
-    cookie1 = manager.set_file_state("ABCDEFGH", {"file_size": 2000000, "file_name": "blort.exe",
-                                                  "os_type": "WINDOWS", "engine_name": "default",
-                                                  "time_sent": "2020-01-15T12:00:00",
-                                                  "time_returned": "2020-01-15T12:05:00",
-                                                  "time_published": "2020-01-15T12:05:01"})
-    manager.set_file_state("EFGHIJKM", {"file_size": 2000000, "file_name": "foobar.exe",
-                                        "os_type": "WINDOWS", "engine_name": "default",
-                                        "time_sent": "2020-01-10T12:00:00",
-                                        "time_returned": "2020-01-10T12:05:00",
-                                        "time_published": "2020-01-10T12:05:01"})
+    manager.set_checkpoint('DEFGHIJK', 'default', 'DONE', '2020-01-15T12:00:00')
+    manager.set_checkpoint('ABCDEFGH', 'default', 'DONE', '2020-01-10T12:00:00')
+    manager.set_checkpoint('MNOPQRST', 'default', 'DONE', '2020-01-15T12:00:00')
+    manager.set_checkpoint('JKLMNOPQ', 'default', 'DONE', '2020-01-10T14:00:00')
     manager.prune("2020-01-12T00:00:00")
-    state = manager.lookup("EFGHIJKM")
-    assert state is None
-    state = manager.lookup("ABCDEFGH")
-    assert state["persist_id"] == cookie1
-    assert state["file_name"] == "blort.exe"
+    return_list = manager.get_previous_hashes('default')
+    assert return_list == ['DEFGHIJK', 'MNOPQRST']
 
 
 def _test_check_report_items(reportlist, key, values):
@@ -254,11 +163,8 @@ def test_exception_handling(local_config):
     """Tests that OperationalError is handled by all methods without throwing an exception."""
     manager = StateManager(local_config)
     manager._persistor._cursor_factory = BreakingCursor
-    assert manager.set_file_state("ABCDEFGH", {"file_size": 2000000, "file_name": "blort.exe",
-                                               "os_type": "WINDOWS", "engine_name": "default"}) is None
-    assert manager.lookup("ABCDEFGH", "default") is None
-    assert manager.get_unfinished_states() == []
-    assert manager.get_num_unfinished_states() == {}
+    manager.set_checkpoint('ABCDEFGH', 'default', 'ALPHA')
+    assert manager.get_previous_hashes('default') == []
     manager.prune("2020-01-12T00:00:00")
     manager.add_report_item(6, 'default', {'keyval': 1})
     assert manager.get_current_report_items(6, 'default') == []

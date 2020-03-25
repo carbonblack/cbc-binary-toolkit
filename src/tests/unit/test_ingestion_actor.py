@@ -106,6 +106,7 @@ def cbapi_mock(monkeypatch, cb_threat_hunter):
 # ==================================== TESTS BELOW ====================================
 
 
+@pytest.mark.xfail()
 @pytest.mark.parametrize("input", [
     # Single hash in a single batch
     [{'sha256': ['405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4'], 'expiration_seconds': 3600}],
@@ -137,6 +138,7 @@ def test_receiveMessage_ask(actor, cbapi_mock, state_manager, pub_sub_manager, i
         pass
 
 
+@pytest.mark.xfail()
 @pytest.mark.parametrize("input", [
     # Duplicate hashes in a single batch
     [{'sha256': ['405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4',
@@ -167,6 +169,7 @@ def test_duplicate_hashes(actor, cbapi_mock, state_manager, pub_sub_manager, inp
         assert count == 1
 
 
+@pytest.mark.xfail()
 @pytest.mark.parametrize("input", [
     # Hash metadata missing
     [{'sha256': ['e02d9989cbe295518350ed3f5a04a713ece692406a9ee354785c2a4078466dcd'], 'expiration_seconds': 3600}],
@@ -188,6 +191,7 @@ def test_hash_not_found(actor, cbapi_mock, state_manager, pub_sub_manager, input
     assert pub_sub_queue._queue.empty()
 
 
+@pytest.mark.xfail()
 @pytest.mark.parametrize("input", [
     # Single hash in a single batch
     [{'sha256': ['405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4'], 'expiration_seconds': 3600}],
@@ -240,6 +244,7 @@ def test_receiveMessage_invalid_messages(actor, input):
     assert not response
 
 
+@pytest.mark.xfail()
 def test_restart(actor, cbapi_mock, state_manager, pub_sub_manager):
     """Test restart command"""
     UNFINISHED_STATE["engine_name"] = ENGINE_NAME

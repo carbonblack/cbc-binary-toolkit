@@ -8,78 +8,86 @@ from cbc_binary_toolkit.loader import dynamic_create
 
 class BasePersistor:
     """'Abstract base class' that should be inherited by persistor objects."""
-    def get_file_state(self, binary_hash, engine=None):
+    def set_checkpoint(self, binary_hash, engine_name, checkpoint_name, checkpoint_time=None):
         """
-        Get the stored file state for a specified hash value.
+        Set a checkpoint on a binary hash/engine combination.
 
-        :param binary_hash str: The hash value to look up in the database.
-        :param engine str: (Optional) The engine value to look up in the database.
-        :return: A dict containing the file information, or None if not found.
+        Args:
+            binary_hash (str): The hash value to set in the database.
+            engine_name (str): The engine value to set in the database.
+            checkpoint_name (str): The name of the checkpoint to set.
+            checkpoint_time (str): The timestamp to set the checkpoint time to.  Not normally
+            used except in test code.
         """
-        raise NotImplementedError("protocol not implemented: get_file_state")
+        raise NotImplementedError("protocol not implemented: set_checkpoint")
 
-    def set_file_state(self, binary_hash, attrs, persist_id=None):
+    def get_previous_hashes(self, engine_name):
         """
-        Set the stored file state for a specified hash value.
+        Returns a sorted list of all previously-completed hashes.
 
-        :param binary_hash str: The hash value to set in the database.
-        :param attrs dict: The attributes to set as part of the hash value entry.
-        :param persist_id int: The persistence ID of the existing record we're modifying (optional).
-        :return: The persistence ID of the database row, either new or existing.
-        """
-        raise NotImplementedError("protocol not implemented: set_file_state")
+        Args:
+            engine_name (str): The engine value to look up in the database.
 
-    def get_unfinished_states(self, engine=None):
+        Returns:
+            list: A list of all the hashes that have been marked as "done" for that engine. This list
+            will be in sorted order.
         """
-        Returns all states not marked as "analysis finished" (possibly for a single engine).
+        raise NotImplementedError("protocol not implemented: get_previous_hashes")
 
-        :param engine str: (Optional) The engine value to look up in the database.
-        :return: A list of dicts containing all unfinished file information. Returns an empty list if none present.
+    def get_unfinished_hashes(self, engine_name):
         """
-        raise NotImplementedError("protocol not implemented: get_unfinished_states")
+        Returns a sorted list of all not-completed hashes.
 
-    def get_num_unfinished_states(self):
-        """
-        Returns the number of unfinished states in the persistence manager for each known engine.
+        Args:
+            engine_name (str): The engine value to look up in the database.
 
-        :return: A dict with engine names as keys and count of results for each engine as values.
+        Returns:
+            list: A list of all the hashes that are in the database but have not been marked as "done"
+            for that engine.  This list is in the form of tuples, the first element of which is the hash,
+            the second element of which is the last known checkpoint.
         """
-        raise NotImplementedError("protocol not implemented: get_num_unfinished_states")
+        raise NotImplementedError("protocol not implemented: get_unfinished_hashes")
 
     def prune(self, timestamp):
         """
         Erases all entries from the database older than a specified time.
 
-        :param timestamp str: The basic timestamp. Everything older than this will be erased.
+        Args:
+            timestamp (str): The basic timestamp (ISO 8601 format). Everything older than this will be erased.
         """
         raise NotImplementedError("protocol not implemented: prune")
 
-    def add_report_item(self, severity, engine, data):
+    def add_report_item(self, severity, engine_name, data):
         """
         Adds a new report item (IOC record) to the current stored list.
 
-        :param severity int: The severity level (1-10).
-        :param engine str: The engine value to store this data for.
-        :param data dict: The data item to be stored.
+        Args:
+            severity (int): The severity level (1-10).
+            engine_name (str): The engine value to store this data for.
+            data (dict): The data item to be stored.
         """
         raise NotImplementedError("protocol not implemented: add_report_item")
 
-    def get_current_report_items(self, severity, engine):
+    def get_current_report_items(self, severity, engine_name):
         """
         Returns all current report items (IOC records) in the given list.
 
-        :param severity int: The severity level (1-10).
-        :param engine str: The engine value to return data for.
-        :return: A list of dicts, each of which represents a report item.
+        Args:
+            severity (int): The severity level (1-10).
+            engine_name (str): The engine value to return data for.
+
+        Returns:
+            list: A list of dicts, each of which represents a report item.
         """
         raise NotImplementedError("protocol not implemented: get_current_report_items")
 
-    def clear_report_items(self, severity, engine):
+    def clear_report_items(self, severity, engine_name):
         """
         Clears all report items (IOC records) from a given list.
 
-        :param severity int: The severity level (1-10).
-        :param engine str: The engine value to clear data for.
+        Args:
+            severity (int): The severity level (1-10).
+            engine_name (str): The engine value to clear data for.
         """
         raise NotImplementedError("protocol not implemented: clear_report_items")
 
@@ -90,8 +98,11 @@ class BasePersistorFactory:
         """
         Creates a new persistor object.
 
-        :param config Config: The configuration section for the persistence parameters.
-        :return: The new persistor object.
+        Args:
+            config (Config): The configuration section for the persistence parameters.
+
+        Returns:
+            Persistor: The new persistor object.
         """
         raise NotImplementedError("protocol not implemented: create_persistor")
 
@@ -103,85 +114,90 @@ class StateManager:
     Initializes State Manager indicate by config
     """
     def __init__(self, config):
-        """Constuctor"""
+        """Constructor"""
         factory_classname = config.string('database._provider')
         factory = dynamic_create(factory_classname)
         self._persistor = factory.create_persistor(config.section('database'))
 
-    def lookup(self, binary_hash, engine=None):
+    def set_checkpoint(self, binary_hash, engine_name, checkpoint_name, checkpoint_time=None):
         """
-        Look up the most recent record for a file by hash value.
+        Set a checkpoint on a binary hash/engine combination.
 
-        :param binary_hash str: The hash value to be looked up.
-        :param engine str: (Optional) The engine name to look up the information for.
-        :return dict: A dict containing information about the file.  If no such record exists, returns None.
+        Args:
+            binary_hash (str): The hash value to set in the database.
+            engine_name (str): The engine value to set in the database.
+            checkpoint_name (str): The name of the checkpoint to set.
+            checkpoint_time (str): The timestamp to set the checkpoint time to.  Not normally
+            used except in test code.
         """
-        return self._persistor.get_file_state(binary_hash, engine)
+        self._persistor.set_checkpoint(binary_hash, engine_name, checkpoint_name, checkpoint_time)
 
-    def get_unfinished_states(self, engine=None):
+    def get_previous_hashes(self, engine_name):
         """
-        Returns all states not marked as "analysis finished" (possibly for a single engine).
+        Returns a sorted list of all previously-completed hashes.
 
-        :param engine str: (Optional) The engine value to look up in the database.
-        :return: A list of dicts containing all unfinished file information. Returns an empty list if none present.
-        """
-        return self._persistor.get_unfinished_states(engine)
+        Args:
+            engine_name (str): The engine value to look up in the database.
 
-    def get_num_unfinished_states(self):
+        Returns:
+            list: A list of all the hashes that have been marked as "done" for that engine. This list
+            will be in sorted order.
         """
-        Returns the number of unfinished states in the persistence manager for each known engine.
+        return self._persistor.get_previous_hashes(engine_name)
 
-        :return: A dict with engine names as keys and count of results for each engine as values.
+    def get_unfinished_hashes(self, engine_name):
         """
-        return self._persistor.get_num_unfinished_states()
+        Returns a sorted list of all not-completed hashes.
+
+        Args:
+            engine_name (str): The engine value to look up in the database.
+
+        Returns:
+            list: A list of all the hashes that are in the database but have not been marked as "done"
+            for that engine.  This list is in the form of tuples, the first element of which is the hash,
+            the second element of which is the last known checkpoint.
+        """
+        return self._persistor.get_unfinished_hashes(engine_name)
 
     def prune(self, timestamp):
         """
-        Erase all records older than a specified timestamp.
+        Erases all entries from the database older than a specified time.
 
-        :param timestamp str: The timestamp of the oldest records to retain in the data store.
+        Args:
+            timestamp (str): The basic timestamp (ISO 8601 format). Everything older than this will be erased.
         """
         self._persistor.prune(timestamp)
 
-    # AGRB 1/30/2020 - the following method is just a pass-through to the lower-level persistor.
-    # If it is needful to do some more adapting at the manager level it can be rewritten.
-
-    def set_file_state(self, binary_hash, attrs, rowid=None):
-        """
-        Set the stored file state for a specified hash value.
-
-        :param binary_hash str: The hash value to set in the database.
-        :param attrs dict: The attributes to set as part of the hash value entry.
-        :param rowid int: The row ID of the existing record we're modifying (optional).
-        :return: The row ID of the database row, either new or existing.
-        """
-        return self._persistor.set_file_state(binary_hash, attrs, rowid)
-
-    def add_report_item(self, severity, engine, data):
+    def add_report_item(self, severity, engine_name, data):
         """
         Adds a new report item (IOC record) to the current stored list.
 
-        :param severity int: The severity level (1-10).
-        :param engine str: The engine value to store this data for.
-        :param data dict: The data item to be stored.
+        Args:
+            severity (int): The severity level (1-10).
+            engine_name (str): The engine value to store this data for.
+            data (dict): The data item to be stored.
         """
-        self._persistor.add_report_item(severity, engine, data)
+        self._persistor.add_report_item(severity, engine_name, data)
 
-    def get_current_report_items(self, severity, engine):
+    def get_current_report_items(self, severity, engine_name):
         """
         Returns all current report items (IOC records) in the given list.
 
-        :param severity int: The severity level (1-10).
-        :param engine str: The engine value to return data for.
-        :return: A list of dicts, each of which represents a report item.
-        """
-        return self._persistor.get_current_report_items(severity, engine)
+        Args:
+            severity (int): The severity level (1-10).
+            engine_name (str): The engine value to return data for.
 
-    def clear_report_items(self, severity, engine):
+        Returns:
+            list: A list of dicts, each of which represents a report item.
+        """
+        return self._persistor.get_current_report_items(severity, engine_name)
+
+    def clear_report_items(self, severity, engine_name):
         """
         Clears all report items (IOC records) from a given list.
 
-        :param severity int: The severity level (1-10).
-        :param engine str: The engine value to clear data for.
+        Args:
+            severity (int): The severity level (1-10).
+            engine_name (str): The engine value to clear data for.
         """
-        self._persistor.clear_report_items(severity, engine)
+        self._persistor.clear_report_items(severity, engine_name)
