@@ -14,11 +14,12 @@ class TestPersistor(BasePersistor):
         """
         Set a checkpoint on a binary hash/engine combination.
 
-        :param binary_hash str: The hash value to set in the database.
-        :param engine_name str: The engine value to set in the database.
-        :param checkpoint_name str: The name of the checkpoint to set.
-        :param checkpoint_time str: The timestamp to set the checkpoint time to.  Not normally
-        used except in test code.
+        Args:
+            binary_hash (str): The hash value to set in the database.
+            engine_name (str): The engine value to set in the database.
+            checkpoint_name (str): The name of the checkpoint to set.
+            checkpoint_time (str): The timestamp to set the checkpoint time to.  Not normally
+            used except in test code.
         """
         assert engine_name == "default"
         if hasattr(self, "_sc"):
@@ -30,9 +31,12 @@ class TestPersistor(BasePersistor):
         """
         Returns a sorted list of all previously-completed hashes.
 
-        :param engine_name str: The engine value to look up in the database.
-        :return: A list of all the hashes that have been marked as "done" for that engine. This list
-        will be in sorted order.
+        Args:
+            engine_name (str): The engine value to look up in the database.
+
+        Returns:
+            list: A list of all the hashes that have been marked as "done" for that engine. This list
+            will be in sorted order.
         """
         assert engine_name == "default"
         if hasattr(self, "_gph"):
@@ -45,10 +49,13 @@ class TestPersistor(BasePersistor):
         """
         Returns a sorted list of all not-completed hashes.
 
-        :param engine_name str: The engine value to look up in the database.
-        :return: A list of all the hashes that are in the database but have not been marked as "done"
-        for that engine.  This list is in the form of tuples, the first element of which is the hash,
-        the second element of which is the last known checkpoint.
+        Args:
+            engine_name (str): The engine value to look up in the database.
+
+        Returns:
+            list: A list of all the hashes that are in the database but have not been marked as "done"
+            for that engine.  This list is in the form of tuples, the first element of which is the hash,
+            the second element of which is the last known checkpoint.
         """
         assert engine_name == "default"
         if hasattr(self, "_guh"):
@@ -61,7 +68,8 @@ class TestPersistor(BasePersistor):
         """
         Erases all entries from the database older than a specified time.
 
-        :param timestamp str: The basic timestamp (ISO 8601 format). Everything older than this will be erased.
+        Args:
+            timestamp (str): The basic timestamp (ISO 8601 format). Everything older than this will be erased.
         """
         assert timestamp == "2020-01-01T00:00:00"
         if hasattr(self, "_p"):
@@ -73,9 +81,10 @@ class TestPersistor(BasePersistor):
         """
         Adds a new report item (IOC record) to the current stored list.
 
-        :param severity int: The severity level (1-10).
-        :param engine_name str: The engine value to store this data for.
-        :param data dict: The data item to be stored.
+        Args:
+            severity (int): The severity level (1-10).
+            engine_name (str): The engine value to store this data for.
+            data (dict): The data item to be stored.
         """
         assert severity == 6
         assert engine_name == 'default'
@@ -89,9 +98,12 @@ class TestPersistor(BasePersistor):
         """
         Returns all current report items (IOC records) in the given list.
 
-        :param severity int: The severity level (1-10).
-        :param engine_name str: The engine value to return data for.
-        :return: A list of dicts, each of which represents a report item.
+        Args:
+            severity (int): The severity level (1-10).
+            engine_name (str): The engine value to return data for.
+
+        Returns:
+            list: A list of dicts, each of which represents a report item.
         """
         assert severity == 6
         assert engine_name == 'default'
@@ -105,8 +117,9 @@ class TestPersistor(BasePersistor):
         """
         Clears all report items (IOC records) from a given list.
 
-        :param severity int: The severity level (1-10).
-        :param engine_name str: The engine value to clear data for.
+        Args:
+            severity (int): The severity level (1-10).
+            engine_name (str): The engine value to clear data for.
         """
         assert severity == 6
         assert engine_name == 'default'
@@ -122,8 +135,11 @@ class TestPersistorFactory(BasePersistorFactory):
         """
         Creates a new persistor object.
 
-        :param config Config: The configuration section for the persistence parameters.
-        :return: The new persistor object.
+        Args:
+            config (Config): The configuration section for the persistence parameters.
+
+        Returns:
+            Persistor: The new persistor object.
         """
         assert config.string("is_test") == "True"
         return TestPersistor()
