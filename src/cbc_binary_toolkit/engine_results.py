@@ -10,6 +10,7 @@ import uuid
 from schema import SchemaError
 from .schemas import EngineResponseSchema, IOCV2Schema
 from cbapi.psc.threathunter import Report
+from cbapi.errors import ObjectNotFoundError
 
 log = logging.getLogger(__name__)
 
@@ -190,7 +191,7 @@ class EngineResults:
                     # Clear report items from the database
                     self.state_manager.clear_report_items(sev + 1, self.engine_name)
             return True
-        except Exception as e:
+        except (Exception, ObjectNotFoundError) as e:
             log.error(f"Error while sending reports to feed {feed_id}: {e}")
             return False
 

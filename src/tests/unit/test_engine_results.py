@@ -5,7 +5,8 @@
 import pytest
 import logging
 import copy
-from schema import SchemaError
+from cbapi.errors import ObjectNotFoundError
+
 
 from cbc_binary_toolkit.engine_results import EngineResults
 from cbc_binary_toolkit.state import StateManager
@@ -243,12 +244,23 @@ def test_send_reports_invalid(cbapi_mock, state_manager, engine_results, input):
     copy.deepcopy(IOCS_2)
 ])
 def test_send_reports_exception(cbapi_mock, state_manager, engine_results, input):
-    """Test sending reports and receiving a 404 back"""
+    """Test sending reports and an Exception being caught"""
     engine_results._accept_report(ENGINE_NAME, input)
     cbapi_mock.mock_request("PUT", f"/threathunter/feedmgr/v2/orgs/test/feeds/{'FAKE_FEED_ID'}/reports/.*", Exception)
     sent = engine_results.send_reports('FAKE_FEED_ID')
     assert not sent
 
+
+@pytest.mark.parametrize("input", [
+    copy.deepcopy(IOCS_1),
+    copy.deepcopy(IOCS_2)
+])
+def test_send_reports_404(cbapi_mock, state_manager, engine_results, input):
+    """Test receiving a 404 ObjectNotFoundError from CBAPI"""
+    engine_results._accept_report(ENGINE_NAME, input)
+    cbapi_mock.mock_request("PUT", f"/threathunter/feedmgr/v2/orgs/test/feeds/{'FAKE_FEED_ID'}/reports/.*", ObjectNotFoundError)
+    sent = engine_results.send_reports('FAKE_FEED_ID')
+    assert not sent
 
 @pytest.mark.parametrize("input", [
     [{
