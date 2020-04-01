@@ -33,6 +33,41 @@ class YaraEngine():
         # Compile yara rules
         self.rules = yara.compile(self.config.get("engine.rules_dir"))
 
+    def _match(self, hash, stream):
+        """
+        Matches binary with loaded rules
+
+        Args:
+            hash (str): The sha256 hash to be included in the report
+            stream (i/o stream): Input stream of the binary
+
+        """
+        print(type(stream))
+        matches = self.rules.match(data=stream.read())
+
+        highest_severity = 0
+        for match in matches.get("main", []):
+
+            if match["meta"].get("sev", 0) > highest_severity:
+                highest_severity = match["meta"].get("sev", 0)
+
+        iocs = []
+        if highest_severity > 0:
+            iocs.append({
+                "id": str(uuid.uuid4()),
+                "match_type": "equality",
+                "values": [hash],
+                "field": "process_hash",
+                "severity": highest_severity
+            })
+
+        return {
+            "iocs": iocs,
+            "engine_name": self.name,
+            "binary_hash": hash,
+            "success": True
+        }
+
     def analyze(self, binary_metadata):
         """
         Analyze the binary
@@ -52,30 +87,7 @@ class YaraEngine():
                 resp = requests.get(binary_metadata["url"], stream=True)
                 resp.raise_for_status()
 
-                matches = self.rules.match(data=resp.raw.read())
-
-                highest_severity = 0
-                for match in matches["main"]:
-
-                    if match["meta"].get("sev", 0) > highest_severity:
-                        highest_severity = match["meta"].get("sev", 0)
-
-                iocs = []
-                if highest_severity > 0:
-                    iocs.append({
-                        "id": str(uuid.uuid4()),
-                        "match_type": "equality",
-                        "values": [binary_metadata["sha256"]],
-                        "field": "process_hash",
-                        "severity": highest_severity
-                    })
-
-                result = {
-                    "iocs": iocs,
-                    "engine_name": self.name,
-                    "binary_hash": binary_metadata["sha256"],
-                    "success": True
-                }
+                result = self._match(binary_metadata["sha256"], resp.raw)
             except Exception as e:
                 log.error(f"Failed processing binary: {e}")
 
