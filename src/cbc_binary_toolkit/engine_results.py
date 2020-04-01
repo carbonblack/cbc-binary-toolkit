@@ -65,7 +65,6 @@ class EngineResults:
                 return False
         except (SchemaError, KeyError, TypeError) as e:
             log.error(f"Analysis engine reponse does not conform to EngineResponseSchema: {e}")
-            raise
             return False
 
     def _store_ioc(self, ioc):
@@ -80,39 +79,43 @@ class EngineResults:
                     False otherwise
         """
         try:
-            ioc_valid = IOCV2Schema.validate(ioc)
             severity = ioc.get("severity", None)
             if (severity is not None and isinstance(severity, int) and severity > 0 and severity <= SEVERITY_RANGE):
-                del ioc_valid["severity"]
-                self.iocs[severity - 1].append(ioc_valid)
+                del ioc["severity"]
+                self.iocs[severity - 1].append(ioc)
                 return True
             log.error("Severity not provide with IOC")
-        except SchemaError as e:
+        except AttributeError as e:
             log.error(f"IOC format invalid: {e}")
         return False
 
     def _accept_report(self, engine_name, iocs):
         """
-        Add Report IOCs returned from Analysis Engine to report_item list
+        Add Report IOCs returned from Analysis Engine to report_item and self.iocs lists
 
         Args:
             engine_name (str): Name of the engine that performed analysis
-            iocs (list): IOCs to add to the state manager
+            iocs (list OR dict): IOC(s) to add to the state manager
 
         Returns:
-            bool: True if the IOCs were added to the state manager,
+            bool: True if the IOC(s) were added to the state manager,
                     False otherwise
         """
         try:
-            for ioc in iocs:
+            if isinstance(iocs, list):
+                for ioc in iocs:
+                    IOCV2Schema.validate(ioc)
+                    self.state_manager.add_report_item(ioc["severity"], engine_name, ioc)
+                    self._store_ioc(ioc)
+                return True
+            elif isinstance(iocs, dict):
                 IOCV2Schema.validate(ioc)
                 self.state_manager.add_report_item(ioc["severity"], engine_name, ioc)
                 self._store_ioc(ioc)
-            return True
+                return True
         except SchemaError as e:
             log.error(f"Error caught when trying to add a report item (IOC record) to stored list: {e}")
-            raise
-            return False
+        return False
 
     def _update_state(self, binary_hash, engine_name):
         """
@@ -131,7 +134,6 @@ class EngineResults:
             return True
         except Exception as e:
             log.error(f"Error caught when trying to update the state manager checkpoint for Engine Results: {e}")
-            raise
             return False
 
     def receive_response(self, engine_response):
@@ -166,7 +168,9 @@ class EngineResults:
                     False otherwise
         """
         try:
-            some_reports_sent = False
+            # if there are no reports in self.iocs, there's nothing to send
+            if all([not report for report in self.iocs]):
+                return False
             for sev in range(SEVERITY_RANGE):
                 if len(self.iocs[sev]) > 0:
                     now = time.time()
@@ -183,10 +187,9 @@ class EngineResults:
                     report = Report(self.cbth, initial_data=report_meta, feed_id=feed_id)
                     report.update()
                     log.info(f"Report ({report_meta['title']}) sent to feed {feed_id}")
-                    some_reports_sent = True
                     # Clear report items from the database
                     self.state_manager.clear_report_items(sev + 1, self.engine_name)
-            return some_reports_sent
+            return True
         except Exception as e:
             log.error(f"Error while sending reports to feed {feed_id}: {e}")
             return False
