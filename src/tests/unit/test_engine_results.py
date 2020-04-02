@@ -5,7 +5,8 @@
 import pytest
 import logging
 import copy
-from schema import SchemaError
+from cbapi.errors import ObjectNotFoundError
+
 
 from cbc_binary_toolkit.engine_results import EngineResults
 from cbc_binary_toolkit.state import StateManager
@@ -13,10 +14,13 @@ from cbc_binary_toolkit.config import Config
 from cbapi.psc.threathunter import CbThreatHunterAPI
 from tests.unit.ubs_fixtures.CBAPIMock import CBAPIMock
 from tests.unit.engine_fixtures.messages import (MESSAGE_VALID,
+                                                 MESSAGE_VALID_1,
+                                                 MESSAGE_VALID_2,
                                                  MESSAGE_INVALID,
                                                  ENGINE_FAILURE,
                                                  IOCS_1,
                                                  IOCS_2,
+                                                 IOCS_3,
                                                  IOCS_INVALID,
                                                  UNFINISHED_STATE)
 
@@ -63,21 +67,24 @@ def state_manager(config):
 
 
 @pytest.fixture(scope="function")
-def engine_results(state_manager):
-    """Create engine results thread."""
-    return EngineResults(state_manager)
+def engine_results(state_manager, cb_threat_hunter):
+    """Create engine results component."""
+    return EngineResults(ENGINE_NAME, state_manager, cb_threat_hunter)
 
 
 # ==================================== TESTS BELOW ====================================
 
-def test_init(state_manager, engine_results):
+def test_init(state_manager, cb_threat_hunter, engine_results):
     """Test creation of engine results."""
     # engine_results_cls = engine_results(state_manager)
     assert engine_results.state_manager == state_manager
+    assert engine_results.cbth == cb_threat_hunter
 
 
 @pytest.mark.parametrize("engine_response", [
-    copy.deepcopy(MESSAGE_VALID)
+    copy.deepcopy(MESSAGE_VALID),
+    copy.deepcopy(MESSAGE_VALID_1),
+    copy.deepcopy(MESSAGE_VALID_2)
 ])
 def test_update_state(state_manager, engine_results, engine_response):
     """Test setting the checkpoint for valid response."""
@@ -96,7 +103,9 @@ def test_update_state_invalid(state_manager, engine_results, engine_response):
 
 
 @pytest.mark.parametrize("engine_response", [
-    copy.deepcopy(MESSAGE_VALID)
+    copy.deepcopy(MESSAGE_VALID),
+    copy.deepcopy(MESSAGE_VALID_1),
+    copy.deepcopy(MESSAGE_VALID_2)
 ])
 def test_accept_report(state_manager, engine_results, engine_response):
     """Test accepting a report/adding it to the state_manager's list."""
@@ -107,6 +116,7 @@ def test_accept_report(state_manager, engine_results, engine_response):
         current_report_items.extend(state_manager.get_current_report_items(severity, engine_name))
     assert len(current_report_items) == len(engine_response["iocs"])
     for report in current_report_items:
+        del report["severity"]
         assert report in engine_response["iocs"]
 
 
@@ -116,12 +126,13 @@ def test_accept_report(state_manager, engine_results, engine_response):
 ])
 def test_accept_report_invalid(state_manager, engine_results, engine_response):
     """Test raising exception on _accept_report failure."""
-    with pytest.raises(SchemaError):
-        assert not engine_results._accept_report(engine_response["engine_name"], engine_response["iocs"])
+    assert not engine_results._accept_report(engine_response["engine_name"], engine_response["iocs"])
 
 
 @pytest.mark.parametrize("engine_response", [
-    copy.deepcopy(MESSAGE_VALID)
+    copy.deepcopy(MESSAGE_VALID),
+    copy.deepcopy(MESSAGE_VALID_1),
+    copy.deepcopy(MESSAGE_VALID_2)
 ])
 def test_validate_response(engine_results, engine_response):
     """Test EngineResponseSchema validation."""
@@ -132,9 +143,8 @@ def test_validate_response(engine_results, engine_response):
     copy.deepcopy(MESSAGE_INVALID)
 ])
 def test_validate_response_invalid(engine_results, engine_response):
-    """Test raising exception on _validate_response failure."""
-    with pytest.raises(KeyError):
-        assert not engine_results._validate_response(engine_response)
+    """Test _validate_response failure."""
+    assert not engine_results._validate_response(engine_response)
 
 
 @pytest.mark.parametrize("engine_response", [
@@ -154,28 +164,186 @@ def test_execution(state_manager, engine_results, engine_response):
 
 
 @pytest.mark.parametrize("engine_response", [
-    copy.deepcopy(MESSAGE_INVALID)
-])
-def test_execution_fail_key_error(engine_results, engine_response):
-    """Test rasing exception on end to end execution failure."""
-    with pytest.raises(KeyError):
-        assert not engine_results.receive_response(engine_response)
-
-
-@pytest.mark.parametrize("engine_response", [
+    copy.deepcopy(MESSAGE_INVALID),
     copy.deepcopy(IOCS_1),
     copy.deepcopy(IOCS_2),
-    copy.deepcopy(IOCS_INVALID)
-])
-def test_execution_fail_type_error(engine_results, engine_response):
-    """Test rasing exception on end to end execution failure."""
-    with pytest.raises(TypeError):
-        assert not engine_results.receive_response(engine_response)
-
-
-@pytest.mark.parametrize("engine_response", [
+    copy.deepcopy(IOCS_INVALID),
     copy.deepcopy(ENGINE_FAILURE)
 ])
-def test_execution_engine_failure(engine_results, engine_response):
-    """Test end to end failure when engine_response['success'] == false."""
+def test_execution_fail(engine_results, engine_response):
+    """Test rasing exception on end to end execution failure."""
     assert not engine_results.receive_response(engine_response)
+
+
+@pytest.mark.parametrize("input", [
+    copy.deepcopy(IOCS_1),
+    copy.deepcopy(IOCS_2),
+    copy.deepcopy(IOCS_3)
+])
+def test_send_reports(cbapi_mock, state_manager, engine_results, input):
+    """Test _send_reports"""
+    input_with_severity = copy.deepcopy(input)  # severity is removed when accepting report
+    assert engine_results._accept_report(ENGINE_NAME, input)
+
+    # Mock report put and send request body back
+    cbapi_mock.mock_request("PUT", f"/threathunter/feedmgr/v2/orgs/test/feeds/{FEED_ID}/reports/.*", None)
+    assert engine_results._send_reports(FEED_ID)
+    assert ENGINE_NAME in cbapi_mock._last_request_data["title"]
+    assert cbapi_mock._last_request_data["description"] == "Automated report generated by Binary Analysis SDK"
+
+    # Check that all IOCs are attached to a report
+    for ioc in input_with_severity:
+        SENT = False
+        log.error(f"All request data: {cbapi_mock._all_request_data}")
+        for report in cbapi_mock._all_request_data:
+            if ioc["severity"] == report["severity"]:
+                assert len(state_manager.get_current_report_items(ioc["severity"], ENGINE_NAME)) == 0
+
+                # Remove severity before comparison
+                del ioc["severity"]
+                if ioc in report["iocs_v2"]:
+                    SENT = True
+                break
+        assert SENT
+
+
+@pytest.mark.parametrize("input", [
+    None,
+    {},
+    "INVALID",
+    {
+        "match_type": "equality",
+        "values": ["127.0.0.1"],
+        "severity": 1,
+    },
+    {
+        "id": "slkf038",
+        "match_type": "equality",
+        "values": ["127.0.0.1"],
+        "severity": 20,
+    },
+    {
+        "id": "slkf038",
+        "match_type": "equality",
+        "values": ["127.0.0.1"],
+        "severity": -5,
+    },
+    {
+        "id": "slkf038",
+        "match_type": "UNKNOWN",
+        "values": ["127.0.0.1"],
+        "severity": 10,
+    },
+    {
+        "id": "slkf038",
+        "match_type": "regex",
+        "values": "127.0.0.1",
+        "severity": 10,
+    }
+])
+def test_send_reports_invalid(cbapi_mock, state_manager, engine_results, input):
+    """Test _send_reports with invalid inputs"""
+    with pytest.raises(TypeError):
+        assert not engine_results._accept_report(input)
+    valid = engine_results._send_reports(FEED_ID)
+    assert valid is False
+
+
+@pytest.mark.parametrize("input", [
+    copy.deepcopy(IOCS_1),
+    copy.deepcopy(IOCS_2),
+    copy.deepcopy(IOCS_3)
+])
+def test_send_reports_exception(cbapi_mock, state_manager, engine_results, input):
+    """Test sending reports and an Exception being caught"""
+    engine_results._accept_report(ENGINE_NAME, input)
+    cbapi_mock.mock_request("PUT", f"/threathunter/feedmgr/v2/orgs/test/feeds/{'FAKE_FEED_ID'}/reports/.*", Exception)
+    sent = engine_results.send_reports('FAKE_FEED_ID')
+    assert not sent
+
+
+@pytest.mark.parametrize("input", [
+    copy.deepcopy(IOCS_1),
+    copy.deepcopy(IOCS_2),
+    copy.deepcopy(IOCS_3)
+])
+def test_send_reports_404(cbapi_mock, state_manager, engine_results, input):
+    """Test receiving a 404 ObjectNotFoundError from CBAPI"""
+    engine_results._accept_report(ENGINE_NAME, input)
+    cbapi_mock.mock_request("PUT", f"/threathunter/feedmgr/v2/orgs/test/feeds/{'FAKE_FEED_ID'}/reports/.*", ObjectNotFoundError)
+    sent = engine_results.send_reports('FAKE_FEED_ID')
+    assert not sent
+
+@pytest.mark.parametrize("input", [
+    [{
+        "id": "j39sbv7",
+        "match_type": "equality",
+        "values": ["127.0.0.1"],
+        "severity": 1,
+    }],
+    [{
+        "id": "j39sbv7",
+        "match_type": "equality",
+        "values": ["127.0.0.1"],
+        "severity": 1,
+    },
+        {
+        "id": "slkf038",
+        "match_type": "equality",
+        "values": ["app.exe"],
+        "severity": 10,
+    },
+        {
+        "id": "0kdl4uf9",
+        "match_type": "regex",
+        "values": [".*google.*"],
+        "severity": 3,
+    }],
+])
+def test_store_ioc(cbapi_mock, state_manager, engine_results, input):
+    """Test _store_ioc"""
+    for ioc in input:
+        assert engine_results._store_ioc(ioc)
+
+
+@pytest.mark.parametrize("input", [
+    None,
+    {},
+    "INVALID",
+    {
+        "match_type": "equality",
+        "values": ["127.0.0.1"],
+        "severity": 1,
+    },
+    {
+        "id": "slkf038",
+        "match_type": "equality",
+        "values": ["127.0.0.1"],
+        "severity": 20,
+    },
+    {
+        "id": "slkf038",
+        "match_type": "equality",
+        "values": ["127.0.0.1"],
+        "severity": -5,
+    },
+    {
+        "id": "slkf038",
+        "match_type": "UNKNOWN",
+        "values": ["127.0.0.1"],
+        "severity": 10,
+    },
+    {
+        "id": "slkf038",
+        "match_type": "regex",
+        "values": "127.0.0.1",
+        "severity": 10,
+    }
+])
+def test_store_ioc_invalid(cbapi_mock, state_manager, engine_results, input):
+    """Test _store_ioc with invalid inputs"""
+    if input:
+        for ioc in input:
+            assert not engine_results._store_ioc(ioc)
+    else:
+        assert not engine_results._store_ioc(input)
