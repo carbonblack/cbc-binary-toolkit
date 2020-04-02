@@ -5,3 +5,5 @@ COPY . /app
 WORKDIR /app
 
 RUN pip install -r requirements.txt
+RUN echo "/usr/local/lib" >> /etc/ld.so.conf
+RUN ldconfig
