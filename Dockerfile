@@ -5,5 +5,4 @@ COPY . /app
 WORKDIR /app
 
 RUN pip install -r requirements.txt
-RUN echo "/usr/local/lib" >> /etc/ld.so.conf
-RUN ldconfig
+RUN ln -s /usr/local/lib/python3.8/site-packages/usr/local/lib/libyara.so /usr/local/lib/libyara.so
