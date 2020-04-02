@@ -32,6 +32,55 @@ IOCS_2 = [{
           "severity": 2,
           }]
 
+IOCS_3 = [{
+          "id": "jsoq301n",
+          "match_type": "equality",
+          "values": ["127.0.0.1"],
+          "severity": 1,
+          },
+          {
+          "id": "ci2js01l",
+          "match_type": "equality",
+          "values": ["127.0.0.2"],
+          "severity": 1,
+          },
+          {
+          "id": "d83nsmc4",
+          "match_type": "equality",
+          "values": ["app.exe"],
+          "severity": 10,
+          },
+          {
+          "id": "cj01nsbds",
+          "match_type": "equality",
+          "values": ["127.0.0.3"],
+          "severity": 1,
+          },
+          {
+          "id": "feh48sk1",
+          "match_type": "equality",
+          "values": ["127.0.0.4"],
+          "severity": 1,
+          },
+          {
+          "id": "d02kfn63",
+          "match_type": "equality",
+          "values": ["bad.exe"],
+          "severity": 10,
+          },
+          {
+          "id": "cje828jc",
+          "match_type": "regex",
+          "values": [".*google.*"],
+          "severity": 3,
+          },
+          {
+          "id": "s9dlk2m1",
+          "match_type": "query",
+          "values": ["netconn_ipv4:127.0.0.1"],
+          "severity": 2,
+          }]
+
 IOCS_INVALID = [{
                 "id": "s9dlk2m1",
                 "match_type": "query",
@@ -59,6 +108,20 @@ FINISHED_STATE = {
 
 MESSAGE_VALID = {
     "iocs": IOCS_1,
+    "engine_name": "TEST_ENGINE",
+    "binary_hash": "0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc",
+    "success": True
+}
+
+MESSAGE_VALID_1 = {
+    "iocs": IOCS_2,
+    "engine_name": "TEST_ENGINE",
+    "binary_hash": "0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc",
+    "success": True
+}
+
+MESSAGE_VALID_2 = {
+    "iocs": IOCS_3,
     "engine_name": "TEST_ENGINE",
     "binary_hash": "0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc",
     "success": True

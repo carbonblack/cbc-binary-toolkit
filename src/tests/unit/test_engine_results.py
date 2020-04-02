@@ -14,10 +14,13 @@ from cbc_binary_toolkit.config import Config
 from cbapi.psc.threathunter import CbThreatHunterAPI
 from tests.unit.ubs_fixtures.CBAPIMock import CBAPIMock
 from tests.unit.engine_fixtures.messages import (MESSAGE_VALID,
+                                                 MESSAGE_VALID_1,
+                                                 MESSAGE_VALID_2,
                                                  MESSAGE_INVALID,
                                                  ENGINE_FAILURE,
                                                  IOCS_1,
                                                  IOCS_2,
+                                                 IOCS_3,
                                                  IOCS_INVALID,
                                                  UNFINISHED_STATE)
 
@@ -79,7 +82,9 @@ def test_init(state_manager, cb_threat_hunter, engine_results):
 
 
 @pytest.mark.parametrize("engine_response", [
-    copy.deepcopy(MESSAGE_VALID)
+    copy.deepcopy(MESSAGE_VALID),
+    copy.deepcopy(MESSAGE_VALID_1),
+    copy.deepcopy(MESSAGE_VALID_2)
 ])
 def test_update_state(state_manager, engine_results, engine_response):
     """Test setting the checkpoint for valid response."""
@@ -98,7 +103,9 @@ def test_update_state_invalid(state_manager, engine_results, engine_response):
 
 
 @pytest.mark.parametrize("engine_response", [
-    copy.deepcopy(MESSAGE_VALID)
+    copy.deepcopy(MESSAGE_VALID),
+    copy.deepcopy(MESSAGE_VALID_1),
+    copy.deepcopy(MESSAGE_VALID_2)
 ])
 def test_accept_report(state_manager, engine_results, engine_response):
     """Test accepting a report/adding it to the state_manager's list."""
@@ -123,7 +130,9 @@ def test_accept_report_invalid(state_manager, engine_results, engine_response):
 
 
 @pytest.mark.parametrize("engine_response", [
-    copy.deepcopy(MESSAGE_VALID)
+    copy.deepcopy(MESSAGE_VALID),
+    copy.deepcopy(MESSAGE_VALID_1),
+    copy.deepcopy(MESSAGE_VALID_2)
 ])
 def test_validate_response(engine_results, engine_response):
     """Test EngineResponseSchema validation."""
@@ -168,7 +177,8 @@ def test_execution_fail(engine_results, engine_response):
 
 @pytest.mark.parametrize("input", [
     copy.deepcopy(IOCS_1),
-    copy.deepcopy(IOCS_2)
+    copy.deepcopy(IOCS_2),
+    copy.deepcopy(IOCS_3)
 ])
 def test_send_reports(cbapi_mock, state_manager, engine_results, input):
     """Test _send_reports"""
@@ -241,7 +251,8 @@ def test_send_reports_invalid(cbapi_mock, state_manager, engine_results, input):
 
 @pytest.mark.parametrize("input", [
     copy.deepcopy(IOCS_1),
-    copy.deepcopy(IOCS_2)
+    copy.deepcopy(IOCS_2),
+    copy.deepcopy(IOCS_3)
 ])
 def test_send_reports_exception(cbapi_mock, state_manager, engine_results, input):
     """Test sending reports and an Exception being caught"""
@@ -253,7 +264,8 @@ def test_send_reports_exception(cbapi_mock, state_manager, engine_results, input
 
 @pytest.mark.parametrize("input", [
     copy.deepcopy(IOCS_1),
-    copy.deepcopy(IOCS_2)
+    copy.deepcopy(IOCS_2),
+    copy.deepcopy(IOCS_3)
 ])
 def test_send_reports_404(cbapi_mock, state_manager, engine_results, input):
     """Test receiving a 404 ObjectNotFoundError from CBAPI"""
