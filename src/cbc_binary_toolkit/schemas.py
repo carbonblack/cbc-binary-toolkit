@@ -2,7 +2,7 @@
 
 """Schemas for ReportActor"""
 
-from schema import And, Optional, Schema
+from schema import And, Or, Optional, Schema
 
 IOCV2Schema = Schema(
     {
@@ -32,9 +32,38 @@ ReportSchema = Schema(
 
 EngineResponseSchema = Schema(
     {
-        "iocs": And([IOCV2Schema], len),
+        "iocs": [IOCV2Schema],
         "engine_name": And(str, len),
         "binary_hash": And(str, len),
         "success": bool
+    }
+)
+
+BinaryMetadataSchema = Schema(
+    {
+        "sha256": And(str, lambda n: len(n) == 64),
+        "url": And(str, len),
+        "architecture": [str],
+        "available_file_size": Or(int, None),
+        "charset_id": Or(int, None),
+        "comments": Or(str, None),
+        "company_name": Or(str, None),
+        "copyright": Or(str, None),
+        "file_available": bool,
+        "file_description": Or(str, None),
+        "file_size": Or(int, None),
+        "file_version": Or(str, None),
+        "internal_name": Or(str, None),
+        "lang_id": Or(int, None),
+        "md5": And(str, lambda n: len(n) == 32),
+        "original_filename": Or(str, None),
+        "os_type": Or(str, None),
+        "private_build": Or(str, None),
+        "product_description": Or(str, None),
+        "product_name": Or(str, None),
+        "product_version": Or(str, None),
+        "special_build": Or(str, None),
+        "trademark": Or(str, None),
+        "persist_id": int
     }
 )
