@@ -89,7 +89,7 @@ class EngineResults:
         """
         try:
             severity = ioc.get("severity", None)
-            if (severity is not None and isinstance(severity, int) and severity > 0 and severity <= self.EVERITY_RANGE):
+            if (severity is not None and isinstance(severity, int) and severity > 0 and severity <= self.SEVERITY_RANGE):
                 del ioc["severity"]
                 self.iocs[severity - 1].append(ioc)
                 return True
@@ -182,7 +182,7 @@ class EngineResults:
             # if there are no reports in self.iocs, there's nothing to send
             if all([not report for report in self.iocs]):
                 return False
-            for sev in range(SEVERITY_RANGE):
+            for sev in range(self.SEVERITY_RANGE):
                 if len(self.iocs[sev]) > 0:
                     now = time.time()
                     report_meta = {
