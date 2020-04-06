@@ -14,8 +14,15 @@ def dynamic_load(full_class_name):
     """
     Loads a Python class object given its fully-qualified class name.
 
-    :param full_class_name str: The class name of the object to be loaded.
-    :return: The class object.
+    Args:
+        full_class_name (str): The class name of the object to be loaded.
+
+    Returns:
+        The class object.
+
+    Raises:
+        ImportError: If the class could not be loaded.
+
     """
     try:
         module_path, class_name = full_class_name.rsplit('.', 1)
@@ -29,8 +36,12 @@ def dynamic_create(full_class_name):
     """
     Creates a Python object given its fully-qualified class name.
 
-    :param full_class_name str: The class name of the object to be created.
-    :return: A new instance of that object.
+    Args:
+        full_class_name (str): The class name of the object to be created.
+
+    Returns:
+        A new instance of that object.
+
     """
     class_obj = dynamic_load(full_class_name)
     return class_obj()

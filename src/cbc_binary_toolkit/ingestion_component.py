@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Base for ingestion actor"""
+"""Base for ingestion component"""
 
 import logging
 import copy
@@ -12,13 +12,21 @@ log = logging.getLogger(__name__)
 log.disabled = False
 
 
-class IngestionComponent():
+class IngestionComponent:
     """
     IngestionComponent
 
     Description:
         Manages the fetching of the binary's metadata to send to the analysis engine(s)
 
+    Args:
+        config (Config): Config object.
+        cb_threat_hunter (cbapi.CbThreatHunterAPI): Carbon Black ThreatHunter API object.
+        state_manager (cbc_binary_toolkit.state.builtin.SQLiteBasedPersistor): State management object.
+
+    Attributes:
+        DEFAULT_EXPIRATION (int): How long generated binary AWS download links
+            will stay valid, in seconds.
     """
     DEFAULT_EXPIRATION = 3600
 
@@ -29,7 +37,12 @@ class IngestionComponent():
         self.state_manager = state_manager
 
     def reload(self):
-        """Reloads unfinished binaries"""
+        """
+        Reloads unfinished binaries.
+
+        Returns:
+            List(Dict) of hash metadata.
+        """
         engine_name = self.config.string("engine.name")
         unfinished_hashes = self.state_manager.get_unfinished_hashes(engine_name)
 

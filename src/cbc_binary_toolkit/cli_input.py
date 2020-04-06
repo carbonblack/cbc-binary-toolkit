@@ -16,17 +16,19 @@ from io import TextIOWrapper
 log = logging.getLogger(__name__)
 
 
-def read_csv(file: TextIOWrapper) -> List[Dict]:
+def read_csv(file):
     """
-    Function to read in a csv and return a JSON object of hashes
+    Function to read in a CSV file and return a list object of hashes
 
     Args:
         file (TextIOWrapper): The file given as input to the function
+
     Raises:
         AssertionError: incorrect length of a hash, or empty file
         OSError: File could not be found or read
+
     Returns:
-        List of hashes
+        hashes (List): Extracted list of hashes.
 
     """
     hashes = list()
@@ -49,7 +51,7 @@ def read_csv(file: TextIOWrapper) -> List[Dict]:
         raise
 
 
-def read_json(json_string: str) -> List[str]:
+def read_json(json_string):
     """
     Function to read in a JSON string and return a JSON object of hashes
 

@@ -15,9 +15,5 @@ class ConfigError(Exception):
         self.original_exception = original_exception
 
     def __str__(self):
-        """
-        Return the message associated with the exception
-
-        :return str:
-        """
+        """Return the message associated with the exception"""
         return self.message

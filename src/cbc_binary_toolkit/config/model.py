@@ -23,8 +23,12 @@ class Config:
         """
         Load YAML data into a Config object.
 
-        :param data: Data to be loaded. May be a string, or an open text or binary stream.
-        :return: The Config object that contains the data in the config file.
+        Args:
+            data: Data to be loaded. May be a string, or an open text or binary stream.
+
+        Returns:
+            (Config): The Config object that contains the data in the config file.
+
         """
         try:
             mydata = yaml.safe_load(data)
@@ -49,8 +53,12 @@ class Config:
         """
         Load a YAML file into a Config object.
 
-        :param filename: The name of the file to be loaded.
-        :return: The Config object that contains the data in the config file.
+        Args:
+            filename (str): The name of the file to be loaded.
+
+        Returns:
+            (Config): The Config object that contains the data in the config file.
+
         """
         with open(filename, 'r') as file:
             return Config.load(file)
@@ -59,10 +67,14 @@ class Config:
         """
         Seeks out a value in the configuration data with a specific path.
 
-        :param path: The path to the configuration variable (with components separated by '.')
-        :param suppress_exceptions: If this is true, None will be returned for paths that do
-            not exist. If this is False, a ConfigError will be raided in that circumstance.
-        :return: The configuration value, which may be of any type.
+        Args:
+            path (str): The path to the configuration variable (with components separated by '.')
+            suppress_exceptions (bool): If true, None will be returned for paths that do
+                not exist. If this is False, a ConfigError will be raised for paths that do not exist.
+
+        Returns:
+            The configuration value, which may be of any type.
+
         """
         cur = None
         elt = None
@@ -84,8 +96,9 @@ class Config:
         """
         Returns a string configuration value from the configuration data.
 
-        :param path: The path to the configuration variable (with components separated by '.')
-        :return: The value.
+        Args:
+            path (str): The path to the configuration variable (with components separated by '.').
+
         """
         v = self._seek_path(path)
         if isinstance(v, str):
@@ -96,9 +109,10 @@ class Config:
         """
         Returns a string configuration value from the configuration data, defaulting it if it isn't specified.
 
-        :param path: The path to the configuration variable (with components separated by '.')
-        :param defaultval: The default value to use if the configuration value isn't specified (default None).
-        :return: The value (perhaps defaulted).
+        Args:
+            path (str): The path to the configuration variable (with components separated by '.').
+            defaultval: The default value to use if the configuration value isn't specified (default None).
+
         """
         v = self._seek_path(path, True)
         if v is not None and isinstance(v, str):
@@ -112,8 +126,12 @@ class Config:
         This accesses the same data, but without the prefix. For example, if B == A.section("foo"), then
         B.string("bar") == A.string("foo.bar").
 
-        :param path: The path to the configuration section (with components separated by '.')
-        :return: The subsection as a new Config object.
+        Args:
+            path (str): The path to the configuration section (with components separated by '.').
+
+        Returns:
+            (Config): The requested subsection as a new Config object.
+
         """
         v = self._seek_path(path)
         if isinstance(v, dict):
@@ -124,9 +142,10 @@ class Config:
         """
         Returns the desired property with the yaml property type
 
-        :param path: The path to the configuration variable (with components separated by '.')
-        :param defaultval: The default value to use if the configuration value isn't specified (default None).
-        :return: The value.
+        Args:
+            path (str): The path to the configuration variable (with components separated by '.').
+            defaultval: The default value to use if the configuration value isn't specified (default None).
+
         """
         v = self._seek_path(path, True)
         if v is not None:
