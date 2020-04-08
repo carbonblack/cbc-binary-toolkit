@@ -24,8 +24,7 @@ ReportSchema = Schema(
         "severity": And(int, lambda n: n > 0 and n < 11),
         Optional("link"): str,
         Optional("tags"): [str],
-        # "iocs": IOCs,
-        # iocs_v2": [IOCV2Schema],
+        "iocs_v2": [IOCV2Schema],
         Optional("visibility"): str
     }
 )
@@ -34,7 +33,7 @@ EngineResponseSchema = Schema(
     {
         "iocs": [IOCV2Schema],
         "engine_name": And(str, len),
-        "binary_hash": And(str, len),
+        "binary_hash": And(str, lambda n: len(n) == 64),
         "success": bool
     }
 )
