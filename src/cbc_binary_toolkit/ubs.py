@@ -91,9 +91,7 @@ def _download_hashes(cbth, hashes, expiration_seconds):
         return downloads
     except Exception as err:
         log.error(f"Error downloading hashes from Unified Binary Store: {err}")
-        raise
-        return
-
+        return None
 
 def _download_binary_metadata(cbth, found_binary):
     """
@@ -118,11 +116,9 @@ def _download_binary_metadata(cbth, found_binary):
             return binary_metadata
         except Exception as err:
             log.error(f"Error downloading binary metadata from Unified Binary Store: {err}")
-            raise
-            return
+            return None
     else:
         log.error("found_binary input to _download_binary_metadata must be a Dictionary with url and sha256 keys")
-        raise ValueError
         return None
 
 
