@@ -56,6 +56,7 @@ def test_BinaryMetadataSchema_failure(input):
     with pytest.raises(SchemaError):
         BinaryMetadataSchema.validate(input)
 
+
 @pytest.mark.parametrize("input", [
     VALID_ENGINE_RESPONSE
 ])
