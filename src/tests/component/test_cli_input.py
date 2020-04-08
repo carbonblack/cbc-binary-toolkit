@@ -9,7 +9,7 @@ from cbc_binary_toolkit.cli_input import read_csv, read_json
 from typing import List, Dict
 from json import JSONDecodeError
 
-from tests.unit.input_fixtures.file_path_constants import (
+from tests.component.input_fixtures.file_path_constants import (
     BASIC_INPUT_FILE,
     LARGE_INPUT_FILE,
     BASIC_JSON_INPUT_FILE,

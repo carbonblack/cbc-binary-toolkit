@@ -9,7 +9,7 @@ from cbc_binary_toolkit.config import Config
 from cbc_binary_toolkit.engine import LocalEngineManager
 from cbc_binary_toolkit.schemas import EngineResponseSchema
 
-from tests.unit.engine_fixtures.mock_engine import MockLocalEngine
+from tests.component.engine_fixtures.mock_engine import MockLocalEngine
 
 ENGINE_NAME = "MockEngine"
 
@@ -23,7 +23,7 @@ def config():
     engine:
       name: {ENGINE_NAME}
       local: True
-      _provider: tests.unit.engine_fixtures.mock_engine.MockLocalEngineFactory
+      _provider: tests.component.engine_fixtures.mock_engine.MockLocalEngineFactory
       Test: TestPassed
     """)
 
@@ -51,7 +51,7 @@ def test_analyze(config):
           name: {ENGINE_NAME}
           local: False
           num_threads: 1
-          _provider: tests.unit.engine_fixtures.mock_engine.MockLocalEngineFactory
+          _provider: tests.component.engine_fixtures.mock_engine.MockLocalEngineFactory
     """, InitializationError],
     ["""
         id: cbc_binary_toolkit

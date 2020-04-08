@@ -8,9 +8,9 @@ from cbc_binary_toolkit.ingestion_component import IngestionComponent
 from cbc_binary_toolkit.state import StateManager
 from cbc_binary_toolkit.config import Config
 from cbapi.psc.threathunter import CbThreatHunterAPI
-from tests.unit.ubs_fixtures.CBAPIMock import CBAPIMock
-from tests.unit.ubs_fixtures.metadata import HASH_METADATA
-from tests.unit.ubs_fixtures.filedownload import METADATA_DOWNLOAD_RESP
+from tests.component.ubs_fixtures.CBAPIMock import CBAPIMock
+from tests.component.ubs_fixtures.metadata import HASH_METADATA
+from tests.component.ubs_fixtures.filedownload import METADATA_DOWNLOAD_RESP
 
 ENGINE_NAME = "TEST_ENGINE"
 

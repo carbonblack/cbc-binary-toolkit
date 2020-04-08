@@ -12,8 +12,8 @@ from cbc_binary_toolkit.engine_results import EngineResults
 from cbc_binary_toolkit.state import StateManager
 from cbc_binary_toolkit.config import Config
 from cbapi.psc.threathunter import CbThreatHunterAPI
-from tests.unit.ubs_fixtures.CBAPIMock import CBAPIMock
-from tests.unit.engine_fixtures.messages import (MESSAGE_VALID,
+from tests.component.ubs_fixtures.CBAPIMock import CBAPIMock
+from tests.component.engine_fixtures.messages import (MESSAGE_VALID,
                                                  MESSAGE_VALID_1,
                                                  MESSAGE_VALID_2,
                                                  MESSAGE_INVALID,

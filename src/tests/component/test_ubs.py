@@ -9,9 +9,9 @@ from cbc_binary_toolkit.ubs import (_download_hashes,
                                     get_metadata,
                                     RedownloadHashes)
 from cbapi.psc.threathunter import CbThreatHunterAPI
-from tests.unit.ubs_fixtures.metadata import METADATA_VALID
-from tests.unit.ubs_fixtures.CBAPIMock import CBAPIMock
-from tests.unit.ubs_fixtures.filedownload import (FILE_DOWNLOAD_RESP, METADATA_DOWNLOAD_RESP,
+from tests.component.ubs_fixtures.metadata import METADATA_VALID
+from tests.component.ubs_fixtures.CBAPIMock import CBAPIMock
+from tests.component.ubs_fixtures.filedownload import (FILE_DOWNLOAD_RESP, METADATA_DOWNLOAD_RESP,
                                                   FILE_DOWNLOAD_ERROR, FILE_DOWNLOAD_ALL)
 
 
