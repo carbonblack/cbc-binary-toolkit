@@ -23,11 +23,17 @@ class EngineResults:
     """
     Engine Results Handler
 
-    Validates an EngineResponse.
-    Validates and manages IOCs (Threat Intelligence) from the Analysis Engines.
-    Updates state checkpoint of an analyzed binary hash to 'DONE'.
-    Adds IOCs from an EngineResponse to stored list.
-    Sends reports with IOCs to Carbon Black Cloud.
+    Require Properties:
+        engine_name (str): The name of the engine analysis is coming from
+        state_manager (cbc_binary_toolkit.state.manager): State management component
+        cbth (CbThreatHunterAPI): CBAPI ThreatHunter API to push reports to Carbon Black Cloud
+
+    Description:
+        Validates an EngineResponse
+        Validates and manages IOCs (Threat Intelligence) from the Analysis Engines
+        Updates state checkpoint to 'DONE' for an EngineResponse
+        Adds IOCs from an EngineResponse to stored list
+        Sends reports with IOCs to Carbon Black Cloud
 
     Note:
         IOCs are grouped by severity to increase performance on Carbon Black Cloud
@@ -120,9 +126,9 @@ class EngineResults:
                 return True
             # single IOC
             elif isinstance(iocs, dict):
-                IOCV2Schema.validate(ioc)
-                self.state_manager.add_report_item(ioc["severity"], engine_name, ioc)
-                self._store_ioc(ioc)
+                IOCV2Schema.validate(iocs)
+                self.state_manager.add_report_item(ioc["severity"], engine_name, iocs)
+                self._store_ioc(iocs)
                 return True
         except SchemaError as e:
             log.error(f"Error caught when trying to add a report item (IOC record) to stored list: {e}")
@@ -213,7 +219,7 @@ class EngineResults:
             feed_id (str): Feed to send reports to
 
         Returns:
-            reports_sent (bool): True if all reports from interal list were sent successfully,
+            reports_sent (bool): True if all reports from internal list were sent successfully,
                                     False otherwise
         """
         reports_sent = False
