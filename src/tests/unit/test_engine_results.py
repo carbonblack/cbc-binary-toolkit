@@ -349,7 +349,9 @@ def test_send_reports_exception(cbapi_mock, state_manager, engine_results, input
 def test_send_reports_404(cbapi_mock, state_manager, engine_results, input):
     """Test receiving a 404 ObjectNotFoundError from CBAPI"""
     engine_results._accept_report(ENGINE_NAME, input)
-    cbapi_mock.mock_request("PUT", f"/threathunter/feedmgr/v2/orgs/test/feeds/{'FAKE_FEED_ID'}/reports/.*", ObjectNotFoundError)
+    cbapi_mock.mock_request("PUT",
+                            f"/threathunter/feedmgr/v2/orgs/test/feeds/{'FAKE_FEED_ID'}/reports/.*",
+                            ObjectNotFoundError)
     sent = engine_results.send_reports('FAKE_FEED_ID')
     assert not sent
 
@@ -366,7 +368,7 @@ def test_reload(state_manager, engine_results, engine_response):
         state_manager.add_report_item(ioc["severity"], ENGINE_NAME, ioc)
     assert engine_results.reload()
     for sev in range(10):
-        num_iocs_for_sev = state_manager.get_current_report_items(sev+1, ENGINE_NAME)
+        num_iocs_for_sev = state_manager.get_current_report_items(sev + 1, ENGINE_NAME)
         assert len(num_iocs_for_sev) == len(engine_results.iocs[sev])
 
 

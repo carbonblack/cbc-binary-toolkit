@@ -38,6 +38,7 @@ def _unfinished_as_map(l):
 
     Returns:
         dict: The same hash expressed as a map.
+
     """
     return_value = {}
     for val in l:

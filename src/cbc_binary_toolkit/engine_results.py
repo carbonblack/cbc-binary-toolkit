@@ -68,7 +68,8 @@ class EngineResults:
 
         Returns:
             bool: True if engine_response adheres to EngineResponseSchema,
-                    False otherwise
+                  False otherwise
+
         """
         try:
             if engine_response["success"]:
@@ -91,7 +92,8 @@ class EngineResults:
 
         Returns:
             bool: True if IOC was added to internal list successfully,
-                    False otherwise
+                  False otherwise
+
         """
         try:
             severity = ioc.get("severity", None)
@@ -144,7 +146,8 @@ class EngineResults:
 
         Returns:
             bool: True if the checkpoint for binary_hash was updated successfully,
-                    False otherwise
+                  False otherwise
+
         """
         try:
             self.state_manager.set_checkpoint(binary_hash, engine_name, "DONE")
@@ -162,7 +165,8 @@ class EngineResults:
 
         Returns:
             bool: True if engine_response was validated, accepted, and had state updated,
-                    False otherwise
+                  False otherwise
+
         """
         if self._validate_response(engine_response):
             report_accepted = self._accept_report(engine_response["engine_name"], engine_response["iocs"])
@@ -182,7 +186,8 @@ class EngineResults:
 
         Returns:
             bool: True if at least one report was sent to feed_id,
-                    False otherwise
+                  False otherwise
+
         """
         try:
             # if there are no reports in self.iocs, there's nothing to send

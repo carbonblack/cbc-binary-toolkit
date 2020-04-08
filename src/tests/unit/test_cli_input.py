@@ -4,7 +4,6 @@
 
 import pytest
 import os
-import json
 
 from cbc_binary_toolkit.cli_input import read_csv, read_json
 from typing import List, Dict
@@ -24,7 +23,7 @@ from tests.unit.input_fixtures.file_path_constants import (
     BASIC_INPUT_CSV_WRONG_HASHLEN,
     DOES_NOT_EXIST_FILE,
     EMPTY_CSV,
-    WRONG_KEY_JSON,
+    # WRONG_KEY_JSON,
     EMPTY_HASHES_DICT_JSON
 )
 
