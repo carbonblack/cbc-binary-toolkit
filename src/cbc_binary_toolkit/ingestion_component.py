@@ -81,8 +81,7 @@ class IngestionComponent:
                "product_name": str,
                "product_version": str,
                "special_build": str,
-               "trademark": str,
-               "persist_id": *State Manager ID*
+               "trademark": str
             },
             ...
             ]
@@ -107,9 +106,9 @@ class IngestionComponent:
 
             # Save hash entry to state manager
             if metadata:
-                metadata["persist_id"] = self.state_manager.set_checkpoint(download_data["sha256"],
-                                                                           engine_name,
-                                                                           "INGESTED")
+                self.state_manager.set_checkpoint(download_data["sha256"],
+                                                  engine_name,
+                                                  "INGESTED")
                 fetched_metadata.append(metadata)
 
         log.info(f"Ingested: {datetime.now()}")

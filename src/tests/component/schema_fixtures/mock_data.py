@@ -93,8 +93,7 @@ VALID_BINARY_METADATA = {
     "product_name": None,
     "product_version": None,
     "special_build": None,
-    "trademark": None,
-    "persist_id": 7
+    "trademark": None
 }
 
 
@@ -121,8 +120,7 @@ INVALID_SHA256_BINARY_METADATA = {
     "product_name": None,
     "product_version": None,
     "special_build": None,
-    "trademark": None,
-    "persist_id": 7
+    "trademark": None
 }
 
 MISSING_FIELDS_BINARY_METADATA = {
@@ -142,8 +140,7 @@ MISSING_FIELDS_BINARY_METADATA = {
     "lang_id": 4,
     "md5": "1278oakjsdlkahlvuyoi2387ehan112c",
     "original_filename": "",
-    "os_type": "",
-    "persist_id": 7
+    "os_type": ""
 }
 
 INVALID_MD5_BINARY_METADATA = {
@@ -169,8 +166,7 @@ INVALID_MD5_BINARY_METADATA = {
     "product_name": None,
     "product_version": None,
     "special_build": None,
-    "trademark": None,
-    "persist_id": 7
+    "trademark": None
 }
 
 EMPTY_URL_BINARY_METADATA = {
@@ -196,6 +192,5 @@ EMPTY_URL_BINARY_METADATA = {
     "product_name": None,
     "product_version": None,
     "special_build": None,
-    "trademark": None,
-    "persist_id": 7
+    "trademark": None
 }

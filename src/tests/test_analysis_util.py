@@ -11,9 +11,9 @@ from datetime import datetime, timedelta
 from cbapi.psc.threathunter import CbThreatHunterAPI
 from cbc_binary_toolkit.config import Config
 from cbc_binary_toolkit_examples.analysis_util import AnalysisUtility
-from tests.unit.engine_fixtures.messages import IOCS_2
-from tests.unit.ubs_fixtures.CBAPIMock import CBAPIMock
-from tests.unit.ubs_fixtures.metadata import METADATA_VALID
+from tests.component.engine_fixtures.messages import IOCS_2
+from tests.component.ubs_fixtures.CBAPIMock import CBAPIMock
+from tests.component.ubs_fixtures.metadata import METADATA_VALID
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -47,7 +47,7 @@ def config():
       _provider: cbc_binary_toolkit.state.builtin.Persistor
       location: ":memory:"
     engine:
-      _provider: tests.unit.engine_fixtures.mock_engine.MockLocalEngineFactory
+      _provider: tests.component.engine_fixtures.mock_engine.MockLocalEngineFactory
       name: {ENGINE_NAME}
       feed_id: {FEED_ID}
       local: True
@@ -62,9 +62,9 @@ def config2():
     id: cbc_binary_toolkit
     version: 0.0.1
     database:
-      _provider: tests.unit.persistor_fixtures.mock_persistor.MockPersistorFactory
+      _provider: tests.component.persistor_fixtures.mock_persistor.MockPersistorFactory
     engine:
-      _provider: tests.unit.engine_fixtures.mock_engine.MockLocalEngineFactory
+      _provider: tests.component.engine_fixtures.mock_engine.MockLocalEngineFactory
       name: {ENGINE_NAME}
       feed_id: {FEED_ID}
       local: True

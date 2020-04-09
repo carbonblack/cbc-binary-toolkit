@@ -100,7 +100,6 @@ def test_fetch_metadata(component, cbapi_mock, state_manager, input):
     data = component.fetch_metadata(input)
     assert data != []
     for item in data:
-        del item["persist_id"]
         assert item == METADATA_DOWNLOAD_RESP[item["sha256"]]
 
 
@@ -129,5 +128,4 @@ def test_reload(component, cbapi_mock, state_manager):
 
     data = component.reload()
 
-    del data[0]["persist_id"]
     assert data[0] == METADATA_DOWNLOAD_RESP["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4"]

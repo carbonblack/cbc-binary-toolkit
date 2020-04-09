@@ -9,7 +9,7 @@ from schema import SchemaError
 from cbc_binary_toolkit.schemas import (
     BinaryMetadataSchema,
     EngineResponseSchema,
-    IOCV2Schema,
+    IOCv2SEVSchema,
     ReportSchema
 )
 from tests.component.schema_fixtures.mock_data import (
@@ -24,7 +24,7 @@ from tests.component.schema_fixtures.mock_data import (
     VALID_ENGINE_RESPONSE,
     INVALID_SHA256_ENGINE_RESPONSE,
 
-    # IOCV2Schema
+    # IOCv2SEVSchema
     VALID_IOCV2,
     INVALID_SEVERITY_IOCV2,
     INVALID_MATCH_TYPE_IOCV2,
@@ -77,9 +77,9 @@ def test_EngineResponseSchema_failure(input):
 @pytest.mark.parametrize("input", [
     VALID_IOCV2
 ])
-def test_IOCV2Schema(input):
+def test_IOCv2SEVSchema(input):
     """Test schema success"""
-    assert IOCV2Schema.validate(input)
+    assert IOCv2SEVSchema.validate(input)
 
 
 @pytest.mark.parametrize("input", [
@@ -87,10 +87,10 @@ def test_IOCV2Schema(input):
     INVALID_MATCH_TYPE_IOCV2,
     MISSING_VALUE_IOCV2
 ])
-def test_IOCV2Schema_failure(input):
+def test_IOCv2SEVSchema_failure(input):
     """Test schema failure"""
     with pytest.raises(SchemaError):
-        IOCV2Schema.validate(input)
+        IOCv2SEVSchema.validate(input)
 
 
 @pytest.mark.parametrize("input", [

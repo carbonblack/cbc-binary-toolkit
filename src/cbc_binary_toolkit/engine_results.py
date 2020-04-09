@@ -12,7 +12,7 @@ import time
 import uuid
 
 from schema import SchemaError
-from .schemas import EngineResponseSchema, IOCV2Schema
+from .schemas import EngineResponseSchema, IOCv2SEVSchema
 from cbapi.psc.threathunter import Report
 from cbapi.errors import ObjectNotFoundError
 
@@ -123,12 +123,12 @@ class EngineResults:
             success = True
             if isinstance(iocs, list):
                 for ioc in iocs:
-                    IOCV2Schema.validate(ioc)
+                    IOCv2SEVSchema.validate(ioc)
                     if not self._store_ioc(ioc, engine_name):
                         success = False
                 return success
             elif isinstance(iocs, dict):
-                IOCV2Schema.validate(iocs)
+                IOCv2SEVSchema.validate(iocs)
                 if not self._store_ioc(iocs, engine_name):
                     success = False
                 return success
