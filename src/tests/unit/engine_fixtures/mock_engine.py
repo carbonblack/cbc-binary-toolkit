@@ -3,33 +3,35 @@
 """Mock engine"""
 
 from cbc_binary_toolkit.engine import LocalEngineFactory
-from threading import Thread
 
 
-class TestLocalEngine(Thread):
+class MockLocalEngine():
     """Mock test engine"""
-    def __init__(self, group=None, target=None, name=None,
-                 args=(), kwargs=None, verbose=None):
-        """Yara engine thread, pulling from engine pub/sub queue"""
-        super(TestLocalEngine, self).__init__(group=group, target=target, name=name)
-
+    def __init__(self, config):
+        """Test engine"""
         self.name = "MockEngine"
-        self.config = kwargs.get("config", None)
-        self.pub_sub_manager = kwargs.get("pub_sub_manager", None)
+        self.config = config
 
-    def run(self):
-        """Start of thread"""
-        while True:
-            test_data = self.pub_sub_manager.get(self.name)
+    def analyze(self, test_data):
+        """Analyze test data"""
+        if not isinstance(test_data, dict):
+            return {
+                "iocs": [],
+                "engine_name": self.name,
+                "binary_hash": None,
+                "success": False
+            }
 
-            if test_data is None:
-                break
+        return {
+            "iocs": [],
+            "engine_name": self.name,
+            "binary_hash": test_data.get("sha256", None),
+            "success": True
+        }
 
-            self.pub_sub_manager.put(self.config.get("pubsub.result_queue_name"), test_data)
 
-
-class TestLocalEngineFactory(LocalEngineFactory):
+class MockLocalEngineFactory(LocalEngineFactory):
     """Mock Factory for testing LocalEngineManager"""
-    def create_engine(self, config, pub_sub_manager):
+    def create_engine(self, config):
         """Create test engine"""
-        return TestLocalEngine(kwargs={"config": config, "pub_sub_manager": pub_sub_manager})
+        return MockLocalEngine(config)
