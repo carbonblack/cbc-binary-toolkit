@@ -8,6 +8,7 @@ This is the entry point for the Binary Analysis SDK
 """
 
 import logging
+import os
 
 from cbc_binary_toolkit_examples.analysis_util import AnalysisUtility
 
