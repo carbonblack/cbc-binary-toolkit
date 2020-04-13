@@ -353,3 +353,39 @@ def test_send_reports_404(cbapi_mock, state_manager, engine_results, input):
     cbapi_mock.mock_request("PUT", f"/threathunter/feedmgr/v2/orgs/test/feeds/{'FAKE_FEED_ID'}/reports/.*", ObjectNotFoundError)
     sent = engine_results.send_reports('FAKE_FEED_ID')
     assert not sent
+
+
+@pytest.mark.parametrize("engine_response", [
+    copy.deepcopy(MESSAGE_VALID),
+    copy.deepcopy(MESSAGE_VALID_1),
+    copy.deepcopy(MESSAGE_VALID_2)
+])
+def test_reload(cbapi_mock, state_manager, engine_results, engine_response):
+    """Test reloading unsent reports from state manager and sending them"""
+    assert engine_results.receive_response(engine_response)
+    cbapi_mock.mock_request("PUT", f"/threathunter/feedmgr/v2/orgs/test/feeds/{FEED_ID}/reports/.*", None)
+    assert engine_results.reload(FEED_ID)
+
+
+@pytest.mark.parametrize("engine_response", [
+    copy.deepcopy(MESSAGE_VALID),
+    copy.deepcopy(MESSAGE_VALID_1),
+    copy.deepcopy(MESSAGE_VALID_2)
+])
+def test_reload_exception(cbapi_mock, state_manager, engine_results, engine_response):
+    """Test reload function failure handling"""
+    assert engine_results.receive_response(engine_response)
+    cbapi_mock.mock_request("PUT", f"/threathunter/feedmgr/v2/orgs/test/feeds/{FEED_ID}/reports/.*", Exception)
+    assert not engine_results.reload(FEED_ID)
+
+
+@pytest.mark.parametrize("engine_response", [
+    copy.deepcopy(MESSAGE_VALID),
+    copy.deepcopy(MESSAGE_VALID_1),
+    copy.deepcopy(MESSAGE_VALID_2)
+])
+def test_reload_404(cbapi_mock, state_manager, engine_results, engine_response):
+    """Test reload function 404 handling"""
+    assert engine_results.receive_response(engine_response)
+    cbapi_mock.mock_request("PUT", f"/threathunter/feedmgr/v2/orgs/test/feeds/{FEED_ID}/reports/.*", ObjectNotFoundError)
+    assert not engine_results.reload(FEED_ID)
