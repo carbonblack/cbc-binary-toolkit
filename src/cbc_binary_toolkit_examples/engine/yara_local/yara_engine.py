@@ -46,10 +46,11 @@ class YaraEngine():
         matches = self.rules.match(data=stream.read())
 
         highest_severity = 0
-        for match in matches.get("main", []):
+        log.info(f"YARA Rule Matches: {matches}")
+        for match in matches:
 
-            if match["meta"].get("sev", 0) > highest_severity:
-                highest_severity = match["meta"].get("sev", 0)
+            if match.meta["sev"] > highest_severity:
+                highest_severity = match.meta["sev"]
 
         iocs = []
         if highest_severity > 0:
@@ -84,12 +85,13 @@ class YaraEngine():
             log.error(f"Recieved unexpected input: {type(binary_metadata)}")
         else:
             try:
+                log.info("downloading")
                 resp = requests.get(binary_metadata["url"], stream=True)
                 resp.raise_for_status()
-
+                log.info("Matching")
                 result = self._match(binary_metadata["sha256"], resp.raw)
             except Exception as e:
-                log.error(f"Failed processing binary: {e}")
+                log.error(f"Failed processing binary: {type(e)} : {e}")
 
         if result is None:
             return {
