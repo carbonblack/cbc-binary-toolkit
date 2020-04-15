@@ -252,7 +252,6 @@ def test_accept_report(state_manager, engine_results, engine_response):
         current_report_items.extend(state_manager.get_current_report_items(severity, engine_name))
     assert len(current_report_items) == len(engine_response["iocs"])
     for report in current_report_items:
-        del report["severity"]
         assert report in engine_response["iocs"]
 
 

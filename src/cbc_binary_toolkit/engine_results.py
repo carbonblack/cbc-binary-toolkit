@@ -121,14 +121,16 @@ class EngineResults:
             if isinstance(iocs, list):
                 for ioc in iocs:
                     IOCV2Schema.validate(ioc)
-                    self.state_manager.add_report_item(ioc["severity"], engine_name, ioc)
-                    self._store_ioc(ioc)
+                    sev = ioc["severity"]
+                    self._store_ioc(ioc)  # IOC severity key is deleted when storing
+                    self.state_manager.add_report_item(sev, engine_name, ioc)
                 return True
             # single IOC
             elif isinstance(iocs, dict):
                 IOCV2Schema.validate(iocs)
+                sev = ioc["severity"]
+                self._store_ioc(iocs)  # IOC severity key is deleted when storing
                 self.state_manager.add_report_item(ioc["severity"], engine_name, iocs)
-                self._store_ioc(iocs)
                 return True
         except SchemaError as e:
             log.error(f"Error caught when trying to add a report item (IOC record) to stored list: {e}")
@@ -187,6 +189,7 @@ class EngineResults:
         try:
             # if there are no reports in self.iocs, there's nothing to send
             if all([not report for report in self.iocs]):
+                log.error("No reports to send")
                 return False
             for sev in range(self.SEVERITY_RANGE):
                 if len(self.iocs[sev]) > 0:
@@ -233,8 +236,7 @@ class EngineResults:
         try:
             for severity in range(SEVERITY_RANGE):
                 iocs = self.state_manager.get_current_report_items(severity + 1, self.engine_name)
-                for ioc in iocs:
-                    self._store_ioc(ioc)
+                self.iocs[severity].extend(iocs)
             log.debug("IOCs successfully reloaded from database into internal list")
             return True
         except Exception as e:
