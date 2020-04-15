@@ -143,6 +143,7 @@ class AnalysisUtility:
         Args:
             components (dict): Dict containing all the component references as returned from _init_components.
         """
+        components["results_engine"].reload()
         metadata_list = components["ingest"].reload()
         self._process_metadata(components, metadata_list)
 
