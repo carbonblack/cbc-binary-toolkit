@@ -360,7 +360,7 @@ def test_send_reports_404(cbapi_mock, state_manager, engine_results, input):
     copy.deepcopy(MESSAGE_VALID_1),
     copy.deepcopy(MESSAGE_VALID_2)
 ])
-def test_reload(cbapi_mock, state_manager, engine_results, engine_response):
+def test_reload(state_manager, engine_results, engine_response):
     """Test reloading unsent reports from state manager and sending them"""
     iocs = engine_response["iocs"]
     for ioc in iocs:
@@ -369,3 +369,8 @@ def test_reload(cbapi_mock, state_manager, engine_results, engine_response):
     for sev in range(10):
         num_iocs_for_sev = state_manager.get_current_report_items(sev+1, ENGINE_NAME)
         assert len(num_iocs_for_sev) == len(engine_results.iocs[sev])
+
+
+def test_reload_empty(engine_results):
+    """Test reloading without items in the database"""
+    assert engine_results.reload()
