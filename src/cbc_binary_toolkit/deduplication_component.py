@@ -3,7 +3,7 @@
 """Component that deduplicates the input list"""
 
 
-class DeduplicationComponent():
+class DeduplicationComponent:
     """
     DeduplicationComponent
 
@@ -23,7 +23,7 @@ class DeduplicationComponent():
         contents of the state manager.
 
         Args:
-            list_input (list): List of hashes to be processed (coming from input)
+            list_input (list): List of hashes to be processed (coming from command line input)
 
         Returns:
             list: Another list of hashes, with all the hashes that have already been processed

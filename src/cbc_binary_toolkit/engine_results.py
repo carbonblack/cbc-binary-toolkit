@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 
-"""Base for engine response validation, acceptance, and state checkpointing"""
+"""
+EngineResults component
 
+Engine response validation, acceptance, state checkpointing, and
+dispatching to Carbon Black Cloud.
+"""
 
 import logging
 import time
@@ -14,28 +18,32 @@ from cbapi.errors import ObjectNotFoundError
 
 log = logging.getLogger(__name__)
 
-SEVERITY_RANGE = 10
-
 
 class EngineResults:
     """
     Engine Results Handler
 
-    Require Properties:
-        engine_name (str): The name of the engine analysis is coming from
-        state_manager (cbc_binary_toolkit.state.manager): State management component
-        cbth (CbThreatHunterAPI): CBAPI ThreatHunter API to push reports to Carbon Black Cloud
-
-    Description:
-        Validates an EngineResponse
-        Validates and manages IOCs (Threat Inteligence) from the Analysis Engines
-        Updates state checkpoint to 'DONE' for an EngineResponse
-        Adds IOCs from an EngineResponse to stored list
-        Sends reports with IOCs to Carbon Black Cloud
+    Validates an EngineResponse.
+    Validates and manages IOCs (Threat Intelligence) from the Analysis Engines.
+    Updates state checkpoint of an analyzed binary hash to 'DONE'.
+    Adds IOCs from an EngineResponse to stored list.
+    Sends reports with IOCs to Carbon Black Cloud.
 
     Note:
         IOCs are grouped by severity to increase performance on Carbon Black Cloud
+
+    Args:
+        engine_name (str): The name of the engine analysis is coming from.
+        state_manager (cbc_binary_toolkit.state.builtin.SQLiteBasedPersistor): State management object.
+        cbth (cbapi.CbThreatHunterAPI): CBAPI ThreatHunter API to push reports to Carbon Black Cloud.
+
+    Attributes:
+        SEVERITY_RANGE (int): Highest severity value expected from Analysis Engine for an IOC.
+            Value should be between 1-10, to comply with Carbon Black Cloud Report requirements.
+
     """
+
+    SEVERITY_RANGE = 10
 
     def __init__(self, engine_name, state_manager, cbth):
         """Engine Results Handler Constructor"""
@@ -43,11 +51,11 @@ class EngineResults:
         self.state_manager = state_manager
         self.cbth = cbth
         # Create range of report levels
-        self.iocs = list(list() for i in range(SEVERITY_RANGE))
+        self.iocs = list(list() for i in range(self.SEVERITY_RANGE))
 
     def _validate_response(self, engine_response):
         """
-        Validate the analysis response from engine against EngineResponseSchema
+        Validates the analysis response from engine against EngineResponseSchema
 
         Args:
             engine_response (EngineResponseSchema): Analysis from engine
@@ -65,15 +73,15 @@ class EngineResults:
                           f" of hash {engine_response['binary_hash']}")
                 return False
         except (SchemaError, KeyError, TypeError) as e:
-            log.error(f"Analysis engine reponse does not conform to EngineResponseSchema: {e}")
+            log.error(f"Analysis engine response does not conform to EngineResponseSchema: {e}")
             return False
 
     def _store_ioc(self, ioc):
         """
-        Store IOC in internal list
+        Stores IOC in internal list
 
         Args:
-            ioc (JSON): IOC to add to internal list
+            ioc (Dict): IOC to add to internal list
 
         Returns:
             bool: True if IOC was added to internal list successfully,
@@ -81,7 +89,7 @@ class EngineResults:
         """
         try:
             severity = ioc.get("severity", None)
-            if (severity is not None and isinstance(severity, int) and severity > 0 and severity <= SEVERITY_RANGE):
+            if (severity is not None and isinstance(severity, int) and severity > 0 and severity <= self.SEVERITY_RANGE):
                 del ioc["severity"]
                 self.iocs[severity - 1].append(ioc)
                 return True
@@ -92,7 +100,7 @@ class EngineResults:
 
     def _accept_report(self, engine_name, iocs):
         """
-        Add Report IOCs returned from Analysis Engine to report_item and self.iocs lists
+        Adds Report IOCs returned from Analysis Engine to report_item and self.iocs lists
 
         Args:
             engine_name (str): Name of the engine that performed analysis
@@ -103,12 +111,14 @@ class EngineResults:
                     False otherwise
         """
         try:
+            # multiple IOCs
             if isinstance(iocs, list):
                 for ioc in iocs:
                     IOCV2Schema.validate(ioc)
                     self.state_manager.add_report_item(ioc["severity"], engine_name, ioc)
                     self._store_ioc(ioc)
                 return True
+            # single IOC
             elif isinstance(iocs, dict):
                 IOCV2Schema.validate(ioc)
                 self.state_manager.add_report_item(ioc["severity"], engine_name, ioc)
@@ -120,7 +130,7 @@ class EngineResults:
 
     def _update_state(self, binary_hash, engine_name):
         """
-        Update the checkpoint of binary_hash in state_manager to 'DONE'
+        Updates the checkpoint of binary_hash in state_manager to 'DONE'
 
         Args:
             binary_hash (str): Hash to update checkpoint for
@@ -139,7 +149,7 @@ class EngineResults:
 
     def receive_response(self, engine_response):
         """
-        Use private functions to validate engine response, update state, store IOCs
+        Initiates EngineResponse validation, adding IOCs to self.iocs, and updating the state checkpoint.
 
         Args:
             engine_response (EngineResponseSchema): Analysis from engine
@@ -159,7 +169,7 @@ class EngineResults:
 
     def _send_reports(self, feed_id):
         """
-        Send IOCs in stored list to feed
+        Sends IOCs in stored list to Carbon Black Cloud feed, specified by `feed_id`
 
         Args:
             feed_id (str): The id of the feed that the report will be published too
@@ -172,7 +182,7 @@ class EngineResults:
             # if there are no reports in self.iocs, there's nothing to send
             if all([not report for report in self.iocs]):
                 return False
-            for sev in range(SEVERITY_RANGE):
+            for sev in range(self.SEVERITY_RANGE):
                 if len(self.iocs[sev]) > 0:
                     now = time.time()
                     report_meta = {
@@ -197,7 +207,7 @@ class EngineResults:
 
     def send_reports(self, feed_id):
         """
-        Initiate sending reports to feed
+        Initiates sending reports from self.iocs list to feed
 
         Args:
             feed_id (str): Feed to send reports to

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Schemas for ReportActor"""
+"""Schemas for Engine Results component"""
 
 from schema import And, Or, Optional, Schema
 

@@ -156,7 +156,9 @@ def test_validate_response_invalid_1(engine_results, engine_response):
 
 
 @pytest.mark.parametrize("engine_response", [
-    copy.deepcopy(MESSAGE_VALID)
+    copy.deepcopy(MESSAGE_VALID),
+    copy.deepcopy(MESSAGE_VALID_1),
+    copy.deepcopy(MESSAGE_VALID_2)
 ])
 def test_execution(state_manager, engine_results, engine_response):
     """Test end to end execution of EngineResults class."""
@@ -171,7 +173,7 @@ def test_execution(state_manager, engine_results, engine_response):
     copy.deepcopy(ENGINE_FAILURE)
 ])
 def test_execution_fail(engine_results, engine_response):
-    """Test rasing exception on end to end execution failure."""
+    """Test raising exception on end to end execution failure."""
     assert not engine_results.receive_response(engine_response)
 
 
