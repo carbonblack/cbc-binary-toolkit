@@ -141,7 +141,7 @@ def test_accept_report_invalid(state_manager, engine_results, engine_response):
 def test_store_ioc(cbapi_mock, state_manager, engine_results, input):
     """Test _store_ioc"""
     for ioc in input:
-        assert engine_results._store_ioc(ioc)
+        assert engine_results._store_ioc(ioc, ENGINE_NAME)
 
 
 @pytest.mark.parametrize("input", [
@@ -182,9 +182,9 @@ def test_store_ioc_invalid(cbapi_mock, state_manager, engine_results, input):
     """Test _store_ioc with invalid inputs"""
     if input:
         for ioc in input:
-            assert not engine_results._store_ioc(ioc)
+            assert not engine_results._store_ioc(ioc, ENGINE_NAME)
     else:
-        assert not engine_results._store_ioc(input)
+        assert not engine_results._store_ioc(input, ENGINE_NAME)
 
 
 @pytest.mark.parametrize("engine_response", [

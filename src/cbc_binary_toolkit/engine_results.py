@@ -82,7 +82,7 @@ class EngineResults:
             log.error(f"Analysis engine response does not conform to EngineResponseSchema: {e}")
             return False
 
-    def _store_ioc(self, ioc):
+    def _store_ioc(self, ioc, engine_name):
         """
         Stores IOC in internal list
 
@@ -98,6 +98,7 @@ class EngineResults:
             if (severity is not None and isinstance(severity, int) and severity > 0 and severity <= self.SEVERITY_RANGE):
                 del ioc["severity"]
                 self.iocs[severity - 1].append(ioc)
+                self.state_manager.add_report_item(severity, engine_name, ioc)
                 return True
             log.error("Severity not provide with IOC")
         except AttributeError as e:
@@ -113,25 +114,22 @@ class EngineResults:
             iocs (list OR dict): IOC(s) to add to the state manager
 
         Returns:
-            bool: True if the IOC(s) were added to the state manager,
+            bool: True if the IOC(s) were added to the state manager and internal list,
                     False otherwise
         """
         try:
-            # multiple IOCs
+            success = True
             if isinstance(iocs, list):
                 for ioc in iocs:
                     IOCV2Schema.validate(ioc)
-                    sev = ioc["severity"]
-                    self._store_ioc(ioc)  # IOC severity key is deleted when storing
-                    self.state_manager.add_report_item(sev, engine_name, ioc)
-                return True
-            # single IOC
+                    if not self._store_ioc(ioc, engine_name):
+                        success = False
+                return success
             elif isinstance(iocs, dict):
                 IOCV2Schema.validate(iocs)
-                sev = ioc["severity"]
-                self._store_ioc(iocs)  # IOC severity key is deleted when storing
-                self.state_manager.add_report_item(ioc["severity"], engine_name, iocs)
-                return True
+                if not self._store_ioc(iocs, engine_name):
+                    success = False
+                return success
         except SchemaError as e:
             log.error(f"Error caught when trying to add a report item (IOC record) to stored list: {e}")
         return False
