@@ -23,11 +23,17 @@ class EngineResults:
     """
     Engine Results Handler
 
-    Validates an EngineResponse.
-    Validates and manages IOCs (Threat Intelligence) from the Analysis Engines.
-    Updates state checkpoint of an analyzed binary hash to 'DONE'.
-    Adds IOCs from an EngineResponse to stored list.
-    Sends reports with IOCs to Carbon Black Cloud.
+    Require Properties:
+        engine_name (str): The name of the engine analysis is coming from
+        state_manager (cbc_binary_toolkit.state.manager): State management component
+        cbth (CbThreatHunterAPI): CBAPI ThreatHunter API to push reports to Carbon Black Cloud
+
+    Description:
+        Validates an EngineResponse
+        Validates and manages IOCs (Threat Intelligence) from the Analysis Engines
+        Updates state checkpoint to 'DONE' for an EngineResponse
+        Adds IOCs from an EngineResponse to stored list
+        Sends reports with IOCs to Carbon Black Cloud
 
     Note:
         IOCs are grouped by severity to increase performance on Carbon Black Cloud
@@ -76,7 +82,7 @@ class EngineResults:
             log.error(f"Analysis engine response does not conform to EngineResponseSchema: {e}")
             return False
 
-    def _store_ioc(self, ioc):
+    def _store_ioc(self, ioc, engine_name):
         """
         Stores IOC in internal list
 
@@ -92,6 +98,7 @@ class EngineResults:
             if (severity is not None and isinstance(severity, int) and severity > 0 and severity <= self.SEVERITY_RANGE):
                 del ioc["severity"]
                 self.iocs[severity - 1].append(ioc)
+                self.state_manager.add_report_item(severity, engine_name, ioc)
                 return True
             log.error("Severity not provide with IOC")
         except AttributeError as e:
@@ -107,23 +114,22 @@ class EngineResults:
             iocs (list OR dict): IOC(s) to add to the state manager
 
         Returns:
-            bool: True if the IOC(s) were added to the state manager,
+            bool: True if the IOC(s) were added to the state manager and internal list,
                     False otherwise
         """
         try:
-            # multiple IOCs
+            success = True
             if isinstance(iocs, list):
                 for ioc in iocs:
                     IOCV2Schema.validate(ioc)
-                    self.state_manager.add_report_item(ioc["severity"], engine_name, ioc)
-                    self._store_ioc(ioc)
-                return True
-            # single IOC
+                    if not self._store_ioc(ioc, engine_name):
+                        success = False
+                return success
             elif isinstance(iocs, dict):
-                IOCV2Schema.validate(ioc)
-                self.state_manager.add_report_item(ioc["severity"], engine_name, ioc)
-                self._store_ioc(ioc)
-                return True
+                IOCV2Schema.validate(iocs)
+                if not self._store_ioc(iocs, engine_name):
+                    success = False
+                return success
         except SchemaError as e:
             log.error(f"Error caught when trying to add a report item (IOC record) to stored list: {e}")
         return False
@@ -181,6 +187,7 @@ class EngineResults:
         try:
             # if there are no reports in self.iocs, there's nothing to send
             if all([not report for report in self.iocs]):
+                log.error("No reports to send")
                 return False
             for sev in range(self.SEVERITY_RANGE):
                 if len(self.iocs[sev]) > 0:
@@ -213,7 +220,7 @@ class EngineResults:
             feed_id (str): Feed to send reports to
 
         Returns:
-            reports_sent (bool): True if all reports from interal list were sent successfully,
+            reports_sent (bool): True if all reports from internal list were sent successfully,
                                     False otherwise
         """
         reports_sent = False
@@ -221,3 +228,15 @@ class EngineResults:
             log.info(f"Sending reports to feed: {feed_id}")
             reports_sent = self._send_reports(feed_id)
         return reports_sent
+
+    def reload(self):
+        """Load unsent IOCs from the database and add them to internal list"""
+        try:
+            for severity in range(self.SEVERITY_RANGE):
+                iocs = self.state_manager.get_current_report_items(severity + 1, self.engine_name)
+                self.iocs[severity].extend(iocs)
+            log.debug("IOCs successfully reloaded from database into internal list")
+            return True
+        except Exception as e:
+            log.error(f"Error while reloading IOCs from database: {e}")
+            return False

@@ -35,6 +35,44 @@ hashes = ["6c4eb3c9e0f478b2d19a329687d113ba92c90a17d0caa6c40247a5afff31f0cd",
 not_found_hashes = ["6c4eb3c9e0f478b2d19a329687d113ba92c90a17d0caa6c40247a5afff31f0cd"]
 
 
+# ==================================== UNIT TESTS BELOW ====================================
+
+
+@pytest.mark.parametrize("input", [
+    {"not": "something"},
+    {"url": "missingthesha256key"},
+    {"sha256": "missingtheurlkey"},
+    True,
+    None,
+    ["alist"],
+    ["url", "sha256"]]
+)
+def test_download_binary_metadata_invalid(cbapi_mock, input):
+    """Unit test _download_binary_metadata function for invalid inputs."""
+    assert _download_binary_metadata(cbapi_mock.api, input) == {}
+
+
+def test_validate_download_empty(cbapi_mock):
+    """Unit test _validate_download function with empty input."""
+    assert _validate_download(cbapi_mock.api, None, 60) == (None, None)
+
+
+@pytest.mark.parametrize("found_hashes", [
+    {"something": "wedontwant"},
+    {},
+    None,
+    "invalid",
+    0,
+    {"sha256": "some_hash", "url": None}]
+)
+def test_get_metadata_invalid(cbapi_mock, found_hashes):
+    """Unit test get_metadata function with empty input."""
+    assert get_metadata(cbapi_mock.api, found_hashes) == {}
+
+
+# ==================================== INTEGRATION TESTS BELOW ====================================
+
+
 @pytest.mark.parametrize("hashes", [
     hashes]
 )
@@ -47,10 +85,16 @@ def test_download_hashes(cbapi_mock, hashes):
     assert len(hash_dl.error) == 0
 
 
-def test_download_hashes_invalid(cbapi_mock):
+@pytest.mark.parametrize("input", [
+    [],
+    None,
+    (),
+    0
+])
+def test_download_hashes_invalid(cbapi_mock, input):
     """Unit test _download_hashes function with empty input."""
     cbapi_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download", None)
-    found_hashes = download_hashes(cbapi_mock.api, [])
+    found_hashes = download_hashes(cbapi_mock.api, input)
     assert found_hashes is None
 
 
@@ -101,26 +145,6 @@ def test_download_binary_metadata_not_found(cbapi_mock, hashes):
         assert retry is None
 
 
-@pytest.mark.parametrize("input", [
-    {"not": "something"},
-    {"url": "missingthesha256key"},
-    {"sha256": "missingtheurlkey"},
-    True,
-    None,
-    ["alist"],
-    ["url", "sha256"]]
-)
-def test_download_binary_metadata_invalid(cbapi_mock, input):
-    """Unit test _download_binary_metadata function for invalid inputs."""
-    if isinstance(input, dict):
-        with pytest.raises(KeyError):
-            metadl = _download_binary_metadata(cbapi_mock.api, input)
-            assert metadl is None
-    else:
-        with pytest.raises(ValueError):
-            assert _download_binary_metadata(cbapi_mock.api, input) is None
-
-
 @pytest.mark.parametrize("hashes", [
     hashes]
 )
@@ -161,11 +185,6 @@ def test_validate_download_not_found(cbapi_mock, hashes):
         assert retry is None
 
 
-def test_validate_download_empty(cbapi_mock):
-    """Unit test _validate_download function with empty input."""
-    assert _validate_download(cbapi_mock.api, None, 60) == (None, None)
-
-
 @pytest.mark.parametrize("hashes", [
     hashes]
 )
@@ -200,15 +219,6 @@ def test_get_metadata(cbapi_mock, hashes):
         assert key in METADATA_VALID
 
 
-@pytest.mark.parametrize("found_hashes", [
-    {"something": "wedontwant"},
-    {}]
-)
-def test_get_metadata_invalid(cbapi_mock, found_hashes):
-    """Unit test get_metadata function with empty input."""
-    assert get_metadata(cbapi_mock.api, found_hashes) == {}
-
-
 @pytest.mark.parametrize("hashes", [
     hashes,
     not_found_hashes]
@@ -219,6 +229,7 @@ def test_redownload_class_only_errors(cbapi_mock, hashes):
     cbapi_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download", FILE_DOWNLOAD_ERROR)
     redownload.redownload()
     assert len(redownload.found) == 0
+    assert len(redownload.not_found) == 0
 
 
 @pytest.mark.parametrize("hashes", [
@@ -243,5 +254,6 @@ def test_redownload_class_all_types(cbapi_mock, hashes):
     assert len(redownload.found) == 0
     cbapi_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download", FILE_DOWNLOAD_ALL)
     redownload.redownload()
-    assert len(redownload.found) == 16
+    assert len(redownload.found) == 5
+    assert len(redownload.not_found) == 5
     assert redownload.attempt_num == 5

@@ -72,7 +72,8 @@ def engine_results(state_manager, cb_threat_hunter):
     return EngineResults(ENGINE_NAME, state_manager, cb_threat_hunter)
 
 
-# ==================================== TESTS BELOW ====================================
+# ==================================== UNIT TESTS BELOW ====================================
+
 
 def test_init(state_manager, cb_threat_hunter, engine_results):
     """Test creation of engine results."""
@@ -97,27 +98,9 @@ def test_update_state(state_manager, engine_results, engine_response):
     copy.deepcopy(UNFINISHED_STATE)
 ])
 def test_update_state_invalid(state_manager, engine_results, engine_response):
-    """Test raising exception on _update_state failure."""
-    with pytest.raises(Exception):
+    """Test exception catching _update_state failure."""
+    with pytest.raises(KeyError):
         assert not engine_results._update_state(engine_response["binary_hash"], engine_response["iocs"])
-
-
-@pytest.mark.parametrize("engine_response", [
-    copy.deepcopy(MESSAGE_VALID),
-    copy.deepcopy(MESSAGE_VALID_1),
-    copy.deepcopy(MESSAGE_VALID_2)
-])
-def test_accept_report(state_manager, engine_results, engine_response):
-    """Test accepting a report/adding it to the state_manager's list."""
-    engine_name = engine_response["engine_name"]
-    assert engine_results._accept_report(engine_name, engine_response["iocs"])
-    current_report_items = []
-    for severity in range(1, 11):
-        current_report_items.extend(state_manager.get_current_report_items(severity, engine_name))
-    assert len(current_report_items) == len(engine_response["iocs"])
-    for report in current_report_items:
-        del report["severity"]
-        assert report in engine_response["iocs"]
 
 
 @pytest.mark.parametrize("engine_response", [
@@ -125,8 +108,83 @@ def test_accept_report(state_manager, engine_results, engine_response):
     {"engine_name": "Test", "iocs": copy.deepcopy(IOCS_INVALID)}
 ])
 def test_accept_report_invalid(state_manager, engine_results, engine_response):
-    """Test raising exception on _accept_report failure."""
+    """Test exception catching on _accept_report failure."""
     assert not engine_results._accept_report(engine_response["engine_name"], engine_response["iocs"])
+
+
+@pytest.mark.parametrize("input", [
+    [{
+        "id": "j39sbv7",
+        "match_type": "equality",
+        "values": ["127.0.0.1"],
+        "severity": 1,
+    }],
+    [{
+        "id": "j39sbv7",
+        "match_type": "equality",
+        "values": ["127.0.0.1"],
+        "severity": 1,
+    },
+        {
+        "id": "slkf038",
+        "match_type": "equality",
+        "values": ["app.exe"],
+        "severity": 10,
+    },
+        {
+        "id": "0kdl4uf9",
+        "match_type": "regex",
+        "values": [".*google.*"],
+        "severity": 3,
+    }],
+])
+def test_store_ioc(cbapi_mock, state_manager, engine_results, input):
+    """Test _store_ioc"""
+    for ioc in input:
+        assert engine_results._store_ioc(ioc, ENGINE_NAME)
+
+
+@pytest.mark.parametrize("input", [
+    None,
+    {},
+    "INVALID",
+    {
+        "match_type": "equality",
+        "values": ["127.0.0.1"],
+        "severity": 1,
+    },
+    {
+        "id": "slkf038",
+        "match_type": "equality",
+        "values": ["127.0.0.1"],
+        "severity": 20,
+    },
+    {
+        "id": "slkf038",
+        "match_type": "equality",
+        "values": ["127.0.0.1"],
+        "severity": -5,
+    },
+    {
+        "id": "slkf038",
+        "match_type": "UNKNOWN",
+        "values": ["127.0.0.1"],
+        "severity": 10,
+    },
+    {
+        "id": "slkf038",
+        "match_type": "regex",
+        "values": "127.0.0.1",
+        "severity": 10,
+    }
+])
+def test_store_ioc_invalid(cbapi_mock, state_manager, engine_results, input):
+    """Test _store_ioc with invalid inputs"""
+    if input:
+        for ioc in input:
+            assert not engine_results._store_ioc(ioc, ENGINE_NAME)
+    else:
+        assert not engine_results._store_ioc(input, ENGINE_NAME)
 
 
 @pytest.mark.parametrize("engine_response", [
@@ -151,7 +209,7 @@ def test_validate_response_invalid(engine_results, engine_response):
     copy.deepcopy(ENGINE_FAILURE)
 ])
 def test_validate_response_invalid_1(engine_results, engine_response):
-    """Test raising exception on _validate_response failure.."""
+    """Test exception catching on _validate_response failure.."""
     assert not engine_results._validate_response(engine_response)
 
 
@@ -173,8 +231,28 @@ def test_execution(state_manager, engine_results, engine_response):
     copy.deepcopy(ENGINE_FAILURE)
 ])
 def test_execution_fail(engine_results, engine_response):
-    """Test raising exception on end to end execution failure."""
+    """Test exception catching on end to end execution failure."""
     assert not engine_results.receive_response(engine_response)
+
+
+# ==================================== INTEGRATION TESTS BELOW ====================================
+
+
+@pytest.mark.parametrize("engine_response", [
+    copy.deepcopy(MESSAGE_VALID),
+    copy.deepcopy(MESSAGE_VALID_1),
+    copy.deepcopy(MESSAGE_VALID_2)
+])
+def test_accept_report(state_manager, engine_results, engine_response):
+    """Test accepting a report/adding it to the state_manager's list."""
+    engine_name = engine_response["engine_name"]
+    assert engine_results._accept_report(engine_name, engine_response["iocs"])
+    current_report_items = []
+    for severity in range(1, 11):
+        current_report_items.extend(state_manager.get_current_report_items(severity, engine_name))
+    assert len(current_report_items) == len(engine_response["iocs"])
+    for report in current_report_items:
+        assert report in engine_response["iocs"]
 
 
 @pytest.mark.parametrize("input", [
@@ -183,7 +261,7 @@ def test_execution_fail(engine_results, engine_response):
     copy.deepcopy(IOCS_3)
 ])
 def test_send_reports(cbapi_mock, state_manager, engine_results, input):
-    """Test _send_reports"""
+    """Test _send_reports, verifying that state_manager shows no reports after sending"""
     input_with_severity = copy.deepcopy(input)  # severity is removed when accepting report
     assert engine_results._accept_report(ENGINE_NAME, input)
 
@@ -245,8 +323,7 @@ def test_send_reports(cbapi_mock, state_manager, engine_results, input):
 ])
 def test_send_reports_invalid(cbapi_mock, state_manager, engine_results, input):
     """Test _send_reports with invalid inputs"""
-    with pytest.raises(TypeError):
-        assert not engine_results._accept_report(input)
+    assert not engine_results._accept_report(ENGINE_NAME, input)
     valid = engine_results._send_reports(FEED_ID)
     assert valid is False
 
@@ -276,76 +353,23 @@ def test_send_reports_404(cbapi_mock, state_manager, engine_results, input):
     sent = engine_results.send_reports('FAKE_FEED_ID')
     assert not sent
 
-@pytest.mark.parametrize("input", [
-    [{
-        "id": "j39sbv7",
-        "match_type": "equality",
-        "values": ["127.0.0.1"],
-        "severity": 1,
-    }],
-    [{
-        "id": "j39sbv7",
-        "match_type": "equality",
-        "values": ["127.0.0.1"],
-        "severity": 1,
-    },
-        {
-        "id": "slkf038",
-        "match_type": "equality",
-        "values": ["app.exe"],
-        "severity": 10,
-    },
-        {
-        "id": "0kdl4uf9",
-        "match_type": "regex",
-        "values": [".*google.*"],
-        "severity": 3,
-    }],
+
+@pytest.mark.parametrize("engine_response", [
+    copy.deepcopy(MESSAGE_VALID),
+    copy.deepcopy(MESSAGE_VALID_1),
+    copy.deepcopy(MESSAGE_VALID_2)
 ])
-def test_store_ioc(cbapi_mock, state_manager, engine_results, input):
-    """Test _store_ioc"""
-    for ioc in input:
-        assert engine_results._store_ioc(ioc)
+def test_reload(state_manager, engine_results, engine_response):
+    """Test reloading unsent reports from state manager and sending them"""
+    iocs = engine_response["iocs"]
+    for ioc in iocs:
+        state_manager.add_report_item(ioc["severity"], ENGINE_NAME, ioc)
+    assert engine_results.reload()
+    for sev in range(10):
+        num_iocs_for_sev = state_manager.get_current_report_items(sev+1, ENGINE_NAME)
+        assert len(num_iocs_for_sev) == len(engine_results.iocs[sev])
 
 
-@pytest.mark.parametrize("input", [
-    None,
-    {},
-    "INVALID",
-    {
-        "match_type": "equality",
-        "values": ["127.0.0.1"],
-        "severity": 1,
-    },
-    {
-        "id": "slkf038",
-        "match_type": "equality",
-        "values": ["127.0.0.1"],
-        "severity": 20,
-    },
-    {
-        "id": "slkf038",
-        "match_type": "equality",
-        "values": ["127.0.0.1"],
-        "severity": -5,
-    },
-    {
-        "id": "slkf038",
-        "match_type": "UNKNOWN",
-        "values": ["127.0.0.1"],
-        "severity": 10,
-    },
-    {
-        "id": "slkf038",
-        "match_type": "regex",
-        "values": "127.0.0.1",
-        "severity": 10,
-    }
-])
-def test_store_ioc_invalid(cbapi_mock, state_manager, engine_results, input):
-    """Test _store_ioc with invalid inputs"""
-    if input:
-        for ioc in input:
-            assert not engine_results._store_ioc(ioc)
-    else:
-        assert not engine_results._store_ioc(input)
+def test_reload_empty(engine_results):
+    """Test reloading without items in the database"""
+    assert engine_results.reload()

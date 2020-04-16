@@ -3,6 +3,7 @@
 
 from cbapi.psc.threathunter.models import Binary, Downloads
 import logging
+import copy
 
 log = logging.getLogger(__name__)
 
@@ -47,19 +48,20 @@ class RedownloadHashes:
         self.attempt_num += 1
         # save any hashes found on the first retry
         if download["found"]:
-            self.found = download["found"]
+            self.found = copy.deepcopy(download["found"])  # len 1
 
         if download["not_found"]:
-            self.not_found = download["not_found"]
+            self.not_found = copy.deepcopy(download["not_found"])  # len 1
 
         while download["error"] and self.attempt_num < self.RETRY_LIMIT:
-            body["sha256"] = download["error"]
+            body["sha256"] = copy.deepcopy(download["error"])
             download = self.cb.post_object(url, body).json()
 
             if download["found"]:
-                self.found.extend(download["found"])
+                self.found.extend(copy.deepcopy(download["found"]))
+
             if download["not_found"]:
-                self.not_found.extend(download["not_found"])
+                self.not_found.extend(copy.deepcopy(download["not_found"]))
 
             self.attempt_num += 1
 
@@ -91,9 +93,7 @@ def _download_hashes(cbth, hashes, expiration_seconds):
         return downloads
     except Exception as err:
         log.error(f"Error downloading hashes from Unified Binary Store: {err}")
-        raise
-        return
-
+        return None
 
 def _download_binary_metadata(cbth, found_binary):
     """
@@ -105,7 +105,7 @@ def _download_binary_metadata(cbth, found_binary):
 
     Returns:
         binary_metadata (Dict): Metadata dictionary downloaded from Unified Binary Store.
-        None if download for binary metadata failed.
+        Empty dictionary if download for binary metadata failed.
 
     """
     if isinstance(found_binary, dict):
@@ -118,12 +118,10 @@ def _download_binary_metadata(cbth, found_binary):
             return binary_metadata
         except Exception as err:
             log.error(f"Error downloading binary metadata from Unified Binary Store: {err}")
-            raise
-            return
+            return {}
     else:
         log.error("found_binary input to _download_binary_metadata must be a Dictionary with url and sha256 keys")
-        raise ValueError
-        return None
+        return {}
 
 
 def _validate_download(cbth, download, expiration_seconds):
@@ -213,10 +211,10 @@ def get_metadata(cbth, binary):
     """
     if not binary:
         log.error("Received empty binary object.")
-        return dict()
+        return {}
     else:
         try:
             return _download_binary_metadata(cbth, binary)
         except Exception as err:
             log.error(f"Failed to download metadata: {err}")
-            return dict()
+            return {}
