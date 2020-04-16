@@ -152,6 +152,15 @@ def test_report_items(local_config):
     _test_check_report_items(manager.get_current_report_items(9, 'default'), 'keyval', [])
 
 
+def test_report_item_doubling(local_config):
+    """Test that, when we add the same data to the report items twice, we get two copies."""
+    manager = StateManager(local_config)
+    manager.add_report_item(6, 'default', {'keyval': 42})
+    manager.add_report_item(6, 'default', {'keyval': 42})
+    returned_list = manager.get_current_report_items(6, 'default')
+    assert returned_list == [{'keyval': 42}, {'keyval': 42}]
+
+
 def test_report_items_nodata(local_config):
     """Tests the extraction of report items when there are none in the database."""
     manager = StateManager(local_config)
