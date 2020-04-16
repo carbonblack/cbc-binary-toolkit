@@ -11,7 +11,7 @@ from cbc_binary_toolkit.cli_input import read_json
 from cbc_binary_toolkit.config import Config
 from cbc_binary_toolkit.engine import LocalEngineManager
 from cbc_binary_toolkit.state import StateManager
-from cbc_binary_toolkit.schemas import BinaryMetadataSchema, EngineResponseSchema, IOCv2SEVSchema, ReportSchema
+from cbc_binary_toolkit.schemas import BinaryMetadataSchema, EngineResponseSchema, IOCv2Schema, ReportSchema
 
 from tests.component.ubs_fixtures.CBAPIMock import CBAPIMock
 from tests.component.ubs_fixtures.metadata import HASH_METADATA
@@ -163,7 +163,7 @@ def test_integration_results(cbapi_mock, local_engine_manager, engine_results, s
         METADATA_DOWNLOAD_RESP["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4"])
 
     engine_results.receive_response(result)
-    assert IOCv2SEVSchema.validate(state_manager._persistor.iocs[0][ENGINE_NAME][0])
+    assert IOCv2Schema.validate(state_manager._persistor.iocs[0][ENGINE_NAME][0])
 
     engine_results.send_reports(FEED_ID)
     assert ReportSchema.validate(cbapi_mock._last_request_data)
