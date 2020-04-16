@@ -232,7 +232,7 @@ class EngineResults:
     def reload(self):
         """Load unsent IOCs from the database and add them to internal list"""
         try:
-            for severity in range(SEVERITY_RANGE):
+            for severity in range(self.SEVERITY_RANGE):
                 iocs = self.state_manager.get_current_report_items(severity + 1, self.engine_name)
                 self.iocs[severity].extend(iocs)
             log.debug("IOCs successfully reloaded from database into internal list")
