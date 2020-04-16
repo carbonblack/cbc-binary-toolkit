@@ -165,6 +165,8 @@ def local_config():
     """)
 
 
+# ==================================== Unit TESTS BELOW ====================================
+
 def test_set_checkpoint(local_config):
     """Test the set_checkpoint() API."""
     manager = StateManager(local_config)

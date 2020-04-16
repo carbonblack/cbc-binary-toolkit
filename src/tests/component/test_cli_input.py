@@ -33,6 +33,8 @@ def attach_path(path):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), path)
 
 
+# ==================================== Unit TESTS BELOW ====================================
+
 class TestInputFunctions():
     """Unit tests for input.py functions"""
     @pytest.mark.parametrize("input_file_path, answer_file_path", [

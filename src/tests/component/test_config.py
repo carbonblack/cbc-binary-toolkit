@@ -7,6 +7,9 @@ from cbc_binary_toolkit.config import Config
 from cbc_binary_toolkit.config.errors import ConfigError
 
 
+# ==================================== Unit TESTS BELOW ====================================
+
+
 def test_load_valid_config():
     """Test the load of a valid configuration."""
     cfg = Config.load("""

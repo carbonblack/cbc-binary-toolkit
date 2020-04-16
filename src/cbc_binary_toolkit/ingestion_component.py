@@ -27,6 +27,7 @@ class IngestionComponent:
     Attributes:
         DEFAULT_EXPIRATION (int): How long generated binary AWS download links
             will stay valid, in seconds.
+
     """
     DEFAULT_EXPIRATION = 3600
 
@@ -42,6 +43,7 @@ class IngestionComponent:
 
         Returns:
             List(Dict) of hash metadata.
+
         """
         engine_name = self.config.string("engine.name")
         unfinished_hashes = self.state_manager.get_unfinished_hashes(engine_name)

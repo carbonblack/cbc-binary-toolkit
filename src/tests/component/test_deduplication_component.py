@@ -42,6 +42,9 @@ def equivalent(list1, list2):
     return True
 
 
+# ==================================== Unit TESTS BELOW ====================================
+
+
 @pytest.mark.parametrize(["input_list", "previous_list", "result_list"], [
     (["ABCD", "DEFG", "JKLM"], ["ABCD", "CDEF"], ["DEFG", "JKLM"]),
     (["ABCD", "DEFG", "JKLM"], ["ABCD", "DEFG"], ["JKLM"]),

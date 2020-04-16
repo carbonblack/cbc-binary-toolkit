@@ -95,6 +95,7 @@ def _download_hashes(cbth, hashes, expiration_seconds):
         log.error(f"Error downloading hashes from Unified Binary Store: {err}")
         return None
 
+
 def _download_binary_metadata(cbth, found_binary):
     """
     Retrieve metadata for a binary found in the Unified Binary Store.

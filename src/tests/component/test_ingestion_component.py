@@ -85,7 +85,7 @@ def cbapi_mock(monkeypatch, cb_threat_hunter):
     return cbapi_mock
 
 
-# ==================================== TESTS BELOW ====================================
+# ==================================== Unit TESTS BELOW ====================================
 
 
 @pytest.mark.parametrize("input", [

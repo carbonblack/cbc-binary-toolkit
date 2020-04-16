@@ -11,8 +11,10 @@ from cbc_binary_toolkit.ubs import (_download_hashes,
 from cbapi.psc.threathunter import CbThreatHunterAPI
 from tests.component.ubs_fixtures.metadata import METADATA_VALID
 from tests.component.ubs_fixtures.CBAPIMock import CBAPIMock
-from tests.component.ubs_fixtures.filedownload import (FILE_DOWNLOAD_RESP, METADATA_DOWNLOAD_RESP,
-                                                  FILE_DOWNLOAD_ERROR, FILE_DOWNLOAD_ALL)
+from tests.component.ubs_fixtures.filedownload import (FILE_DOWNLOAD_RESP,
+                                                       METADATA_DOWNLOAD_RESP,
+                                                       FILE_DOWNLOAD_ERROR,
+                                                       FILE_DOWNLOAD_ALL)
 
 
 @pytest.fixture(scope="session")

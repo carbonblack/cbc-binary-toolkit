@@ -36,6 +36,8 @@ from tests.component.schema_fixtures.mock_data import (
     MISSING_PROPERTIES_REPORT
 )
 
+# ==================================== Unit TESTS BELOW ====================================
+
 
 @pytest.mark.parametrize("input", [
     VALID_BINARY_METADATA

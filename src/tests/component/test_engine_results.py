@@ -14,15 +14,15 @@ from cbc_binary_toolkit.config import Config
 from cbapi.psc.threathunter import CbThreatHunterAPI
 from tests.component.ubs_fixtures.CBAPIMock import CBAPIMock
 from tests.component.engine_fixtures.messages import (MESSAGE_VALID,
-                                                 MESSAGE_VALID_1,
-                                                 MESSAGE_VALID_2,
-                                                 MESSAGE_INVALID,
-                                                 ENGINE_FAILURE,
-                                                 IOCS_1,
-                                                 IOCS_2,
-                                                 IOCS_3,
-                                                 IOCS_INVALID,
-                                                 UNFINISHED_STATE)
+                                                      MESSAGE_VALID_1,
+                                                      MESSAGE_VALID_2,
+                                                      MESSAGE_INVALID,
+                                                      ENGINE_FAILURE,
+                                                      IOCS_1,
+                                                      IOCS_2,
+                                                      IOCS_3,
+                                                      IOCS_INVALID,
+                                                      UNFINISHED_STATE)
 
 ENGINE_NAME = "TEST_ENGINE"
 FEED_ID = "TEST_FEED_ID"

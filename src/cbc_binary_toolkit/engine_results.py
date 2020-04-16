@@ -97,7 +97,7 @@ class EngineResults:
         """
         try:
             severity = ioc.get("severity", None)
-            if (severity is not None and isinstance(severity, int) and severity > 0 and severity <= self.SEVERITY_RANGE):
+            if isinstance(severity, int) and severity > 0 and severity <= self.SEVERITY_RANGE:
                 del ioc["severity"]
                 self.iocs[severity - 1].append(ioc)
                 self.state_manager.add_report_item(severity, engine_name, ioc)
@@ -118,6 +118,7 @@ class EngineResults:
         Returns:
             bool: True if the IOC(s) were added to the state manager and internal list,
                     False otherwise
+
         """
         try:
             success = True
@@ -227,6 +228,7 @@ class EngineResults:
         Returns:
             reports_sent (bool): True if all reports from internal list were sent successfully,
                                     False otherwise
+
         """
         reports_sent = False
         if isinstance(feed_id, str):
