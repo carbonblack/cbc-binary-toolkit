@@ -34,11 +34,11 @@ class LocalEngineManager():
         if not self.config.get("engine.local"):
             raise InitializationError
         self.engine_factory = dynamic_create(self.config.string("engine._provider"))
-        self.engine = self.engine_factory.create_engine(self.config)
+        self.engine = self.engine_factory.create_engine(self.config.section("engine"))
 
     def create_engine(self):
         """Creates engine"""
-        return self.engine_factory.create_engine(self.config)
+        return self.engine_factory.create_engine(self.config.section("engine"))
 
     def analyze(self, binary_metadata):
         """Sends HashMetadata to engine"""
