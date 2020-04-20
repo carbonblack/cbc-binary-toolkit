@@ -26,8 +26,9 @@ All requirements are installed as part of `pip install` or if you're planning on
 * cbapi
 * python-dateutil
 * pyyaml
+* requests
 * schema
-* thespian
+* yara
 
 ## Getting Started
 
@@ -45,18 +46,27 @@ pip install cbc-binary-toolkit
 The cbc-binary-analysis tool provides out-of-the-box builtin resources for processing binaries and managing the analysis results.
 
 ```
-usage: cbc-binary-analysis [-h] [-C CONFIG] {analyze,clear} ...
+usage: cbc-binary-analysis [-h] [-c CONFIG]
+                           [-ll {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
+                           {analyze,restart,clear} ...
 
 positional arguments:
-  {analyze,clear}       Binary analysis commands
+  {analyze,restart,clear}
+                        Binary analysis commands
     analyze             Analyze a list of hashes by command line or file
-    clear               Clear cache of analyzed hashes
+    restart             Restart a failed job and pick up where the job crashed
+                        or exited
+    clear               Clear cache of analyzed hashes. All or by timestamp
 
 optional arguments:
   -h, --help            show this help message and exit
-  -C CONFIG, --config CONFIG
+  -c CONFIG, --config CONFIG
                         Location of the configuration file (default
-                        config/binary-analysis-config.yaml)
+                        /Users/avanbrunt/reno/Work/cb-binary-
+                        analysis/bin/../config/binary-analysis-
+                        config.yaml.example)
+  -ll {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --log-level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
+                        The base log level (default INFO)
 ```
 
 
