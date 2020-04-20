@@ -7,13 +7,10 @@ Binary analysis sdk for managing and submitting hashes
 This is the entry point for the Binary Analysis SDK
 """
 
-import logging
 import os
+import sys
 
 from cbc_binary_toolkit_examples.tools.analysis_util import AnalysisUtility
-
-LOG_LEVEL = logging.INFO
-logging.basicConfig(level=LOG_LEVEL)  # Needs converted to configuration property
 
 if "cb-binary-analysis" in os.path.dirname(os.path.realpath(__file__)):
     default_install = os.path.join(os.path.dirname(os.path.realpath(__file__)),

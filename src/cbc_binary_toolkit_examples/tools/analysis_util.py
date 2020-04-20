@@ -21,6 +21,16 @@ from cbc_binary_toolkit.state import StateManager
 
 from cbapi import CbThreatHunterAPI
 
+DEFAULT_LOG_LEVEL = "INFO"
+
+LOG_LEVELS = {
+    'CRITICAL': logging.critical,
+    'ERROR': logging.error,
+    'WARNING': logging.warning,
+    'INFO': logging.info,
+    'DEBUG': logging.debug
+}
+
 log = logging.getLogger(__name__)
 
 
@@ -36,6 +46,9 @@ class AnalysisUtility:
         self._parser = argparse.ArgumentParser()
         self._parser.add_argument("-c", "--config", type=str, default=default_install,
                                   help="Location of the configuration file (default {0})".format(default_install))
+        self._parser.add_argument("-ll", "--log-level", type=str, default="INFO",
+                                  choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+                                  help="The base log level (default {0})".format(DEFAULT_LOG_LEVEL))
 
         commands = self._parser.add_subparsers(help="Binary analysis commands", dest="command_name", required=True)
 
@@ -164,9 +177,10 @@ class AnalysisUtility:
             int: Return code from the utility (0=success, nonzero=failure).
 
         """
-        log.info("Started: {}".format(datetime.now()))
-
         args = self._parser.parse_args(cmdline_args)
+        logging.basicConfig(level=LOG_LEVELS[args.log_level])
+
+        log.info("Started: {}".format(datetime.now()))
 
         try:
             if self.config is None:
