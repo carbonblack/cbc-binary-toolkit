@@ -17,7 +17,6 @@ install_reqs = [
     "pyyaml",
     "requests",
     "schema",
-    "thespian",
     "yara"
 ]
 
@@ -26,9 +25,10 @@ setup(
     version=read("VERSION"),
     url="https://developer.carbonblack.com/",
     license="MIT",
-    author="Carbon Black",
+    author="VMware Carbon Black",
     author_email="dev-support@carbonblack.com",
-    description="Carbon Black Binary Analysis",
+    description="The VMware Carbon Black Cloud Binary Toolkit provides useful tools to process "
+                "binaries and upload IOCs to your Feeds",
     long_description=__doc__,
     platforms="any",
     classifiers=[
