@@ -12,7 +12,7 @@ import time
 import uuid
 
 from schema import SchemaError
-from .schemas import EngineResponseSchema, IOCV2Schema
+from .schemas import EngineResponseSchema, IOCv2SEVSchema
 from cbapi.psc.threathunter import Report
 from cbapi.errors import ObjectNotFoundError
 
@@ -68,7 +68,8 @@ class EngineResults:
 
         Returns:
             bool: True if engine_response adheres to EngineResponseSchema,
-                    False otherwise
+                  False otherwise
+
         """
         try:
             if engine_response["success"]:
@@ -91,11 +92,12 @@ class EngineResults:
 
         Returns:
             bool: True if IOC was added to internal list successfully,
-                    False otherwise
+                  False otherwise
+
         """
         try:
             severity = ioc.get("severity", None)
-            if (severity is not None and isinstance(severity, int) and severity > 0 and severity <= self.SEVERITY_RANGE):
+            if isinstance(severity, int) and severity > 0 and severity <= self.SEVERITY_RANGE:
                 del ioc["severity"]
                 self.iocs[severity - 1].append(ioc)
                 self.state_manager.add_report_item(severity, engine_name, ioc)
@@ -116,17 +118,18 @@ class EngineResults:
         Returns:
             bool: True if the IOC(s) were added to the state manager and internal list,
                     False otherwise
+
         """
         try:
             success = True
             if isinstance(iocs, list):
                 for ioc in iocs:
-                    IOCV2Schema.validate(ioc)
+                    IOCv2SEVSchema.validate(ioc)
                     if not self._store_ioc(ioc, engine_name):
                         success = False
                 return success
             elif isinstance(iocs, dict):
-                IOCV2Schema.validate(iocs)
+                IOCv2SEVSchema.validate(iocs)
                 if not self._store_ioc(iocs, engine_name):
                     success = False
                 return success
@@ -144,7 +147,8 @@ class EngineResults:
 
         Returns:
             bool: True if the checkpoint for binary_hash was updated successfully,
-                    False otherwise
+                  False otherwise
+
         """
         try:
             self.state_manager.set_checkpoint(binary_hash, engine_name, "DONE")
@@ -162,7 +166,8 @@ class EngineResults:
 
         Returns:
             bool: True if engine_response was validated, accepted, and had state updated,
-                    False otherwise
+                  False otherwise
+
         """
         if self._validate_response(engine_response):
             report_accepted = self._accept_report(engine_response["engine_name"], engine_response["iocs"])
@@ -182,7 +187,8 @@ class EngineResults:
 
         Returns:
             bool: True if at least one report was sent to feed_id,
-                    False otherwise
+                  False otherwise
+
         """
         try:
             # if there are no reports in self.iocs, there's nothing to send
@@ -222,6 +228,7 @@ class EngineResults:
         Returns:
             reports_sent (bool): True if all reports from internal list were sent successfully,
                                     False otherwise
+
         """
         reports_sent = False
         if isinstance(feed_id, str):

@@ -19,16 +19,16 @@ class DeduplicationComponent:
 
     def deduplicate(self, list_input):
         """
-        Remove hashes from the input that have already been processed, as determined by the
-        contents of the state manager.
+        Remove hashes from the input that have already been processed, as determined by the state manager.
 
         Args:
             list_input (list): List of hashes to be processed (coming from command line input)
 
         Returns:
             list: Another list of hashes, with all the hashes that have already been processed
-            removed from it.  If no hashes remain after the processed ones are removed, returns
-            an empty list.
+                  removed from it.  If no hashes remain after the processed ones are removed,
+                  returns an empty list.
+
         """
         engine_name = self._config.string("engine.name")
         # Use simple set-difference implementation unless we need to implement something more powerful,

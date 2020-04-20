@@ -8,9 +8,9 @@ from cbc_binary_toolkit.ingestion_component import IngestionComponent
 from cbc_binary_toolkit.state import StateManager
 from cbc_binary_toolkit.config import Config
 from cbapi.psc.threathunter import CbThreatHunterAPI
-from tests.unit.ubs_fixtures.CBAPIMock import CBAPIMock
-from tests.unit.ubs_fixtures.metadata import HASH_METADATA
-from tests.unit.ubs_fixtures.filedownload import METADATA_DOWNLOAD_RESP
+from tests.component.ubs_fixtures.CBAPIMock import CBAPIMock
+from tests.component.ubs_fixtures.metadata import HASH_METADATA
+from tests.component.ubs_fixtures.filedownload import METADATA_DOWNLOAD_RESP
 
 ENGINE_NAME = "TEST_ENGINE"
 
@@ -85,7 +85,7 @@ def cbapi_mock(monkeypatch, cb_threat_hunter):
     return cbapi_mock
 
 
-# ==================================== TESTS BELOW ====================================
+# ==================================== Unit TESTS BELOW ====================================
 
 
 @pytest.mark.parametrize("input", [
@@ -100,7 +100,6 @@ def test_fetch_metadata(component, cbapi_mock, state_manager, input):
     data = component.fetch_metadata(input)
     assert data != []
     for item in data:
-        del item["persist_id"]
         assert item == METADATA_DOWNLOAD_RESP[item["sha256"]]
 
 
@@ -129,5 +128,4 @@ def test_reload(component, cbapi_mock, state_manager):
 
     data = component.reload()
 
-    del data[0]["persist_id"]
     assert data[0] == METADATA_DOWNLOAD_RESP["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4"]

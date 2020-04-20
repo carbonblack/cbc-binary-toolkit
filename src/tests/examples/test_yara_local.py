@@ -61,3 +61,17 @@ def test_match(engine, file, expected_output):
     if len(result.get("iocs", [])) > 0:
         result["iocs"][0]["id"] = "UUID"
     assert result == expected_output
+
+
+@pytest.mark.parametrize("input, expected_output", [
+    ("INVALID",
+        {
+            'iocs': [],
+            'engine_name': 'Yara',
+            'binary_hash': None,
+            'success': False})
+])
+def test_analyze_invalid_input(engine, input, expected_output):
+    """Tests match and report generation logic"""
+    result = engine.analyze(input)
+    assert result == expected_output

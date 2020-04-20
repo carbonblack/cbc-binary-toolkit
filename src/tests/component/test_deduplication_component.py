@@ -11,9 +11,11 @@ from cbc_binary_toolkit.deduplication_component import DeduplicationComponent
 class StubPersistor(BasePersistor):
     """Used to supply the result of get_previous_hashes to the deduplication component."""
     def __init__(self, prev_hash_response):
+        """Constructor"""
         self._prev_hash_response = prev_hash_response
 
     def get_previous_hashes(self, engine_name):
+        """Stub get_previous_hashes"""
         assert engine_name == "default"
         return self._prev_hash_response
 
@@ -38,6 +40,9 @@ def equivalent(list1, list2):
         if item not in set1:
             return False
     return True
+
+
+# ==================================== Unit TESTS BELOW ====================================
 
 
 @pytest.mark.parametrize(["input_list", "previous_list", "result_list"], [

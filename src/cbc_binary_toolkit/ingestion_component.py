@@ -27,6 +27,7 @@ class IngestionComponent:
     Attributes:
         DEFAULT_EXPIRATION (int): How long generated binary AWS download links
             will stay valid, in seconds.
+
     """
     DEFAULT_EXPIRATION = 3600
 
@@ -42,6 +43,7 @@ class IngestionComponent:
 
         Returns:
             List(Dict) of hash metadata.
+
         """
         engine_name = self.config.string("engine.name")
         unfinished_hashes = self.state_manager.get_unfinished_hashes(engine_name)
@@ -81,8 +83,7 @@ class IngestionComponent:
                "product_name": str,
                "product_version": str,
                "special_build": str,
-               "trademark": str,
-               "persist_id": *State Manager ID*
+               "trademark": str
             },
             ...
             ]
@@ -107,9 +108,9 @@ class IngestionComponent:
 
             # Save hash entry to state manager
             if metadata:
-                metadata["persist_id"] = self.state_manager.set_checkpoint(download_data["sha256"],
-                                                                           engine_name,
-                                                                           "INGESTED")
+                self.state_manager.set_checkpoint(download_data["sha256"],
+                                                  engine_name,
+                                                  "INGESTED")
                 fetched_metadata.append(metadata)
 
         log.info(f"Ingested: {datetime.now()}")

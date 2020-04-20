@@ -4,13 +4,12 @@
 
 import pytest
 import os
-import json
 
 from cbc_binary_toolkit.cli_input import read_csv, read_json
 from typing import List, Dict
 from json import JSONDecodeError
 
-from tests.unit.input_fixtures.file_path_constants import (
+from tests.component.input_fixtures.file_path_constants import (
     BASIC_INPUT_FILE,
     LARGE_INPUT_FILE,
     BASIC_JSON_INPUT_FILE,
@@ -24,7 +23,7 @@ from tests.unit.input_fixtures.file_path_constants import (
     BASIC_INPUT_CSV_WRONG_HASHLEN,
     DOES_NOT_EXIST_FILE,
     EMPTY_CSV,
-    WRONG_KEY_JSON,
+    # WRONG_KEY_JSON,
     EMPTY_HASHES_DICT_JSON
 )
 
@@ -33,6 +32,8 @@ def attach_path(path):
     """Attaches local file path to location"""
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), path)
 
+
+# ==================================== Unit TESTS BELOW ====================================
 
 class TestInputFunctions():
     """Unit tests for input.py functions"""

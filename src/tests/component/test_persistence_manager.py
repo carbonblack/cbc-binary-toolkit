@@ -19,7 +19,8 @@ class TestPersistor(BasePersistor):
             engine_name (str): The engine value to set in the database.
             checkpoint_name (str): The name of the checkpoint to set.
             checkpoint_time (str): The timestamp to set the checkpoint time to.  Not normally
-            used except in test code.
+                                   used except in test code.
+
         """
         assert engine_name == "default"
         if hasattr(self, "_sc"):
@@ -36,7 +37,8 @@ class TestPersistor(BasePersistor):
 
         Returns:
             list: A list of all the hashes that have been marked as "done" for that engine. This list
-            will be in sorted order.
+                  will be in sorted order.
+
         """
         assert engine_name == "default"
         if hasattr(self, "_gph"):
@@ -54,8 +56,9 @@ class TestPersistor(BasePersistor):
 
         Returns:
             list: A list of all the hashes that are in the database but have not been marked as "done"
-            for that engine.  This list is in the form of tuples, the first element of which is the hash,
-            the second element of which is the last known checkpoint.
+                  for that engine.  This list is in the form of tuples, the first element of which is
+                  the hash, the second element of which is the last known checkpoint.
+
         """
         assert engine_name == "default"
         if hasattr(self, "_guh"):
@@ -70,6 +73,7 @@ class TestPersistor(BasePersistor):
 
         Args:
             timestamp (str): The basic timestamp (ISO 8601 format). Everything older than this will be erased.
+
         """
         assert timestamp == "2020-01-01T00:00:00"
         if hasattr(self, "_p"):
@@ -85,6 +89,7 @@ class TestPersistor(BasePersistor):
             severity (int): The severity level (1-10).
             engine_name (str): The engine value to store this data for.
             data (dict): The data item to be stored.
+
         """
         assert severity == 6
         assert engine_name == 'default'
@@ -104,6 +109,7 @@ class TestPersistor(BasePersistor):
 
         Returns:
             list: A list of dicts, each of which represents a report item.
+
         """
         assert severity == 6
         assert engine_name == 'default'
@@ -120,6 +126,7 @@ class TestPersistor(BasePersistor):
         Args:
             severity (int): The severity level (1-10).
             engine_name (str): The engine value to clear data for.
+
         """
         assert severity == 6
         assert engine_name == 'default'
@@ -140,6 +147,7 @@ class TestPersistorFactory(BasePersistorFactory):
 
         Returns:
             Persistor: The new persistor object.
+
         """
         assert config.string("is_test") == "True"
         return TestPersistor()
@@ -156,6 +164,8 @@ def local_config():
       is_test: "True"
     """)
 
+
+# ==================================== Unit TESTS BELOW ====================================
 
 def test_set_checkpoint(local_config):
     """Test the set_checkpoint() API."""

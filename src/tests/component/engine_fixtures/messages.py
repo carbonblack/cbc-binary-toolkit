@@ -81,6 +81,13 @@ IOCS_3 = [{
           "severity": 2,
           }]
 
+IOC_HASH = [{
+    "id": "j39sbv7",
+    "match_type": "equality",
+    "values": ["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4"],
+    "severity": 1,
+}]
+
 IOCS_INVALID = [{
                 "id": "s9dlk2m1",
                 "match_type": "query",

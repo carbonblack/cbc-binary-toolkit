@@ -95,7 +95,7 @@ class YaraEngine():
             return {
                 "iocs": [],
                 "engine_name": self.name,
-                "binary_hash": binary_metadata.get(["sha256"], None) if isinstance(binary_metadata, dict) else None,
+                "binary_hash": binary_metadata.get("sha256", None) if isinstance(binary_metadata, dict) else None,
                 "success": False
             }
         else:

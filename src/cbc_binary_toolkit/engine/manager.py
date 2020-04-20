@@ -2,8 +2,14 @@
 
 """Local analysis engine manager"""
 
+import logging
+
+from schema import SchemaError
 from cbc_binary_toolkit import InitializationError
 from cbc_binary_toolkit.loader import dynamic_create
+from cbc_binary_toolkit.schemas import BinaryMetadataSchema
+
+log = logging.getLogger(__name__)
 
 
 class LocalEngineFactory():
@@ -42,4 +48,14 @@ class LocalEngineManager():
 
     def analyze(self, binary_metadata):
         """Sends HashMetadata to engine"""
-        return self.engine.analyze(binary_metadata)
+        try:
+            valid_metadata = BinaryMetadataSchema.validate(binary_metadata)
+            return self.engine.analyze(valid_metadata)
+        except SchemaError as e:
+            log.error(f"Invalid schema for binary_metadata: {e}")
+            return {
+                "iocs": [],
+                "engine_name": self.engine.name,
+                "binary_hash": binary_metadata.get("sha256", None) if isinstance(binary_metadata, dict) else None,
+                "success": False
+            }

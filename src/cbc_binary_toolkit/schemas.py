@@ -4,7 +4,7 @@
 
 from schema import And, Or, Optional, Schema
 
-IOCV2Schema = Schema(
+IOCv2SEVSchema = Schema(
     {
         "id": And(str, len),
         "match_type": And(str, lambda type: type in ["query", "equality", "regex"]),
@@ -12,6 +12,16 @@ IOCV2Schema = Schema(
         Optional("field"): And(str, len),
         Optional("link"): And(str, len),
         "severity": And(int, lambda n: n > 0 and n < 11)  # Needs stripped before sent to CBC
+    }
+)
+
+IOCv2Schema = Schema(
+    {
+        "id": And(str, len),
+        "match_type": And(str, lambda type: type in ["query", "equality", "regex"]),
+        "values": And([str], len),
+        Optional("field"): And(str, len),
+        Optional("link"): And(str, len)
     }
 )
 
@@ -24,17 +34,16 @@ ReportSchema = Schema(
         "severity": And(int, lambda n: n > 0 and n < 11),
         Optional("link"): str,
         Optional("tags"): [str],
-        # "iocs": IOCs,
-        # iocs_v2": [IOCV2Schema],
+        "iocs_v2": [IOCv2Schema],
         Optional("visibility"): str
     }
 )
 
 EngineResponseSchema = Schema(
     {
-        "iocs": [IOCV2Schema],
+        "iocs": [IOCv2SEVSchema],
         "engine_name": And(str, len),
-        "binary_hash": And(str, len),
+        "binary_hash": And(str, lambda n: len(n) == 64),
         "success": bool
     }
 )
@@ -63,7 +72,6 @@ BinaryMetadataSchema = Schema(
         "product_name": Or(str, None),
         "product_version": Or(str, None),
         "special_build": Or(str, None),
-        "trademark": Or(str, None),
-        "persist_id": int
+        "trademark": Or(str, None)
     }
 )

@@ -60,6 +60,7 @@ class AnalysisUtility:
 
         Returns:
             dict: A dict containing all the references to the top-level components.
+
         """
         state_manager = StateManager(self.config)
 
@@ -94,6 +95,7 @@ class AnalysisUtility:
 
         Returns:
             boolean: True if the user answered Yes, False if they answered No.
+
         """
         reply = str(input(f"{question}: (y/n)")).lower().strip()
         if reply[0] == 'y':
@@ -107,11 +109,13 @@ class AnalysisUtility:
     def _process_metadata(self, components, metadata_list):
         """
         Analyze a list of metadata through the analysis engine and report on the results.
+
         The back end to the analyze and restart commands.
 
         Args:
             components (dict): Dict containing all the component references as returned from _init_components.
             metadata_list (list): List of metadata objects to be analyzed.
+
         """
         for metadata in metadata_list:
             response = components["engine_manager"].analyze(metadata)
@@ -126,6 +130,7 @@ class AnalysisUtility:
         Args:
             args (Namespace): The command-line arguments as parsed.
             components (dict): Dict containing all the component references as returned from _init_components.
+
         """
         if args.file is not None:
             hash_group = cli_input.read_csv(args.file)
@@ -142,6 +147,7 @@ class AnalysisUtility:
 
         Args:
             components (dict): Dict containing all the component references as returned from _init_components.
+
         """
         components["results_engine"].reload()
         metadata_list = components["ingest"].reload()
@@ -156,6 +162,7 @@ class AnalysisUtility:
 
         Returns:
             int: Return code from the utility (0=success, nonzero=failure).
+
         """
         log.info("Started: {}".format(datetime.now()))
 
