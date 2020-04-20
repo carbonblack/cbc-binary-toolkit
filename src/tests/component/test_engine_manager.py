@@ -88,7 +88,7 @@ def test_analyze_invalid_schema(config, input):
     engine:
       name: {ENGINE_NAME}
       local: True
-      _provider: tests.unit.engine_fixtures.mock_engine.MockLocalEngineFactory
+      _provider: tests.component.engine_fixtures.mock_engine.MockLocalEngineFactory
     """, AssertionError]
 ])
 def test_failed_init(engine_config, exception):

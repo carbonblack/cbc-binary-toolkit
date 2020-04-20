@@ -38,6 +38,7 @@ def config():
       feed_id: {FEED_ID}
       local: True
       _provider: tests.component.engine_fixtures.mock_engine.MockLocalEngineFactory
+      Test: TestPassed
     """)
 
 
