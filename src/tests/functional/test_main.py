@@ -7,7 +7,7 @@ This tests the input from the users experience
 """
 
 import pytest
-import subprocess
+# import subprocess
 import sys
 import os
 
@@ -31,12 +31,12 @@ class TestUserHandling:
 
     def test_analyze(self):
         """Test analyze command"""
-        with open(LOG_FILE, "a+") as log:
-            # subprocess.call([pycommand, BIN, 'analyze', '-l ["test"]'], stdout=log, stderr=log)
-            pass
+        # with open(LOG_FILE, "a+") as log:
+        # subprocess.call([pycommand, BIN, 'analyze', '-l ["test"]'], stdout=log, stderr=log)
+        pass
 
     def test_clear(self):
         """Test clear command"""
-        with open(LOG_FILE, "a+") as log:
-            # subprocess.call([pycommand, BIN, 'clear'], stdout=log, stderr=log)
-            pass
+        # with open(LOG_FILE, "a+") as log:
+        # subprocess.call([pycommand, BIN, 'clear'], stdout=log, stderr=log)
+        pass

@@ -10,7 +10,7 @@ This is the entry point for the Binary Analysis SDK
 import logging
 import os
 
-from cbc_binary_toolkit_examples.analysis_util import AnalysisUtility
+from cbc_binary_toolkit_examples.tools.analysis_util import AnalysisUtility
 
 LOG_LEVEL = logging.INFO
 logging.basicConfig(level=LOG_LEVEL)  # Needs converted to configuration property
@@ -23,4 +23,4 @@ else:
                                    "../carbonblackcloud/binary-sdk/binary-analysis-config.yaml.example")
 
 if __name__ == '__main__':
-	sys.exit(AnalysisUtility(default_install).main(sys.argv[1:]))
+    sys.exit(AnalysisUtility(default_install).main(sys.argv[1:]))

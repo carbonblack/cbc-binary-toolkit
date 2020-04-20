@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 
 from cbapi.psc.threathunter import CbThreatHunterAPI
 from cbc_binary_toolkit.config import Config
-from cbc_binary_toolkit_examples.analysis_util import AnalysisUtility
+from cbc_binary_toolkit_examples.tools.analysis_util import AnalysisUtility
 from tests.component.engine_fixtures.messages import IOCS_2
 from tests.component.ubs_fixtures.CBAPIMock import CBAPIMock
 from tests.component.ubs_fixtures.metadata import METADATA_VALID
@@ -140,10 +140,7 @@ def test_analyze_command(cbapi_mock, config):
 
 
 def test_analyze_command_with_not_found(cbapi_mock, config):
-    """
-    Test data flow through the components in the _analyze_command method in the instance where
-    a hash is not found
-    """
+    """Test data flow through the components in the _analyze_command method for when a hash is not found"""
     sut = AnalysisUtility(None)
     sut.config = config
     sut.cbapi = cbapi_mock.api
@@ -189,10 +186,7 @@ def test_restart_command(cbapi_mock, config):
 
 
 def test_restart_command_with_nothing_to_do(cbapi_mock, config2):
-    """
-    Test data flow through the components in the _restart_command method when there
-    are no hashes that are left incomplete
-    """
+    """Test data flow through the components in the _restart_command when there are no hashes that are incomplete"""
     sut = AnalysisUtility(None)
     sut.config = config2
     sut.cbapi = cbapi_mock.api
@@ -209,9 +203,7 @@ def test_restart_command_with_nothing_to_do(cbapi_mock, config2):
 
 
 def test_restart_command_with_unsent_report_item(cbapi_mock, config):
-    """
-    Test that an unsent report item is sent as a process of running the restart command.
-    """
+    """Test that an unsent report item is sent as a process of running the restart command."""
     sut = AnalysisUtility(None)
     sut.config = config
     sut.cbapi = cbapi_mock.api
