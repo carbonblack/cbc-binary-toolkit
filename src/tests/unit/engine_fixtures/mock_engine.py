@@ -10,6 +10,7 @@ class MockLocalEngine():
     """Mock test engine"""
     def __init__(self, config):
         """Test engine"""
+        assert config.string_default("Test") == "TestPassed"
         self.name = "MockEngine"
         self.config = config
         self.mock_return_data = {}
