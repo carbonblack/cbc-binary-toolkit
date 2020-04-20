@@ -26,12 +26,12 @@ class YaraEngine():
         self.name = "Yara"
         self.config = config
 
-        if self.config.get("engine.name") != self.name:
+        if self.config.get("name") != self.name:
             log.error("Attempted to init engine with non matching engine config")
             raise InitializationError
 
         # Compile yara rules
-        self.rules = yara.compile(self.config.get("engine.rules_dir"))
+        self.rules = yara.compile(self.config.get("rules_dir"))
 
     def _match(self, hash, stream):
         """

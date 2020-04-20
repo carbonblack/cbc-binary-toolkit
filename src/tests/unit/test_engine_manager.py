@@ -24,6 +24,7 @@ def config():
       name: {ENGINE_NAME}
       local: True
       _provider: tests.unit.engine_fixtures.mock_engine.MockLocalEngineFactory
+      Test: TestPassed
     """)
 
 
@@ -65,7 +66,15 @@ def test_analyze(config):
           name: {ENGINE_NAME}
           local: True
           _provider: cbc_binary_toolkit.engine.LocalEngineFactory
-    """, NotImplementedError]
+    """, NotImplementedError],
+    [f"""
+    id: cbc_binary_toolkit
+    version: 0.0.1
+    engine:
+      name: {ENGINE_NAME}
+      local: True
+      _provider: tests.unit.engine_fixtures.mock_engine.MockLocalEngineFactory
+    """, AssertionError]
 ])
 def test_failed_init(engine_config, exception):
     """Test raised exceptions on init of LocalEngineManager"""

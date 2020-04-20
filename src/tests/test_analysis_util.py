@@ -51,7 +51,7 @@ def config():
       name: {ENGINE_NAME}
       feed_id: {FEED_ID}
       local: True
-      timeout: 5
+      Test: TestPassed
     """)
 
 
@@ -68,7 +68,7 @@ def config2():
       name: {ENGINE_NAME}
       feed_id: {FEED_ID}
       local: True
-      timeout: 5
+      Test: TestPassed
     """)
 
 
