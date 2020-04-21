@@ -1,25 +1,25 @@
 [![Codeship Status for carbonblack/cb-binary-analysis](https://app.codeship.com/projects/6a7a91c0-2a8b-0138-4f71-1610ceb87095/status?branch=develop)](https://app.codeship.com/projects/384255)
 [![Coverage Status](https://coveralls.io/repos/github/carbonblack/cb-binary-analysis/badge.svg?branch=develop&t=rhX4tc)](https://coveralls.io/github/carbonblack/cb-binary-analysis?branch=develop)
-# Carbon Black Cloud Binary Analysis Toolkit
+# Carbon Black Cloud Binary Toolkit
 
 **Latest Version:** 0.0.1
 <br>
 **Release Date:** N/A
 
-The Binary Analysis Toolkit provides a system of processing incoming SHA256 hashes by integrating with the Universal Binary Store (UBS) on the Carbon Black Cloud (CBC).
+The Carbon Black Cloud Binary Toolkit provides a system of processing incoming SHA256 hashes by integrating with the Universal Binary Store (UBS) on the Carbon Black Cloud (CBC).
 
 
 ## Support
 
-If you have questions about the Binary Analysis Toolkit, please contact us at dev-support@carbonblack.com
+If you have questions about the Carbon Black Cloud Binary Toolkit, please contact us at dev-support@carbonblack.com
 Also review the documentation and guides available on the
 [Carbon Black Developer Network website](https://developer.carbonblack.com)
 
 ## Requirements
 
-The Binary Analysis Toolkit is design to work on Python 3.6 and above.
+The Carbon Black Cloud Binary Toolkit is design to work on Python 3.6 and above.
 
-All requirements are installed as part of `pip install` or if you're planning on pushing changes to the Binary Analysis Toolkit, the following can be used after cloning the repo `pip install requirements.txt`
+All requirements are installed as part of `pip install` or if you're planning on pushing changes to the Carbon Black Cloud Binary Toolkit, the following can be used after cloning the repo `pip install requirements.txt`
 
 ### Python Packages
 * argparse
@@ -32,10 +32,10 @@ All requirements are installed as part of `pip install` or if you're planning on
 
 ## Getting Started
 
-There are two ways to use the Binary Analysis Toolkit. The following scripts provide all out-of-the-box functionality. You can also use the Toolkit to develop your own tool for processing binaries.
+There are two ways to use the Carbon Black Cloud Binary Toolkit. The following scripts provide all out-of-the-box functionality. You can also use the Toolkit to develop your own tool for processing binaries.
 
 
-Installing the Binary Analysis Toolkit
+Installing the Carbon Black Cloud Binary Toolkit
 
 ```
 pip install cbc-binary-toolkit
@@ -79,7 +79,7 @@ from cbc_binary_toolkit import *
 
 
 
-## Developing Improvements for the Binary Analysis Toolkit
+## Developing Improvements for the Carbon Black Cloud Binary Toolkit
 
 If you want to provide additional examples, fix a bug, or add a feature to the Toolkit the following steps will get you started.
 
