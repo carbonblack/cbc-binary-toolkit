@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 """
-Binary analysis sdk for managing and submitting hashes
+Binary analysis tool for managing and submitting hashes
 
-This is the entry point for the Binary Analysis SDK
+This is the entry point for the Binary Analysis tool
 """
 
 import os
@@ -12,7 +12,7 @@ import sys
 
 from cbc_binary_toolkit_examples.tools.analysis_util import AnalysisUtility
 
-if "cb-binary-analysis" in os.path.dirname(os.path.realpath(__file__)):
+if "cbc-binary-toolkit" in os.path.dirname(os.path.realpath(__file__)):
     default_install = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                    "../config/binary-analysis-config.yaml.example")
 else:
