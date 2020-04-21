@@ -40,6 +40,6 @@ setup(
     install_requires=install_reqs,
     package_dir={'': 'src'},
     packages=find_packages(where="src", exclude=["tests.*", "tests"]),
-    scripts=["bin/cbc-binary-analysis"],
+    entry_points={"console_scripts": ["cbc-binary-analysis = cbc_binary_toolkit_examples.tools.analysis_util:main"]},
     data_files=[("carbonblackcloud/binary-toolkit", ["config/binary-analysis-config.yaml.example"])]
 )

@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 
 """
-Binary analysis sdk for managing and submitting hashes
+Binary analysis tool for managing and submitting hashes
 
 This class performs binary analysis on a series of hashes passed in on the command line.
 """
 
+import os
+import sys
 import argparse
 import logging
 
@@ -219,3 +221,19 @@ class AnalysisUtility:
         except Exception as ex:
             print(ex)
             return 1
+
+
+def main(argv=None):
+    """Universal Entry Point"""
+    if "cbc-binary-toolkit" in os.path.dirname(os.path.realpath(__file__)):
+        default_install = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                       "../config/binary-analysis-config.yaml.example")
+    else:
+        default_install = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                       "../carbonblackcloud/binary-sdk/binary-analysis-config.yaml.example")
+
+    AnalysisUtility(default_install).main(sys.argv[1:])
+
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv[1:]))
