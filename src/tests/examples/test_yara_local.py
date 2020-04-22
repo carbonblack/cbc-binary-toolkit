@@ -6,6 +6,7 @@ import pytest
 
 from cbc_binary_toolkit.config import Config
 from cbc_binary_toolkit.engine import LocalEngineManager
+from cbc_binary_toolkit.errors import InitializationError
 
 
 def attach_path(path):
@@ -24,7 +25,7 @@ def config():
       feed_id: example-feed-id
       local: True
       _provider: cbc_binary_toolkit_examples.engine.yara_local.yara_engine.YaraFactory
-      rules_dir: {attach_path("yara_local_fixtures/test_rule.yara")}
+      rules_file: {attach_path("yara_local_fixtures/test_rule.yara")}
     """)
 
 
@@ -75,3 +76,30 @@ def test_analyze_invalid_input(engine, input, expected_output):
     """Tests match and report generation logic"""
     result = engine.analyze(input)
     assert result == expected_output
+
+
+@pytest.mark.parametrize("config_text, exception", [
+    (f"""
+        id: cbc_binary_toolkit
+        version: 0.0.1
+        engine:
+        name: INVALID
+        feed_id: example-feed-id
+        local: True
+        _provider: cbc_binary_toolkit_examples.engine.yara_local.yara_engine.YaraFactory
+        rules_file: {attach_path("yara_local_fixtures/test_rule.yara")}
+        """, InitializationError),
+    ("""
+        id: cbc_binary_toolkit
+        version: 0.0.1
+        engine:
+        name: YARA
+        feed_id: example-feed-id
+        local: True
+        _provider: cbc_binary_toolkit_examples.engine.yara_local.yara_engine.YaraFactory
+        """, InitializationError)
+])
+def test_invalid_config(config_text, exception):
+    """Test invalid initialization"""
+    with pytest.raises(exception):
+        LocalEngineManager(Config.load(config_text))

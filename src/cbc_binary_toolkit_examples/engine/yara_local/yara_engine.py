@@ -30,8 +30,12 @@ class YaraEngine():
             log.error("Attempted to init engine with non matching engine config")
             raise InitializationError
 
+        if self.config.get("rules_file") is None:
+            log.error("Attempted to init engine without rules file")
+            raise InitializationError
+
         # Compile yara rules
-        self.rules = yara.compile(self.config.get("rules_dir"))
+        self.rules = yara.compile(filepath=self.config.get("rules_file"))
 
     def _match(self, hash, stream):
         """
