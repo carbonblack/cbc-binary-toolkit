@@ -10,6 +10,7 @@ import os
 import sys
 import argparse
 import logging
+import traceback
 
 from datetime import datetime
 
@@ -92,6 +93,8 @@ class AnalysisUtility:
         results_engine = EngineResults(self.config.get("engine.name"), state_manager, cbth)
         if self.config.get("engine.local"):
             engine_manager = LocalEngineManager(self.config)
+        else:
+            engine_manager = None
 
         return {
             "deduplicate": deduplicate,
@@ -223,8 +226,8 @@ class AnalysisUtility:
 
             log.info("Finished: {}".format(datetime.now()))
             return 0
-        except Exception as ex:
-            print(ex)
+        except Exception:
+            log.error(traceback.format_exc())
             return 1
 
 
@@ -232,7 +235,7 @@ def main():
     """Universal Entry Point"""
     if "cbc-binary-toolkit" in os.path.dirname(os.path.realpath(__file__)):
         default_install = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                       "../config/binary-analysis-config.yaml.example")
+                                       "../../../config/binary-analysis-config.yaml.example")
     else:
         starting_dir = (os.path.dirname(os.path.realpath(__file__)), "")
         config_example_dir = "carbonblackcloud/binary-toolkit/binary-analysis-config.yaml.example"
