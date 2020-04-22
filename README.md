@@ -61,10 +61,7 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   -c CONFIG, --config CONFIG
-                        Location of the configuration file (default
-                        /Users/avanbrunt/reno/Work/cb-binary-
-                        analysis/bin/../config/binary-analysis-
-                        config.yaml.example)
+                        Location of the configuration file (default .../carbonblackcloud/binary-toolkit/binary-analysis-config.yaml.example)
   -ll {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --log-level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         The base log level (default INFO)
 ```

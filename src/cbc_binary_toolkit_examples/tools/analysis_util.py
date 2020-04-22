@@ -26,11 +26,11 @@ from cbapi import CbThreatHunterAPI
 DEFAULT_LOG_LEVEL = "INFO"
 
 LOG_LEVELS = {
-    'CRITICAL': logging.critical,
-    'ERROR': logging.error,
-    'WARNING': logging.warning,
-    'INFO': logging.info,
-    'DEBUG': logging.debug
+    'CRITICAL': logging.CRITICAL,
+    'ERROR': logging.ERROR,
+    'WARNING': logging.WARNING,
+    'INFO': logging.INFO,
+    'DEBUG': logging.DEBUG
 }
 
 log = logging.getLogger(__name__)
@@ -188,6 +188,11 @@ class AnalysisUtility:
             if self.config is None:
                 if args.config != self.default_install:
                     self.config = Config.load_file(args.config)
+                elif self.default_install == "ERROR":
+                    # Exit if default_install was not found
+                    log.error("Exiting as default example config file could not be "
+                              "found and no alternative was specified")
+                    return 1
                 else:
                     log.info(f"Attempting to load config from {self.default_install}")
                     self.config = Config.load_file(self.default_install)
@@ -223,17 +228,28 @@ class AnalysisUtility:
             return 1
 
 
-def main(argv=None):
+def main():
     """Universal Entry Point"""
     if "cbc-binary-toolkit" in os.path.dirname(os.path.realpath(__file__)):
         default_install = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                        "../config/binary-analysis-config.yaml.example")
     else:
-        default_install = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                       "../carbonblackcloud/binary-sdk/binary-analysis-config.yaml.example")
+        starting_dir = (os.path.dirname(os.path.realpath(__file__)), "")
+        config_example_dir = "carbonblackcloud/binary-toolkit/binary-analysis-config.yaml.example"
+
+        # Try and navigate up and find example config file
+        while starting_dir[0] != "" and starting_dir[0] != "/":
+            if os.path.exists(os.path.join(starting_dir[0], config_example_dir)):
+                break
+            starting_dir = os.path.split(starting_dir[0])
+
+        if starting_dir[0] == "" or starting_dir[0] == "/":
+            default_install = "ERROR"
+        else:
+            default_install = os.path.join(starting_dir[0], config_example_dir)
 
     AnalysisUtility(default_install).main(sys.argv[1:])
 
 
 if __name__ == '__main__':
-    sys.exit(main(sys.argv[1:]))
+    sys.exit(main())
