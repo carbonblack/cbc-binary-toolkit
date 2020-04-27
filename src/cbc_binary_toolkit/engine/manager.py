@@ -37,7 +37,7 @@ class LocalEngineManager():
         """Constructor"""
         self.config = config
 
-        if not self.config.get("engine.local"):
+        if self.config.get("engine.type") != 'local':
             raise InitializationError
         self.engine_factory = dynamic_create(self.config.string("engine._provider"))
         self.engine = self.engine_factory.create_engine(self.config.section("engine"))

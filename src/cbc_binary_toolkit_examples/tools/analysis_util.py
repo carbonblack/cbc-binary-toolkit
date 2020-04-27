@@ -91,7 +91,7 @@ class AnalysisUtility:
         ingest = IngestionComponent(self.config, cbth, state_manager)
 
         results_engine = EngineResults(self.config.get("engine.name"), state_manager, cbth)
-        if self.config.get("engine.local"):
+        if self.config.get("engine.type") == "local":
             engine_manager = LocalEngineManager(self.config)
         else:
             engine_manager = None

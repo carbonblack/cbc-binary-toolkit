@@ -23,7 +23,7 @@ def config():
     engine:
       name: Yara
       feed_id: example-feed-id
-      local: True
+      type: local
       _provider: cbc_binary_toolkit_examples.engine.yara_local.yara_engine.YaraFactory
       rules_file: {attach_path("yara_local_fixtures/test_rule.yara")}
     """)
@@ -85,7 +85,7 @@ def test_analyze_invalid_input(engine, input, expected_output):
         engine:
         name: INVALID
         feed_id: example-feed-id
-        local: True
+        type: local
         _provider: cbc_binary_toolkit_examples.engine.yara_local.yara_engine.YaraFactory
         rules_file: {attach_path("yara_local_fixtures/test_rule.yara")}
         """, InitializationError),
@@ -95,7 +95,7 @@ def test_analyze_invalid_input(engine, input, expected_output):
         engine:
         name: YARA
         feed_id: example-feed-id
-        local: True
+        type: local
         _provider: cbc_binary_toolkit_examples.engine.yara_local.yara_engine.YaraFactory
         """, InitializationError)
 ])

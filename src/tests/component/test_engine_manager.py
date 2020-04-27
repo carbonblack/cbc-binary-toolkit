@@ -23,7 +23,7 @@ def config():
     version: 0.0.1
     engine:
       name: {ENGINE_NAME}
-      local: True
+      type: local
       _provider: tests.component.engine_fixtures.mock_engine.MockLocalEngineFactory
       Test: TestPassed
     """)
@@ -64,7 +64,7 @@ def test_analyze_invalid_schema(config, input):
         id: cbc_binary_toolkit
         engine:
           name: {ENGINE_NAME}
-          local: False
+          type: unknown
           num_threads: 1
           _provider: tests.component.engine_fixtures.mock_engine.MockLocalEngineFactory
     """, InitializationError],
@@ -72,14 +72,14 @@ def test_analyze_invalid_schema(config, input):
         id: cbc_binary_toolkit
         engine:
           name: {ENGINE_NAME}
-          local: True
+          type: local
           _provider: INVALID.INVALID
     """, ImportError],
     ["""
         id: cbc_binary_toolkit
         engine:
           name: {ENGINE_NAME}
-          local: True
+          type: local
           _provider: cbc_binary_toolkit.engine.LocalEngineFactory
     """, NotImplementedError],
     [f"""
@@ -87,7 +87,7 @@ def test_analyze_invalid_schema(config, input):
     version: 0.0.1
     engine:
       name: {ENGINE_NAME}
-      local: True
+      type: local
       _provider: tests.component.engine_fixtures.mock_engine.MockLocalEngineFactory
     """, AssertionError]
 ])
