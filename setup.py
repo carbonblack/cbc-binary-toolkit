@@ -29,7 +29,7 @@ setup(
     author_email="dev-support@carbonblack.com",
     description="The VMware Carbon Black Cloud Binary Toolkit provides useful tools to process "
                 "binaries and upload IOCs to your Feeds",
-    long_description=__doc__,
+    long_description=read("README.md"),
     platforms="any",
     classifiers=[
         "Intended Audience :: Developers",
@@ -40,6 +40,7 @@ setup(
     install_requires=install_reqs,
     package_dir={'': 'src'},
     packages=find_packages(where="src", exclude=["tests.*", "tests"]),
+    include_package_data=True,
     entry_points={"console_scripts": ["cbc-binary-analysis = cbc_binary_toolkit_examples.tools.analysis_util:main"]},
     data_files=[("carbonblackcloud/binary-toolkit", ["config/binary-analysis-config.yaml.example"])]
 )
