@@ -85,8 +85,8 @@ If you want to provide additional examples, fix a bug, or add a feature to the T
 You will need to fork the repo in order to create pull requests when submitting code for review. For details on forking a repo https://help.github.com/en/github/getting-started-with-github/fork-a-repo
 
 ```
-git clone https://github.com/{fork-name}/cb-binary-analysis
-cd cb-binary-analysis
+git clone https://github.com/{fork-name}/cbc-binary-toolkit
+cd cbc-binary-toolkit
 pip install requirements.txt
 ```
 
