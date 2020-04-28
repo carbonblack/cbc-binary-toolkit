@@ -1,4 +1,4 @@
-# Configuration for Binary Analysis SDK
+# Configuration for the Binary Analysis Tool 
 id: cbc_binary_toolkit
 version: 0.0.1
 carbonblackcloud:
