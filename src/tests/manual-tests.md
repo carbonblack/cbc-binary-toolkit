@@ -16,7 +16,7 @@ Windows:
 ### Installing the Toolkit
 If you have the repo cloned run the following command otherwise see the [homepage](https://github.com/carbonblack/cbc-binary-toolkit) for instructions cloning the repo.
 ```
-python setup.py install
+python setup.py clean --all install
 ```
 
 ### Testing Install
@@ -63,8 +63,7 @@ cbc-binary-analysis clear --timestamp {YYYY-MM-DD HH:MM:SS.SSS}
 cbc-binary-analysis restart
 ```
 
-
-### Leaving environment
+### Leaving the Virtual Environment
 Once you are finished running the manual tests you can leave the virtualenv with the following command.
 ```
 deactivate
