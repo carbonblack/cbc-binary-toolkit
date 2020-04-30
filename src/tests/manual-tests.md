@@ -16,7 +16,12 @@ Windows:
 ### Installing the Toolkit
 If you have the repo cloned run the following command otherwise see the [homepage](https://github.com/carbonblack/cbc-binary-toolkit) for instructions cloning the repo.
 ```
-python setup.py clean --all install
+python3 setup.py clean --all install
+```
+
+**Note:** Yara may have an issue installing on Linux/Mac in reference to `libyara.so`. To fix this issue find where the file was installed and make a soft link to where it is being referenced.
+```
+ln -s source_file [target_file]
 ```
 
 ### Testing Install
