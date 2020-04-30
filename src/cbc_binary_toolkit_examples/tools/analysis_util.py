@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
 
 """
-Binary analysis sdk for managing and submitting hashes
+Binary analysis tool for managing and submitting hashes
 
 This class performs binary analysis on a series of hashes passed in on the command line.
 """
 
+import os
+import sys
 import argparse
 import logging
+import traceback
 
 from datetime import datetime
 
@@ -20,6 +23,16 @@ from cbc_binary_toolkit.engine import LocalEngineManager
 from cbc_binary_toolkit.state import StateManager
 
 from cbapi import CbThreatHunterAPI
+
+DEFAULT_LOG_LEVEL = "INFO"
+
+LOG_LEVELS = {
+    'CRITICAL': logging.CRITICAL,
+    'ERROR': logging.ERROR,
+    'WARNING': logging.WARNING,
+    'INFO': logging.INFO,
+    'DEBUG': logging.DEBUG
+}
 
 log = logging.getLogger(__name__)
 
@@ -36,6 +49,9 @@ class AnalysisUtility:
         self._parser = argparse.ArgumentParser()
         self._parser.add_argument("-c", "--config", type=str, default=default_install,
                                   help="Location of the configuration file (default {0})".format(default_install))
+        self._parser.add_argument("-ll", "--log-level", type=str, default="INFO",
+                                  choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+                                  help="The base log level (default {0})".format(DEFAULT_LOG_LEVEL))
 
         commands = self._parser.add_subparsers(help="Binary analysis commands", dest="command_name", required=True)
 
@@ -75,8 +91,10 @@ class AnalysisUtility:
         ingest = IngestionComponent(self.config, cbth, state_manager)
 
         results_engine = EngineResults(self.config.get("engine.name"), state_manager, cbth)
-        if self.config.get("engine.local"):
+        if self.config.get("engine.type") == "local":
             engine_manager = LocalEngineManager(self.config)
+        else:
+            engine_manager = None
 
         return {
             "deduplicate": deduplicate,
@@ -164,14 +182,20 @@ class AnalysisUtility:
             int: Return code from the utility (0=success, nonzero=failure).
 
         """
-        log.info("Started: {}".format(datetime.now()))
-
         args = self._parser.parse_args(cmdline_args)
+        logging.basicConfig(level=LOG_LEVELS[args.log_level])
+
+        log.info("Started: {}".format(datetime.now()))
 
         try:
             if self.config is None:
                 if args.config != self.default_install:
                     self.config = Config.load_file(args.config)
+                elif self.default_install == "ERROR":
+                    # Exit if default_install was not found
+                    log.error("Exiting as default example config file could not be "
+                              "found and no alternative was specified")
+                    return 1
                 else:
                     log.info(f"Attempting to load config from {self.default_install}")
                     self.config = Config.load_file(self.default_install)
@@ -202,6 +226,33 @@ class AnalysisUtility:
 
             log.info("Finished: {}".format(datetime.now()))
             return 0
-        except Exception as ex:
-            print(ex)
+        except Exception:
+            log.error(traceback.format_exc())
             return 1
+
+
+def main():
+    """Universal Entry Point"""
+    if "cbc-binary-toolkit" in os.path.dirname(os.path.realpath(__file__)):
+        default_install = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                       "../../../config/binary-analysis-config.yaml.example")
+    else:
+        starting_dir = (os.path.dirname(os.path.realpath(__file__)), "")
+        config_example_dir = "carbonblackcloud/binary-toolkit/binary-analysis-config.yaml.example"
+
+        # Try and navigate up and find example config file
+        while starting_dir[0] != "" and starting_dir[0] != "/":
+            if os.path.exists(os.path.join(starting_dir[0], config_example_dir)):
+                break
+            starting_dir = os.path.split(starting_dir[0])
+
+        if starting_dir[0] == "" or starting_dir[0] == "/":
+            default_install = "ERROR"
+        else:
+            default_install = os.path.join(starting_dir[0], config_example_dir)
+
+    AnalysisUtility(default_install).main(sys.argv[1:])
+
+
+if __name__ == '__main__':
+    sys.exit(main())

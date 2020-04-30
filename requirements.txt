@@ -5,7 +5,6 @@ python-dateutil
 pyyaml
 requests
 schema
-thespian
 yara
 
 # Dev dependencies

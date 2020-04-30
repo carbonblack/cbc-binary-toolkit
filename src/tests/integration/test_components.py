@@ -36,7 +36,7 @@ def config():
     engine:
       name: {ENGINE_NAME}
       feed_id: {FEED_ID}
-      local: True
+      type: local
       _provider: tests.component.engine_fixtures.mock_engine.MockLocalEngineFactory
       Test: TestPassed
     """)

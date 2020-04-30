@@ -17,7 +17,6 @@ install_reqs = [
     "pyyaml",
     "requests",
     "schema",
-    "thespian",
     "yara"
 ]
 
@@ -26,10 +25,11 @@ setup(
     version=read("VERSION"),
     url="https://developer.carbonblack.com/",
     license="MIT",
-    author="Carbon Black",
+    author="VMware Carbon Black",
     author_email="dev-support@carbonblack.com",
-    description="Carbon Black Binary Analysis",
-    long_description=__doc__,
+    description="The VMware Carbon Black Cloud Binary Toolkit provides useful tools to process "
+                "binaries and upload IOCs to your Feeds",
+    long_description=read("README.md"),
     platforms="any",
     classifiers=[
         "Intended Audience :: Developers",
@@ -40,6 +40,7 @@ setup(
     install_requires=install_reqs,
     package_dir={'': 'src'},
     packages=find_packages(where="src", exclude=["tests.*", "tests"]),
-    scripts=["bin/cbc-binary-analysis"],
-    data_files=[("carbonblackcloud/binary-sdk", ["config/binary-analysis-config.yaml.example"])]
+    include_package_data=True,
+    entry_points={"console_scripts": ["cbc-binary-analysis = cbc_binary_toolkit_examples.tools.analysis_util:main"]},
+    data_files=[("carbonblackcloud/binary-toolkit", ["config/binary-analysis-config.yaml.example"])]
 )

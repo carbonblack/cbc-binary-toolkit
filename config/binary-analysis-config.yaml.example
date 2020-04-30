@@ -1,4 +1,4 @@
-# Configuration for Binary Analysis SDK
+# Configuration for the Binary Analysis Tool 
 id: cbc_binary_toolkit
 version: 0.0.1
 carbonblackcloud:
@@ -13,5 +13,5 @@ database:
 engine:
   name: engine-name
   feed_id: 578fTEQBNWXHCPGIXD4RA
-  timeout: 300
-  local: False
+  type: local
+  _provider: example.engine

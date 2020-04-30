@@ -50,7 +50,7 @@ def config():
       _provider: tests.component.engine_fixtures.mock_engine.MockLocalEngineFactory
       name: {ENGINE_NAME}
       feed_id: {FEED_ID}
-      local: True
+      type: local
       Test: TestPassed
     """)
 
@@ -67,7 +67,7 @@ def config2():
       _provider: tests.component.engine_fixtures.mock_engine.MockLocalEngineFactory
       name: {ENGINE_NAME}
       feed_id: {FEED_ID}
-      local: True
+      type: local
       Test: TestPassed
     """)
 

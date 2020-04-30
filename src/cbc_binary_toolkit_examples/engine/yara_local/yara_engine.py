@@ -2,6 +2,7 @@
 
 """Local yara engine"""
 
+import os
 import logging
 import requests
 import uuid
@@ -30,8 +31,16 @@ class YaraEngine():
             log.error("Attempted to init engine with non matching engine config")
             raise InitializationError
 
+        if self.config.get("rules_file") is None:
+            log.error("Attempted to init engine without rules file")
+            raise InitializationError
+
+        rule_path = self.config.get("rules_file")
+        if "__file__" in rule_path:
+            rule_path = rule_path.replace("__file__", os.path.dirname(os.path.realpath(__file__)))
+
         # Compile yara rules
-        self.rules = yara.compile(self.config.get("rules_dir"))
+        self.rules = yara.compile(filepath=rule_path)
 
     def _match(self, hash, stream):
         """
@@ -42,7 +51,6 @@ class YaraEngine():
             stream (i/o stream): Input stream of the binary
 
         """
-        print(type(stream))
         matches = self.rules.match(data=stream.read())
 
         highest_severity = 0

@@ -41,7 +41,6 @@ def config():
     engine:
       name: {ENGINE_NAME}
       feed_id: {FEED_ID}
-      timeout: 5
     """)
 
 
