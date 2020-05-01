@@ -5,7 +5,7 @@ python-dateutil
 pyyaml
 requests
 schema
-yara
+yara-python
 
 # Dev dependencies
 flake8

@@ -54,10 +54,9 @@ class YaraEngine():
         matches = self.rules.match(data=stream.read())
 
         highest_severity = 0
-        for match in matches.get("main", []):
-
-            if match["meta"].get("sev", 0) > highest_severity:
-                highest_severity = match["meta"].get("sev", 0)
+        for match in matches:
+            if match.meta.get("sev", 0) > highest_severity:
+                highest_severity = match.meta.get("sev", 0)
 
         iocs = []
         if highest_severity > 0:
