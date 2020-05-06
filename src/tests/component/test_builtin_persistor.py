@@ -4,21 +4,37 @@
 
 
 import pytest
+import os
 
 from sqlite3 import Cursor, OperationalError
 from cbc_binary_toolkit.config import Config
 from cbc_binary_toolkit.state.manager import StateManager
 
 
+PERSISTENCE_FILE = "persist_test.db"
+
+
 @pytest.fixture
 def local_config():
-    """Configuration for all the test cases in this module."""
+    """Configuration for most of the test cases in this module."""
     return Config.load("""
     id: cbc_binary_toolkit
     version: 0.0.1
     database:
       _provider: cbc_binary_toolkit.state.builtin.Persistor
       location: ":memory:"
+    """)
+
+
+@pytest.fixture
+def local_persistent_config():
+    """Configuration for the persistence test cases in this module."""
+    return Config.load(f"""
+    id: cbc_binary_toolkit
+    version: 0.0.1
+    database:
+      _provider: cbc_binary_toolkit.state.builtin.Persistor
+      location: {PERSISTENCE_FILE}
     """)
 
 
@@ -179,3 +195,36 @@ def test_exception_handling(local_config):
     manager.add_report_item(6, 'default', {'keyval': 1})
     assert manager.get_current_report_items(6, 'default') == []
     manager.clear_report_items(6, 'default')
+
+
+def test_set_checkpoint_persistent(local_persistent_config):
+    """Tests that set_checkpoint actually adds stuff to the database file on disk."""
+    if os.path.exists(PERSISTENCE_FILE):
+        os.remove(PERSISTENCE_FILE)
+    manager = StateManager(local_persistent_config)
+    manager.set_checkpoint('ABCDEFGH', 'default', 'ALPHA')
+    manager.set_checkpoint('EFGHIJKL', 'default', 'BRAVO')
+    manager.set_checkpoint('ABCDEFGH', 'another', 'CHARLIE')
+    manager.force_close()
+    manager2 = StateManager(local_persistent_config)
+    return_list = manager2.get_unfinished_hashes('default')
+    assert len(return_list) == 2
+    return_list = manager2.get_unfinished_hashes('another')
+    assert len(return_list) == 1
+
+
+def test_add_report_item_persistent(local_persistent_config):
+    """Tests that add_report_item actually adds stuff to the database file on disk."""
+    if os.path.exists(PERSISTENCE_FILE):
+        os.remove(PERSISTENCE_FILE)
+    manager = StateManager(local_persistent_config)
+    manager.add_report_item(6, 'default', {'keyval': 1})
+    manager.add_report_item(6, 'default', {'keyval': 4})
+    manager.add_report_item(6, 'default', {'keyval': 9})
+    manager.add_report_item(2, 'default', {'keyval': 2})
+    manager.add_report_item(2, 'default', {'keyval': 3})
+    manager.force_close()
+    manager2 = StateManager(local_persistent_config)
+    _test_check_report_items(manager2.get_current_report_items(6, 'default'), 'keyval', [1, 4, 9])
+    _test_check_report_items(manager2.get_current_report_items(2, 'default'), 'keyval', [2, 3])
+    _test_check_report_items(manager2.get_current_report_items(9, 'default'), 'keyval', [])

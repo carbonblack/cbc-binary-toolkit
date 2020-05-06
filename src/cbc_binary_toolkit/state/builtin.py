@@ -19,6 +19,13 @@ class SQLiteBasedPersistor(BasePersistor):
         self._conn = conn
         self._cursor_factory = sqlite3.Cursor
 
+    def force_close(self):
+        """
+        Forces the persistor to close. This should only be called from test code.
+        """
+        self._conn.close()
+        self._conn = None
+
     def set_checkpoint(self, binary_hash, engine_name, checkpoint_name, checkpoint_time=None):
         """
         Set a checkpoint on a binary hash/engine combination.
@@ -57,8 +64,11 @@ class SQLiteBasedPersistor(BasePersistor):
                         VALUES (?, ?, ?, ?);
                     """
                     cursor.execute(stmt, (binary_hash, engine_name, checkpoint_name, checkpoint_time))
+            self._conn.commit()
         except sqlite3.OperationalError as e:
             log.error("OperationalError in set_checkpoint: %s" % (e,))
+        finally:
+            cursor.close()
 
     def get_previous_hashes(self, engine_name):
         """
@@ -85,6 +95,8 @@ class SQLiteBasedPersistor(BasePersistor):
         except sqlite3.OperationalError as e:
             log.error("OperationalError in get_previous_hashes: %s" % (e,))
             return []
+        finally:
+            cursor.close()
 
     def get_unfinished_hashes(self, engine_name):
         """
@@ -112,6 +124,8 @@ class SQLiteBasedPersistor(BasePersistor):
         except sqlite3.OperationalError as e:
             log.error("OperationalError in get_unfinished_hashes: %s" % (e,))
             return []
+        finally:
+            cursor.close()
 
     def prune(self, timestamp):
         """
@@ -150,8 +164,11 @@ class SQLiteBasedPersistor(BasePersistor):
                 VALUES (?, ?, ?);
             """
             cursor.execute(stmt, (severity, engine_name, json.dumps(data)))
+            self._conn.commit()
         except sqlite3.OperationalError as e:
             log.error("OperationalError in add_report_item: %s" % (e,))
+        finally:
+            cursor.close()
 
     def get_current_report_items(self, severity, engine_name):
         """
@@ -175,6 +192,8 @@ class SQLiteBasedPersistor(BasePersistor):
         except sqlite3.OperationalError as e:
             log.error("OperationalError in get_current_report_items: %s" % (e,))
             return []
+        finally:
+            cursor.close()
 
     def clear_report_items(self, severity, engine_name):
         """
@@ -189,8 +208,11 @@ class SQLiteBasedPersistor(BasePersistor):
             cursor = self._conn.cursor(self._cursor_factory)
             stmt = "DELETE FROM report_item WHERE severity = ? AND engine_name = ?;"
             cursor.execute(stmt, (severity, engine_name))
+            self._conn.commit()
         except sqlite3.OperationalError as e:
             log.error("OperationalError in clear_report_items: %s" % (e,))
+        finally:
+            cursor.close()
 
 
 class Persistor(BasePersistorFactory):
