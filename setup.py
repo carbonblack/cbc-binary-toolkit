@@ -17,7 +17,7 @@ install_reqs = [
     "pyyaml",
     "requests",
     "schema",
-    "yara"
+    "yara-python"
 ]
 
 setup(

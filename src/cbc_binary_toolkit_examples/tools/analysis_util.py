@@ -78,7 +78,11 @@ class AnalysisUtility:
             dict: A dict containing all the references to the top-level components.
 
         """
-        state_manager = StateManager(self.config)
+        try:
+            state_manager = StateManager(self.config)
+        except:
+            log.error("Failed to create State Manager. Check your configuration")
+            state_manager = None
 
         cbth = self.cbapi
         if cbth is None:
@@ -92,7 +96,11 @@ class AnalysisUtility:
 
         results_engine = EngineResults(self.config.get("engine.name"), state_manager, cbth)
         if self.config.get("engine.type") == "local":
-            engine_manager = LocalEngineManager(self.config)
+            try:
+                engine_manager = LocalEngineManager(self.config)
+            except:
+                log.error("Failed to create Local Engine Manager. Check your configuration")
+                engine_manager = None
         else:
             engine_manager = None
 
@@ -101,7 +109,8 @@ class AnalysisUtility:
             "ingest": ingest,
             "engine_manager": engine_manager,
             "results_engine": results_engine,
-            "state_manager": state_manager
+            "state_manager": state_manager,
+            "success": True if state_manager is not None and engine_manager is not None else False
         }
 
     def _yes_or_no(self, question):
@@ -185,7 +194,7 @@ class AnalysisUtility:
         args = self._parser.parse_args(cmdline_args)
         logging.basicConfig(level=LOG_LEVELS[args.log_level])
 
-        log.info("Started: {}".format(datetime.now()))
+        log.debug("Started: {}".format(datetime.now()))
 
         try:
             if self.config is None:
@@ -201,13 +210,12 @@ class AnalysisUtility:
                     self.config = Config.load_file(self.default_install)
 
             if args.command_name == "analyze":
-                log.info("Analyzing hashes")
                 components = self._init_components()
-                self._analyze_command(args, components)
+                if components["success"]:
+                    log.info("Analyzing hashes")
+                    self._analyze_command(args, components)
 
             elif args.command_name == "clear":
-                log.info("Clear cache")
-
                 timestamp = args.timestamp
                 if timestamp is None:
                     timestamp = str(datetime.now())
@@ -216,15 +224,21 @@ class AnalysisUtility:
                     return
 
                 # Clear previous states
-                state_manager = StateManager(self.config)
-                state_manager.prune(timestamp)
+                try:
+                    state_manager = StateManager(self.config)
+                except:
+                    log.error("Failed to create State Manager. Check your configuration")
+                else:
+                    log.info("Clear cache")
+                    state_manager.prune(timestamp)
 
             elif args.command_name == "restart":
-                log.info("Restart")
                 components = self._init_components()
-                self._restart_command(components)
+                if components["success"]:
+                    log.info("Restart")
+                    self._restart_command(components)
 
-            log.info("Finished: {}".format(datetime.now()))
+            log.debug("Finished: {}".format(datetime.now()))
             return 0
         except Exception:
             log.error(traceback.format_exc())

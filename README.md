@@ -28,7 +28,7 @@ All requirements are installed as part of `pip install` or if you're planning on
 * pyyaml
 * requests
 * schema
-* yara
+* yara-python
 
 ## Getting Started
 
