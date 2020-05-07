@@ -113,5 +113,5 @@ class IngestionComponent:
                                                   "INGESTED")
                 fetched_metadata.append(metadata)
 
-        log.info(f"Ingested: {datetime.now()}")
+        log.debug(f"Ingested: {datetime.now()}")
         return fetched_metadata
