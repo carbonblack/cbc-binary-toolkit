@@ -94,6 +94,7 @@ def ensure_not_report(request_data):
 
 
 def test_any_reports_present_yes(config):
+    """Does _any_reports_present return True correctly?"""
     state_manager = StateManager(config)
     state_manager.add_report_item(6, ENGINE_NAME, {'keyval': 1})
     sut = AnalysisUtility(None)
@@ -102,6 +103,7 @@ def test_any_reports_present_yes(config):
 
 
 def test_any_reports_present_no(config):
+    """Does _any_reports_present return False correctly?"""
     state_manager = StateManager(config)
     sut = AnalysisUtility(None)
     sut.config = config
