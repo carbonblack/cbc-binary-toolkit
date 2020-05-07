@@ -149,8 +149,6 @@ class AnalysisUtility:
             items = state_manager.get_current_report_items(i, self.config.get("engine.name"))
             if len(items) > 0:
                 return True
-            else:
-                print(f"{i} bad {items}\n")
         return False
 
     def _process_metadata(self, components, metadata_list):
