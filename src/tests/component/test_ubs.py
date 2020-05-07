@@ -97,7 +97,7 @@ def test_download_hashes_invalid(cbapi_mock, input):
     """Unit test _download_hashes function with empty input."""
     cbapi_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download", None)
     found_hashes = download_hashes(cbapi_mock.api, input)
-    assert found_hashes is None
+    assert found_hashes == []
 
 
 @pytest.mark.parametrize("hashes", [

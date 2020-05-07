@@ -175,7 +175,7 @@ def download_hashes(cbth, hashes, expiration_seconds=3600):
 
     Returns:
         found_hashes (List[Dict]): found hashes and their download URLs.
-        None if an error occurred during download.
+        Empty list if an error occurred during download.
 
     Examples:
         >>> download_hashes(cbth, ["0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc"])
@@ -183,7 +183,7 @@ def download_hashes(cbth, hashes, expiration_seconds=3600):
     """
     if not hashes:
         log.error("No hashes supplied to download_hashes.")
-        return
+        return list()
     download = _download_hashes(cbth, hashes, expiration_seconds)
 
     checked_download, retried_download = _validate_download(cbth, download, expiration_seconds)
@@ -195,6 +195,9 @@ def download_hashes(cbth, hashes, expiration_seconds=3600):
         found_hashes = checked_download + retried_download
     else:
         found_hashes = checked_download
+
+    if found_hashes is None:
+        found_hashes = list()
     return found_hashes
 
 
