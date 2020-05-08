@@ -84,6 +84,7 @@ class AnalysisUtility:
             state_manager = StateManager(self.config)
         except:
             log.error("Failed to create State Manager. Check your configuration")
+            log.debug(traceback.format_exc())
             state_manager = None
 
         cbth = self.cbapi
@@ -102,6 +103,7 @@ class AnalysisUtility:
                 engine_manager = LocalEngineManager(self.config)
             except:
                 log.error("Failed to create Local Engine Manager. Check your configuration")
+                log.debug(traceback.format_exc())
                 engine_manager = None
         else:
             engine_manager = None
@@ -144,6 +146,7 @@ class AnalysisUtility:
 
         Returns:
             (boolean) True if there are any report items present in the database, False if not.
+
         """
         for i in range(1, 11):
             items = state_manager.get_current_report_items(i, self.config.get("engine.name"))
@@ -166,7 +169,11 @@ class AnalysisUtility:
             response = components["engine_manager"].analyze(metadata)
             components["results_engine"].receive_response(response)
 
-        components["results_engine"].send_reports(self.config.get("engine.feed_id"))
+        log.info('Analysis Completed')
+        if self.config.get("engine.feed_id"):
+            components["results_engine"].send_reports(self.config.get("engine.feed_id"))
+        else:
+            log.info("Feed publishing disabled. Specify a feed_id to enable")
 
     def _analyze_command(self, args, components):
         """
@@ -182,7 +189,12 @@ class AnalysisUtility:
         else:
             hash_group = cli_input.read_json(args.list)
 
+        before = len(hash_group)
+        log.info("Checking for previously executed binaries")
         hash_group = components["deduplicate"].deduplicate(hash_group)
+        if before > len(hash_group):
+            log.info(f"Found {before - len(hash_group)} binaries that have already been analyzed")
+
         metadata_list = components["ingest"].fetch_metadata(hash_group)
         self._process_metadata(components, metadata_list)
 
@@ -211,6 +223,9 @@ class AnalysisUtility:
         """
         args = self._parser.parse_args(cmdline_args)
         logging.basicConfig(level=LOG_LEVELS[args.log_level])
+
+        if args.log_level != "DEBUG":
+            sys.tracebacklimit = 0
 
         log.debug("Started: {}".format(datetime.now()))
 
@@ -246,8 +261,9 @@ class AnalysisUtility:
                     state_manager = StateManager(self.config)
                 except:
                     log.error("Failed to create State Manager. Check your configuration")
+                    log.debug(traceback.format_exc())
                 else:
-                    log.info("Clear cache")
+                    log.info("Clearing cache")
                     state_manager.prune(timestamp)
                     if args.reports and self._any_reports_present(state_manager):
                         if args.force or self._yes_or_no("Confirm you want to clear unsent report items"):
@@ -258,7 +274,7 @@ class AnalysisUtility:
             elif args.command_name == "restart":
                 components = self._init_components()
                 if components["success"]:
-                    log.info("Restart")
+                    log.info("Restarting")
                     self._restart_command(components)
 
             log.debug("Finished: {}".format(datetime.now()))
