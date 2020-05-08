@@ -69,6 +69,8 @@ class AnalysisUtility:
         clear_command = commands.add_parser("clear", help="Clear cache of analyzed hashes. All or by timestamp")
         clear_command.add_argument("-t", "--timestamp", type=str,
                                    help="ISO 8601 date format {YYYY-MM-DD HH:MM:SS.SSS}")
+        clear_command.add_argument("--force", action='store_true', help="Force clearing without prompting")
+        clear_command.add_argument("-r", "--reports", action='store_true', help="Also clear any unsent reports present")
 
     def _init_components(self):
         """
@@ -132,6 +134,22 @@ class AnalysisUtility:
         else:
             log.error("Invalid: please use y/n")
             return self._yes_or_no(question)
+
+    def _any_reports_present(self, state_manager):
+        """
+        Returns True if there are any report items present in the database.
+
+        Args:
+            state_manager (StateManager): The state manager object created by the clear process.
+
+        Returns:
+            (boolean) True if there are any report items present in the database, False if not.
+        """
+        for i in range(1, 11):
+            items = state_manager.get_current_report_items(i, self.config.get("engine.name"))
+            if len(items) > 0:
+                return True
+        return False
 
     def _process_metadata(self, components, metadata_list):
         """
@@ -219,7 +237,7 @@ class AnalysisUtility:
                 timestamp = args.timestamp
                 if timestamp is None:
                     timestamp = str(datetime.now())
-                if not self._yes_or_no(f"Confirm you want to clear runs since {timestamp}"):
+                if not (args.force or self._yes_or_no(f"Confirm you want to clear runs since {timestamp}")):
                     log.info("Clear canceled")
                     return
 
@@ -231,6 +249,11 @@ class AnalysisUtility:
                 else:
                     log.info("Clear cache")
                     state_manager.prune(timestamp)
+                    if args.reports and self._any_reports_present(state_manager):
+                        if args.force or self._yes_or_no("Confirm you want to clear unsent report items"):
+                            log.info("Clear report items")
+                            for i in range(1, 11):
+                                state_manager.clear_report_items(i, self.config.get("engine.name"))
 
             elif args.command_name == "restart":
                 components = self._init_components()

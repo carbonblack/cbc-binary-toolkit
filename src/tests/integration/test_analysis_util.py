@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 
 from cbapi.psc.threathunter import CbThreatHunterAPI
 from cbc_binary_toolkit.config import Config
+from cbc_binary_toolkit.state.manager import StateManager
 from cbc_binary_toolkit_examples.tools.analysis_util import AnalysisUtility
 from tests.component.engine_fixtures.messages import IOCS_2
 from tests.component.ubs_fixtures.CBAPIMock import CBAPIMock
@@ -90,6 +91,23 @@ def ensure_not_report(request_data):
     assert "iocs_v2" not in request_data
 
 # These are INTEGRATION TESTS that test that data is flowing correctly through all components
+
+
+def test_any_reports_present_yes(config):
+    """Does _any_reports_present return True correctly?"""
+    state_manager = StateManager(config)
+    state_manager.add_report_item(6, ENGINE_NAME, {'keyval': 1})
+    sut = AnalysisUtility(None)
+    sut.config = config
+    assert sut._any_reports_present(state_manager)
+
+
+def test_any_reports_present_no(config):
+    """Does _any_reports_present return False correctly?"""
+    state_manager = StateManager(config)
+    sut = AnalysisUtility(None)
+    sut.config = config
+    assert not sut._any_reports_present(state_manager)
 
 
 def test_process_metadata(cbapi_mock, config):
