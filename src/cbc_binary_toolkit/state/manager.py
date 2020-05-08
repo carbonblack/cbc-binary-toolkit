@@ -22,8 +22,8 @@ class BasePersistor:
             binary_hash (str): The hash value to set in the database.
             engine_name (str): The engine value to set in the database.
             checkpoint_name (str): The name of the checkpoint to set.
-            checkpoint_time (str): The timestamp to set the checkpoint time to.  Not normally
-            used except in test code.
+            checkpoint_time (str): The timestamp to set the checkpoint time to.  Assumed to be in
+                                   local time.  Not normally used except in test code.
 
         """
         raise NotImplementedError("protocol not implemented: set_checkpoint")
@@ -62,7 +62,8 @@ class BasePersistor:
         Erases all entries from the database older than a specified time.
 
         Args:
-            timestamp (str): The basic timestamp (ISO 8601 format). Everything older than this will be erased.
+            timestamp (str): The basic timestamp (ISO 8601 format). Assumed to be in local time.
+                              Everything older than this will be erased.
 
         """
         raise NotImplementedError("protocol not implemented: prune")
@@ -148,8 +149,8 @@ class StateManager:
             binary_hash (str): The hash value to set in the database.
             engine_name (str): The engine value to set in the database.
             checkpoint_name (str): The name of the checkpoint to set.
-            checkpoint_time (str): The timestamp to set the checkpoint time to.  Not normally
-                                   used except in test code.
+            checkpoint_time (str): The timestamp to set the checkpoint time to.  Assumed to be in
+                                   local time.  Not normally used except in test code.
 
         """
         self._persistor.set_checkpoint(binary_hash, engine_name, checkpoint_name, checkpoint_time)
@@ -188,7 +189,8 @@ class StateManager:
         Erases all entries from the database older than a specified time.
 
         Args:
-            timestamp (str): The basic timestamp (ISO 8601 format). Everything older than this will be erased.
+            timestamp (str): The basic timestamp (ISO 8601 format). Assumed to be in local time.
+                             Everything older than this will be erased.
 
         """
         self._persistor.prune(timestamp)
