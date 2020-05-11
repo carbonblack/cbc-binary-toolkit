@@ -39,11 +39,10 @@ All requirements are installed as part of `pip install` or if you're planning on
 
 ## Getting Started
 
-There are two ways to use the Carbon Black Cloud Binary Toolkit. The following scripts provide all out-of-the-box functionality. You can also use the Toolkit to develop your own tool for processing binaries.
+There are two ways to use the Carbon Black Cloud Binary Toolkit. You can either run the Binary Analysis Tool using out-of-the-box functionality, or you can use the Toolkit to develop your own tool for processing binaries.
 
 
-Installing the Carbon Black Cloud Binary Toolkit
-
+First you will need to install the Binary Toolkit with the following command:
 ```
 pip install cbc-binary-toolkit
 ```
@@ -90,7 +89,7 @@ If you want to provide additional examples, fix a bug, or add a feature to the T
 
 ### Installing for Toolkit development
 
-You will need to fork the repo in order to create pull requests when submitting code for review. For details on forking a repo https://help.github.com/en/github/getting-started-with-github/fork-a-repo
+You will need to fork the repo in order to create pull requests when submitting code for review. For details on forking a repo, see [here](https://help.github.com/en/github/getting-started-with-github/fork-a-repo)
 
 ```
 git clone https://github.com/{fork-name}/cbc-binary-toolkit
@@ -101,6 +100,7 @@ pip install requirements.txt
 
 ### Running the Toolkit tests
 
+To check if your code changes didn't break any use cases the following command will run all the tests:
 ```
 pytest
   Optional args:
@@ -110,7 +110,7 @@ pytest
 
 ### Development Flow
 
-Create a branch off of the develop branch
+To begin a code change start by creating a branch off of the develop branch
 ```
 git checkout develop
 git checkout -b {branch-name}
@@ -127,4 +127,4 @@ git checkout {branch-name}
 git rebase develop
 ```
 
-Note if your develop branch is out of sync with the CarbonBlack repo then you will need to sync your fork. https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork
+Note if your develop branch is out of sync with the CarbonBlack repo then you will need to sync your fork. For information on syncing your fork, see [here](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork)

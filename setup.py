@@ -30,6 +30,7 @@ setup(
     description="The VMware Carbon Black Cloud Binary Toolkit provides useful tools to process "
                 "binaries and upload IOCs to your Feeds",
     long_description=read("README.md"),
+    long_description_content_type='text/markdown',
     platforms="any",
     classifiers=[
         "Intended Audience :: Developers",
