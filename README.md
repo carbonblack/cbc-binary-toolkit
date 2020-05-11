@@ -2,11 +2,18 @@
 [![Coverage Status](https://coveralls.io/repos/github/carbonblack/cb-binary-analysis/badge.svg?branch=develop&t=rhX4tc)](https://coveralls.io/github/carbonblack/cb-binary-analysis?branch=develop)
 # Carbon Black Cloud Binary Toolkit
 
+#### \*\*Disclaimer: This is an ALPHA release\*\*
+
 **Latest Version:** 1.0a1
 <br>
 **Release Date:** 05/11/2020
 
 The Carbon Black Cloud Binary Toolkit provides a system of processing incoming SHA256 hashes by integrating with the Unified Binary Store (UBS) on the Carbon Black Cloud (CBC).
+
+
+## Recent updates
+
+View the latest release notes [here](https://github.com/carbonblack/cbc-binary-toolkit/releases).
 
 
 ## License
@@ -110,7 +117,7 @@ pytest
 
 ### Development Flow
 
-To begin a code change start by creating a branch off of the develop branch
+To begin a code change start by creating a branch off of the develop branch.
 ```
 git checkout develop
 git checkout -b {branch-name}
