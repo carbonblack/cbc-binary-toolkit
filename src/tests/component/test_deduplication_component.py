@@ -46,12 +46,13 @@ def equivalent(list1, list2):
 
 
 @pytest.mark.parametrize(["input_list", "previous_list", "result_list"], [
-    (["ABCD", "DEFG", "JKLM"], ["ABCD", "CDEF"], ["DEFG", "JKLM"]),
-    (["ABCD", "DEFG", "JKLM"], ["ABCD", "DEFG"], ["JKLM"]),
-    (["ABCD", "DEFG", "JKLM"], ["CDEF", "GHIJ"], ["ABCD", "DEFG", "JKLM"]),
-    (["ABCD", "DEFG", "JKLM"], ["ABCD", "DEFG", "JKLM"], []),
-    (["ABCD", "DEFG", "JKLM"], [], ["ABCD", "DEFG", "JKLM"]),
-    ([], ["ABCD", "CDEF"], []),
+    (["ABCD", "DEFG", "JKLM"], ["abcd", "cdef"], ["defg", "jklm"]),
+    (["abcd", "defg", "jklm"], ["abcd", "defg"], ["jklm"]),
+    (["ABCD", "DEFG", "JKLM"], ["cdef", "ghij"], ["abcd", "defg", "jklm"]),
+    (["abcd", "defg", "jklm"], ["abcd", "defg", "jklm"], []),
+    (["ABCD", "DEFG", "JKLM"], [], ["abcd", "defg", "jklm"]),
+    ([], ["abcd", "cdef"], []),
+    (["ABCD"], ["abcd"], []),
     ([], [], [])
 ])
 def test_deduplication(local_config, input_list, previous_list, result_list):
