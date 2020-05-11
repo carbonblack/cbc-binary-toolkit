@@ -2,18 +2,18 @@
 [![Coverage Status](https://coveralls.io/repos/github/carbonblack/cb-binary-analysis/badge.svg?branch=develop&t=rhX4tc)](https://coveralls.io/github/carbonblack/cb-binary-analysis?branch=develop)
 # Carbon Black Cloud Binary Toolkit
 
-**Latest Version:** 0.0.1
+**Latest Version:** 1.0a1
 <br>
-**Release Date:** N/A
+**Release Date:** 05/11/2020
 
 The Carbon Black Cloud Binary Toolkit provides a system of processing incoming SHA256 hashes by integrating with the Unified Binary Store (UBS) on the Carbon Black Cloud (CBC).
 
 
 ## Support
 
-If you have questions about the Carbon Black Cloud Binary Toolkit, please contact us at dev-support@carbonblack.com
-Also review the documentation and guides available on the
-[Carbon Black Developer Network website](https://developer.carbonblack.com)
+1. View all API and integration offerings on the [Developer Network](https://developer.carbonblack.com) along with reference documentation, video tutorials, and how-to guides.
+2. Use the [Developer Community Forum](https://community.carbonblack.com/) to discuss issues and get answers from other API developers in the Carbon Black Community.
+3. Create a github issue for bugs and change requests. Formal [Carbon Black Support](http://carbonblack.com/resources/support/) coming with v1.0.
 
 ## Requirements
 
@@ -30,6 +30,9 @@ All requirements are installed as part of `pip install` or if you're planning on
 * schema
 * yara-python
 
+### Carbon Black Cloud
+* Enterprise EDR
+
 ## Getting Started
 
 There are two ways to use the Carbon Black Cloud Binary Toolkit. The following scripts provide all out-of-the-box functionality. You can also use the Toolkit to develop your own tool for processing binaries.
@@ -43,7 +46,7 @@ pip install cbc-binary-toolkit
 
 ### Running Binary Analysis tool
 
-The cbc-binary-analysis tool provides out-of-the-box builtin resources for processing binaries and managing the analysis results.
+The cbc-binary-analysis tool provides out-of-the-box builtin resources for processing binaries and managing the analysis results. For more information see the [User Guide](https://github.com/carbonblack/cbc-binary-toolkit/wiki/User-Guide) wiki page.
 
 ```
 usage: cbc-binary-analysis [-h] [-c CONFIG]
@@ -66,14 +69,15 @@ optional arguments:
                         The base log level (default INFO)
 ```
 
+**Note: Run --help on any of the commands for up to date arguments**
+
 
 ### Using the Toolkit to develop your own tools
 
+The following python code snippet will allow you to begin developing with the Carbon Black Cloud Binary toolkit. For more information see the [Developer Guide](https://github.com/carbonblack/cbc-binary-toolkit/wiki/Developer-Guide) wiki page.
 ```
 from cbc_binary_toolkit import *
 ```
-
-
 
 
 ## Developing Improvements for the Carbon Black Cloud Binary Toolkit
