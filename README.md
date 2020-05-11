@@ -9,6 +9,10 @@
 The Carbon Black Cloud Binary Toolkit provides a system of processing incoming SHA256 hashes by integrating with the Unified Binary Store (UBS) on the Carbon Black Cloud (CBC).
 
 
+## License
+
+Use of the Carbon Black API is governed by the license found in [LICENSE](LICENSE).
+
 ## Support
 
 1. View all API and integration offerings on the [Developer Network](https://developer.carbonblack.com) along with reference documentation, video tutorials, and how-to guides.
