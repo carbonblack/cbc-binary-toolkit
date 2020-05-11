@@ -267,7 +267,7 @@ class AnalysisUtility:
                     state_manager.prune(timestamp)
                     if args.reports and self._any_reports_present(state_manager):
                         if args.force or self._yes_or_no("Confirm you want to clear unsent report items"):
-                            log.info("Clear report items")
+                            log.info("Clearing report items")
                             for i in range(1, 11):
                                 state_manager.clear_report_items(i, self.config.get("engine.name"))
 

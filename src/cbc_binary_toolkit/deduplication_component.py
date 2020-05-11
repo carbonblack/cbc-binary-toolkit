@@ -33,6 +33,6 @@ class DeduplicationComponent:
         engine_name = self._config.string("engine.name")
         # Use simple set-difference implementation unless we need to implement something more powerful,
         # like merge-join technique
-        input_set = set(list_input)
+        input_set = {item.casefold() for item in list_input}
         existset = set(self._state_manager.get_previous_hashes(engine_name))
         return list(input_set - existset)
