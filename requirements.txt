@@ -1,0 +1,15 @@
+# Package dependencies
+argparse
+cbapi
+python-dateutil
+pyyaml
+requests
+schema
+yara-python
+
+# Dev dependencies
+flake8
+flake8-docstrings
+coverage
+coveralls
+pytest

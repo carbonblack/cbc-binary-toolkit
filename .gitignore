@@ -46,6 +46,8 @@ coverage.xml
 *.cover
 .hypothesis/
 .pytest_cache/
+*log.txt
+persist_test.db
 
 # Translations
 *.mo
@@ -97,8 +99,23 @@ venv.bak/
 # Rope project settings
 .ropeproject
 
+# Eclipse/PyDev
+/.project
+/.pydevproject
+/.settings
+
+# macOS
+.DS_Store
+
 # mkdocs documentation
 /site
 
 # mypy
 .mypy_cache/
+
+# Local configuration
+config/binary-analysis-config.yaml
+
+.coverage
+codeship.aes
+env

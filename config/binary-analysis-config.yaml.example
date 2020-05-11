@@ -1,0 +1,16 @@
+id: cbc_binary_toolkit
+version: 0.0.1
+carbonblackcloud:
+  url: https://defense-dev01.cbdtest.io
+  api_token: ABCDEFGHIJKLMNOPQRSTUVWXYZ/1234567890
+  org_key: abcdefgh
+  ssl_verify: True
+  expiration_seconds: 3600
+database:
+  _provider: cbc_binary_toolkit.state.builtin.Persistor
+  location: ":memory:"
+engine:
+  name: engine-name
+  feed_id: 578fTEQBNWXHCPGIXD4RA
+  type: local
+  _provider: example.engine
