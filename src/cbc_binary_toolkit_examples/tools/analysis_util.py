@@ -237,7 +237,7 @@ class AnalysisUtility:
                 timestamp = args.timestamp
                 if timestamp is None:
                     timestamp = str(datetime.now())
-                if not (args.force or self._yes_or_no(f"Confirm you want to clear runs since {timestamp}")):
+                if not (args.force or self._yes_or_no(f"Confirm you want to clear runs prior to {timestamp}")):
                     log.info("Clear canceled")
                     return
 
