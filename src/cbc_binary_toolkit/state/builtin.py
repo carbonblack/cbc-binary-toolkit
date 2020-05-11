@@ -34,8 +34,8 @@ class SQLiteBasedPersistor(BasePersistor):
             binary_hash (str): The hash value to set in the database.
             engine_name (str): The engine value to set in the database.
             checkpoint_name (str): The name of the checkpoint to set.
-            checkpoint_time (str): The timestamp to set the checkpoint time to.  Not normally
-                                   used except in test code.
+            checkpoint_time (str): The timestamp to set the checkpoint time to.  Assumed to be in
+                                   local time.  Not normally used except in test code.
 
         """
         try:
@@ -54,14 +54,14 @@ class SQLiteBasedPersistor(BasePersistor):
                     cursor.execute(stmt, (binary_hash, engine_name, checkpoint_name))
             else:
                 stmt = """
-                UPDATE run_state SET checkpoint_name = ?, checkpoint_time = ?
+                UPDATE run_state SET checkpoint_name = ?, checkpoint_time = datetime(?, 'utc')
                     WHERE file_hash = ? AND engine_name = ?;
                 """
                 cursor.execute(stmt, (checkpoint_name, checkpoint_time, binary_hash, engine_name))
                 if cursor.rowcount == 0:
                     stmt = """
                     INSERT INTO run_state(file_hash, engine_name, checkpoint_name, checkpoint_time)
-                        VALUES (?, ?, ?, ?);
+                        VALUES (?, ?, ?, datetime(?, 'utc'));
                     """
                     cursor.execute(stmt, (binary_hash, engine_name, checkpoint_name, checkpoint_time))
             self._conn.commit()
@@ -132,13 +132,14 @@ class SQLiteBasedPersistor(BasePersistor):
         Erases all entries from the database older than a specified time.
 
         Args:
-            timestamp (str): The basic timestamp (ISO 8601 format). Everything older than this will be erased.
+            timestamp (str): The basic timestamp (ISO 8601 format). Assumed to be in local time.
+                              Everything older than this will be erased.
 
         """
         try:
             cursor = self._conn.cursor(self._cursor_factory)
             stmt = """
-            DELETE FROM run_state WHERE julianday(checkpoint_time) < julianday(?);
+            DELETE FROM run_state WHERE julianday(checkpoint_time) < julianday(?, 'utc');
             """
             cursor.execute(stmt, (timestamp, ))
             cursor.close()
