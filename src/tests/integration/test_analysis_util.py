@@ -73,6 +73,22 @@ def config2():
     """)
 
 
+@pytest.fixture(scope="session")
+def config3():
+    """Configure for one of the restart tests."""
+    return Config.load(f"""
+    id: cbc_binary_toolkit
+    version: 0.0.1
+    database:
+      _provider: tests.component.persistor_fixtures.mock_persistor.MockPersistorFactory
+    engine:
+      _provider: tests.component.engine_fixtures.mock_engine.MockLocalEngineFactory
+      name: {ENGINE_NAME}
+      type: local
+      Test: TestPassed
+    """)
+
+
 def minus_severity(iocs):
     """Removes "severity" from all the IOC structures, for comparison purposes"""
     tmp = copy.deepcopy(iocs)
@@ -176,6 +192,31 @@ def test_analyze_command_with_not_found(cbapi_mock, config):
     assert cbapi_mock._last_request_data is not None
     ensure_not_report(cbapi_mock._last_request_data)
     assert METADATA_VALID["sha256"] not in components["state_manager"].get_previous_hashes(ENGINE_NAME)
+
+
+def test_analyze_command_without_feed(cbapi_mock, config3):
+    """Test reports are not sent when a feed id is not present"""
+    sut = AnalysisUtility(None)
+    sut.config = config3
+    sut.cbapi = cbapi_mock.api
+    hash = METADATA_VALID["sha256"]
+    cbapi_mock.mock_request("POST", f"/ubs/v1/orgs/test/file/_download",
+                            {"found": [{"sha256": hash, "url": "DUMMY_URL"}], "not_found": [], "error": []})
+    cbapi_mock.mock_request("GET", f"/ubs/v1/orgs/test/sha256/{hash}/metadata", METADATA_VALID)
+
+    components = sut._init_components()
+    components["engine_manager"].engine.mock_engine_output(hash, IOCS_2)
+
+    args = Namespace()
+    args.file = None
+    args.list = json.dumps([hash])
+    sut._analyze_command(args, components)
+
+    assert cbapi_mock._last_request_data == {
+        'expiration_seconds': 3600,
+        'sha256': ['0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc']
+    } or cbapi_mock._last_request_data is None
+    assert METADATA_VALID["sha256"] in components["state_manager"].get_previous_hashes(ENGINE_NAME)
 
 
 def test_restart_command(cbapi_mock, config):
