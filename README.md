@@ -41,6 +41,10 @@ All requirements are installed as part of `pip install` or if you're planning on
 * schema
 * yara-python
 
+**Note: Windows users will need to have [Microsoft Visual C++ 14.0 Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools) installed in order to compile yara-python.**
+
+**Note: Ubuntu users will need to have `python3.x-dev` installed to match their version of python in order to compile yara-python.**
+
 ### Carbon Black Cloud
 * Enterprise EDR
 
