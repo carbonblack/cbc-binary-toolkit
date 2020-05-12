@@ -46,10 +46,11 @@ def read_csv(file):
         with file as csvfile:
             file_data = csv.reader(csvfile)
             for row in file_data:
-                hash = row[0]
-                if len(hash) != 64:
-                    raise AssertionError(f'Hash should be 64 chars, instead is {len(hash)} chars: {hash}')
-                hashes.append(str(hash))
+                if len(row) > 0:
+                    hash_val = row[0]
+                    if len(hash_val) != 64:
+                        raise AssertionError(f'Hash should be 64 chars, instead is {len(hash_val)} chars: {hash_val}')
+                    hashes.append(str(hash_val))
         if not hashes:
             raise AssertionError(f'There are no hashes in File {file.name}')
 
