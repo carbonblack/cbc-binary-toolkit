@@ -43,7 +43,13 @@ All requirements are installed as part of `pip install` or if you're planning on
 
 **Note: Windows users will need to have [Microsoft Visual C++ 14.0 Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools) installed in order to compile yara-python.**
 
-**Note: Linux users will need to have `python3.x-dev` installed to match their version of python or `python-devel` depending on their distribution in order to compile yara-python. Use the package manager appropriate for your distribution.**
+**Note: Linux users will need to have the python developer package installed in order to compile yara-python. If there are compile errors make sure to be on the latest gcc compiler**
+
+Linux Distribution | Command
+---- | ----
+Amazon Linux/Centos/RHEL | `yum install python3-devel`
+Ubuntu | `apt-get install python3-dev`
+OpenSUSE/SUSE | `zypper install python3-devel`
 
 ### Carbon Black Cloud
 * Enterprise EDR
