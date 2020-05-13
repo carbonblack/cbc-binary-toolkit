@@ -28,7 +28,7 @@ Use of the Carbon Black API is governed by the license found in [LICENSE](LICENS
 
 ## Requirements
 
-The Carbon Black Cloud Binary Toolkit is design to work on Python 3.7 and above.
+The Carbon Black Cloud Binary Toolkit is design to work on Python 3.6 and above.
 
 All requirements are installed as part of `pip install` or if you're planning on pushing changes to the Carbon Black Cloud Binary Toolkit, the following can be used after cloning the repo `pip install requirements.txt`
 
