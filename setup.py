@@ -11,7 +11,6 @@ def read(fname):
 
 
 install_reqs = [
-    "argparse",
     "cbapi",
     "python-dateutil",
     "pyyaml",

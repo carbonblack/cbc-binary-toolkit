@@ -64,7 +64,7 @@ class AnalysisUtility:
                                   choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
                                   help="The base log level (default {0})".format(DEFAULT_LOG_LEVEL))
 
-        commands = self._parser.add_subparsers(help="Binary analysis commands", dest="command_name", required=True)
+        commands = self._parser.add_subparsers(help="Binary analysis commands", dest="command_name")
 
         # Analyze command parser
         analyze_command = commands.add_parser("analyze", help="Analyze a list of hashes by command line or file")
@@ -239,6 +239,14 @@ class AnalysisUtility:
             sys.tracebacklimit = 0
 
         log.debug("Started: {}".format(datetime.now()))
+
+        if args.command_name is None:
+            print(
+                "usage: cbc-binary-analysis [-h] [-c CONFIG]\n"
+                "                           [-ll {DEBUG,INFO,WARNING,ERROR,CRITICAL}]\n"
+                "                           {analyze,restart,clear} ...\n"
+                "cbc-binary-analysis: error: the following arguments are required: command_name")
+            return
 
         try:
             if self.config is None:

@@ -4,7 +4,7 @@
 
 #### \*\*Disclaimer: This is an ALPHA release\*\*
 
-**Latest Version:** 1.0a1
+**Latest Version:** 1.0a2
 <br>
 **Release Date:** 05/11/2020
 
@@ -32,6 +32,9 @@ The Carbon Black Cloud Binary Toolkit is design to work on Python 3.6 and above.
 
 All requirements are installed as part of `pip install` or if you're planning on pushing changes to the Carbon Black Cloud Binary Toolkit, the following can be used after cloning the repo `pip install requirements.txt`
 
+### Carbon Black Cloud
+* Enterprise EDR
+
 ### Python Packages
 * argparse
 * cbapi
@@ -41,8 +44,17 @@ All requirements are installed as part of `pip install` or if you're planning on
 * schema
 * yara-python
 
-### Carbon Black Cloud
-* Enterprise EDR
+#### Note:
+
+* **Windows** users will need to have [Microsoft Visual C++ 14.0 Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools) installed in order to compile yara-python.
+
+* **Linux** users will need to have the python developer package installed in order to compile yara-python. If you receive compile errors, make sure you are on the latest gcc compiler version
+
+Linux Distribution | Command
+---- | ----
+Amazon Linux/Centos/RHEL | `yum install python3-devel`
+Ubuntu | `apt-get install python3-dev`
+OpenSUSE/SUSE | `zypper install python3-devel`
 
 ## Getting Started
 

@@ -1,5 +1,4 @@
 # Package dependencies
-argparse
 cbapi
 python-dateutil
 pyyaml

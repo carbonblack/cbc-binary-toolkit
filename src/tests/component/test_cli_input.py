@@ -31,9 +31,11 @@ from tests.component.input_fixtures.file_path_constants import (
     LARGE_JSON_ANSWER_PATH,
     BASIC_JSON_WRONG_HASHLEN,
     BASIC_JSON_MALFORMED_FILE,
+    BLANK_LINES_CSV_INPUT_FILE,
     BASIC_INPUT_CSV_WRONG_HASHLEN,
     DOES_NOT_EXIST_FILE,
     EMPTY_CSV,
+    ONE_BLANK_LINE_CSV,
     # WRONG_KEY_JSON,
     EMPTY_HASHES_DICT_JSON
 )
@@ -50,7 +52,8 @@ class TestInputFunctions():
     """Unit tests for input.py functions"""
     @pytest.mark.parametrize("input_file_path, answer_file_path", [
         (BASIC_INPUT_FILE, BASIC_INPUT_ANSWER_PATH),
-        (LARGE_INPUT_FILE, LARGE_INPUT_ANSWER_PATH)
+        (LARGE_INPUT_FILE, LARGE_INPUT_ANSWER_PATH),
+        (BLANK_LINES_CSV_INPUT_FILE, BASIC_INPUT_ANSWER_PATH)
     ])
     def test_csv(self, input_file_path: str, answer_file_path: List[Dict]):
         """Unit testing read_csv function"""
@@ -75,7 +78,8 @@ class TestInputFunctions():
             "Hash should be 64 chars, instead is 63 chars: "
             "qqtrqoetfdomjjqnyatgmmbomhtnzqchzqzhxggmxqzgoabcnzysikrmunjgrup"),
         (OSError, DOES_NOT_EXIST_FILE, f"[Errno 2] No such file or directory: '{attach_path(DOES_NOT_EXIST_FILE)}'"),
-        (AssertionError, EMPTY_CSV, f'There are no hashes in File {attach_path(EMPTY_CSV)}')
+        (AssertionError, EMPTY_CSV, f'There are no hashes in File {attach_path(EMPTY_CSV)}'),
+        (AssertionError, ONE_BLANK_LINE_CSV, f'There are no hashes in File {attach_path(ONE_BLANK_LINE_CSV)}')
     ])
     def test_csv_exceptions(self, error, input_file_path: str, msg: str):
         """Unit testing read_csv function exceptions"""
