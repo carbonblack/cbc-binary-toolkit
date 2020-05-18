@@ -56,19 +56,19 @@ class BreakingCursor(Cursor):
         raise OperationalError('in testing')
 
 
-def _unfinished_as_map(l):
+def _unfinished_as_map(unfinished_hashes):
     """
     Utility to turn the "unfinished hashes" list into a map.
 
     Args:
-        l (list): The list returned from get_unfinished_hashes().
+        unfinished_hashes (list): The list returned from get_unfinished_hashes().
 
     Returns:
         dict: The same hash expressed as a map.
 
     """
     return_value = {}
-    for val in l:
+    for val in unfinished_hashes:
         return_value[val[0]] = val[1]
     return return_value
 
