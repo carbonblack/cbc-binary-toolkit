@@ -1,6 +1,12 @@
 - name: linters
-  service: testing
+  service: testingpython38
   command: bin/linters.sh
 - name: tests
-  service: testing
-  command: bin/tests_n_reports.sh
+  type: parallel
+  steps:
+  - service: testingpython36
+    command: coverage run -m pytest
+  - service: testingpython37
+    command: coverage run -m pytest
+  - service: testingpython38
+    command: bin/tests_n_reports.sh
