@@ -4,9 +4,12 @@
 - name: tests
   type: parallel
   steps:
-  - service: testingpython36
+  - name: testingpython36
+    service: testingpython36
     command: coverage run -m pytest
-  - service: testingpython37
+  - name: testingpython37
+    service: testingpython37
     command: coverage run -m pytest
-  - service: testingpython38
+  - name: testingpython38
+    service: testingpython38
     command: bin/tests_n_reports.sh
