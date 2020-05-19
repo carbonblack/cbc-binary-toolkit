@@ -48,7 +48,7 @@ All requirements are installed as part of `pip install` or if you're planning on
 
 * **Windows** users will need to have [Microsoft Visual C++ 14.0 Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools) installed in order to compile yara-python.
 
-* **Linux** users will need to have the python developer package installed in order to compile yara-python. If you receive compile errors, make sure you are on the latest gcc compiler version
+* **Linux** users will need to have the python developer package installed in order to compile yara-python. If you receive compile errors, make sure you are on the latest gcc compiler version.
 
 Linux Distribution | Command
 ---- | ----
@@ -91,12 +91,12 @@ optional arguments:
                         The base log level (default INFO)
 ```
 
-**Note: Run --help on any of the commands for up to date arguments**
+**Note:** Run --help on any of the commands for up to date arguments.
 
 
 ### Using the Toolkit to develop your own tools
 
-The following python code snippet will allow you to begin developing with the Carbon Black Cloud Binary toolkit. For more information see the [Developer Guide](https://github.com/carbonblack/cbc-binary-toolkit/wiki/Developer-Guide) wiki page.
+The following python code snippet allows you to begin developing with the Carbon Black Cloud Binary toolkit. For more information see the [Developer Guide](https://github.com/carbonblack/cbc-binary-toolkit/wiki/Developer-Guide).
 ```
 from cbc_binary_toolkit import *
 ```
@@ -104,11 +104,11 @@ from cbc_binary_toolkit import *
 
 ## Developing Improvements for the Carbon Black Cloud Binary Toolkit
 
-If you want to provide additional examples, fix a bug, or add a feature to the Toolkit the following steps will get you started.
+Use the following steps if you want to provide additional examples, fix a bug, or add a feature to the Toolkit.
 
 ### Installing for Toolkit development
 
-You will need to fork the repo in order to create pull requests when submitting code for review. For details on forking a repo, see [here](https://help.github.com/en/github/getting-started-with-github/fork-a-repo)
+You will need to fork the repo in order to create pull requests when submitting code for review. For details on forking a repo, see [here](https://help.github.com/en/github/getting-started-with-github/fork-a-repo).
 
 ```
 git clone https://github.com/{fork-name}/cbc-binary-toolkit
@@ -121,7 +121,7 @@ pip install requirements.txt
 
 To check that your code changes didn't break any use cases, or fail our linters, the following will show you how to set up and run our tests:
 
-Install one or all of these versions of Python: `Python 3.6.X, Python 3.7.X or Python 3.8.X` and is accessible to this project.
+Install one or all of these versions of Python: `Python 3.6.X, Python 3.7.X or Python 3.8.X` and make sure it is accessible to this project.
 
 For managing different versions of python, an easy solution is: [pyenv(for UNIX based systems)](https://github.com/pyenv/pyenv#basic-github-checkout), or [pyenv-win(for Windows based systems)](https://github.com/pyenv-win/pyenv-win).
 
@@ -131,7 +131,7 @@ Run the command `tox -e <the environment you want to run>` from anywhere in the 
 
 The `tox.ini` file shows that the tests are run against python versions `3.6.x, 3.7.x and 3.8.x` as `py36, py37, py38`.
 
-For example: If you just run `tox -e py37`, it will run the tests against the `Python 3.7.X` version installed locally.
+**Example:** If you just run `tox -e py37`, it will run the tests against the `Python 3.7.X` version installed locally.
 
 But if `tox` is run, it will try to run against all the versions listed in the `tox.ini` file (currently py36, py37, and py38).
 If a version is not installed locally, it will just throw an error of:
@@ -140,7 +140,7 @@ If a version is not installed locally, it will just throw an error of:
 ERROR:  pyXX: InterpreterNotFound: pythonX.X
 
 ```
-but will continue running against the versions that are installed.
+It will continue running against the versions that are installed.
 
 
 If there are any changes, you need to recreate the virtualenv that tox built. Just run `tox --recreate -e <the environment you want to run>` or `tox --recreate` for all environments.
@@ -150,12 +150,12 @@ If this error is thrown:
 ERROR: cowardly refusing to delete `envdir` (it does not look like a virtualenv):
 
 ```
-just delete the python env directory (py37) from .tox directory
+Delete the python env directory (py37) from .tox directory
 and rerun `tox --recreate`.
 
 ### Development Flow
 
-To begin a code change start by creating a branch off of the develop branch.
+To begin a code change, start by creating a branch off of the develop branch.
 ```
 git checkout develop
 git checkout -b {branch-name}
@@ -166,10 +166,10 @@ When the feature or bug fix is finished you will need to create a pull request t
 git push {remote} {branch-name}
 ```
 
-If your branch is behind the develop branch then you will need to rebase.
+If your branch is behind the develop branch, you will need to rebase.
 ```
 git checkout {branch-name}
 git rebase develop
 ```
 
-Note if your develop branch is out of sync with the CarbonBlack repo then you will need to sync your fork. For information on syncing your fork, see [here](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork)
+**Note:** if your develop branch is out of sync with the CarbonBlack repo then you will need to sync your fork. For information on syncing your fork, see [here](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork).
