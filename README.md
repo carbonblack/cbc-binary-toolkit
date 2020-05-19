@@ -119,13 +119,39 @@ pip install requirements.txt
 
 ### Running the Toolkit tests
 
-To check if your code changes didn't break any use cases the following command will run all the tests:
+To check that your code changes didn't break any use cases, or fail our linters, the following will show you how to set up and run our tests:
+
+Install one or all of these versions of Python: `Python 3.6.X, Python 3.7.X or Python 3.8.X` and is accessible to this project.
+
+For managing different versions of python, an easy solution is: [pyenv(for UNIX based systems)](https://github.com/pyenv/pyenv#basic-github-checkout), or [pyenv-win(for Windows based systems)](https://github.com/pyenv-win/pyenv-win).
+
+Install [tox](https://tox.readthedocs.io/en/latest/install.html) (e.g. `pip install tox` or `brew install tox`)
+
+Run the command `tox -e <the environment you want to run>` from anywhere in the directory to run the tests and linter.
+
+The `tox.ini` file shows that the tests are run against python versions `3.6.x, 3.7.x and 3.8.x` as `py36, py37, py38`.
+
+For example: If you just run `tox -e py37`, it will run the tests against the `Python 3.7.X` version installed locally.
+
+But if `tox` is run, it will try to run against all the versions listed in the `tox.ini` file (currently py36, py37, and py38).
+If a version is not installed locally, it will just throw an error of:
+
 ```
-pytest
-  Optional args:
-    -s Logs streamed to stdout
-    -k {test or file} Selectively runs test matching string or file
+ERROR:  pyXX: InterpreterNotFound: pythonX.X
+
 ```
+but will continue running against the versions that are installed.
+
+
+If there are any changes, you need to recreate the virtualenv that tox built. Just run `tox --recreate -e <the environment you want to run>` or `tox --recreate` for all environments.
+
+If this error is thrown:
+```
+ERROR: cowardly refusing to delete `envdir` (it does not look like a virtualenv):
+
+```
+just delete the python env directory (py37) from .tox directory
+and rerun `tox --recreate`.
 
 ### Development Flow
 

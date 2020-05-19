@@ -92,7 +92,7 @@ def cbapi_mock(monkeypatch, cb_threat_hunter):
     for hash in hashes:
         cbapi_mock.mock_request("GET", f"/ubs/v1/orgs/test/sha256/{hash}/metadata", HASH_METADATA[hash])
 
-    cbapi_mock.mock_request("POST", f"/ubs/v1/orgs/test/file/_download", mock_downloads)
+    cbapi_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download", mock_downloads)
     return cbapi_mock
 
 

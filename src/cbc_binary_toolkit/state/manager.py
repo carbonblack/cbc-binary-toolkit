@@ -20,9 +20,7 @@ from cbc_binary_toolkit.loader import dynamic_create
 class BasePersistor:
     """'Abstract base class' that should be inherited by persistor objects."""
     def force_close(self):
-        """
-        Forces the persistor to close. This should only be called from test code.
-        """
+        """Forces the persistor to close. This should only be called from test code."""
         pass
 
     def set_checkpoint(self, binary_hash, engine_name, checkpoint_name, checkpoint_time=None):
@@ -146,9 +144,7 @@ class StateManager:
         self._persistor = factory.create_persistor(config.section('database'))
 
     def force_close(self):
-        """
-        Forces the persistor to close. This should only be called from test code.
-        """
+        """Forces the persistor to close. This should only be called from test code."""
         self._persistor.force_close()
         self._persistor = None
 

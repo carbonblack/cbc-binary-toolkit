@@ -164,7 +164,7 @@ def test_analyze_command(cbapi_mock, config):
     sut.config = config
     sut.cbapi = cbapi_mock.api
     hash = METADATA_VALID["sha256"]
-    cbapi_mock.mock_request("POST", f"/ubs/v1/orgs/test/file/_download",
+    cbapi_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download",
                             {"found": [{"sha256": hash, "url": "DUMMY_URL"}], "not_found": [], "error": []})
     cbapi_mock.mock_request("GET", f"/ubs/v1/orgs/test/sha256/{hash}/metadata", METADATA_VALID)
     cbapi_mock.mock_request("PUT", f"/threathunter/feedmgr/v2/orgs/test/feeds/{FEED_ID}/reports/.*", None)
@@ -191,7 +191,7 @@ def test_analyze_command_with_not_found(cbapi_mock, config):
     sut.config = config
     sut.cbapi = cbapi_mock.api
     hash = METADATA_VALID["sha256"]
-    cbapi_mock.mock_request("POST", f"/ubs/v1/orgs/test/file/_download",
+    cbapi_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download",
                             {"found": [], "not_found": [hash], "error": []})
 
     components = sut._init_components()
@@ -212,7 +212,7 @@ def test_analyze_command_without_feed(cbapi_mock, config3):
     sut.config = config3
     sut.cbapi = cbapi_mock.api
     hash = METADATA_VALID["sha256"]
-    cbapi_mock.mock_request("POST", f"/ubs/v1/orgs/test/file/_download",
+    cbapi_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download",
                             {"found": [{"sha256": hash, "url": "DUMMY_URL"}], "not_found": [], "error": []})
     cbapi_mock.mock_request("GET", f"/ubs/v1/orgs/test/sha256/{hash}/metadata", METADATA_VALID)
 
@@ -237,7 +237,7 @@ def test_restart_command(cbapi_mock, config):
     sut.config = config
     sut.cbapi = cbapi_mock.api
     hash = METADATA_VALID["sha256"]
-    cbapi_mock.mock_request("POST", f"/ubs/v1/orgs/test/file/_download",
+    cbapi_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download",
                             {"found": [{"sha256": hash, "url": "DUMMY_URL"}], "not_found": [], "error": []})
     cbapi_mock.mock_request("GET", f"/ubs/v1/orgs/test/sha256/{hash}/metadata", METADATA_VALID)
     cbapi_mock.mock_request("PUT", f"/threathunter/feedmgr/v2/orgs/test/feeds/{FEED_ID}/reports/.*", None)
