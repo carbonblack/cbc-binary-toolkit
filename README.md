@@ -117,7 +117,7 @@ cd cbc-binary-toolkit
 pip install -r requirements.txt
 ```
 
-If you want to test/execute the console scripts from the repo then install the toolkit with the following command. This will install the toolkit in editable mode so changes to the repo modify the installed package. See the [manual-tests](#src/tests/manual-tests.md) document for more information on testing from a fresh install.
+If you want to test/execute the console scripts from the repo then install the toolkit with the following command. This will install the toolkit in editable mode so changes to the repo modify the installed package. See the [manual-tests](src/tests/manual-tests.md) document for more information on testing from a fresh install.
 
 ```
 pip install -e .
