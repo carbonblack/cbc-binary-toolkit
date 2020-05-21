@@ -30,21 +30,12 @@ Use of the Carbon Black API is governed by the license found in [LICENSE](LICENS
 
 The Carbon Black Cloud Binary Toolkit is design to work on Python 3.6 and above.
 
-All requirements are installed as part of `pip install` or if you're planning on pushing changes to the Carbon Black Cloud Binary Toolkit, the following can be used after cloning the repo `pip install requirements.txt`
+All requirements are installed as part of `pip install cbc-binary-toolkit` or if you're planning on pushing changes to the Carbon Black Cloud Binary Toolkit, the following can be used after cloning the repo `pip install -r requirements.txt`
 
 ### Carbon Black Cloud
 * Enterprise EDR
 
-### Python Packages
-* argparse
-* cbapi
-* python-dateutil
-* pyyaml
-* requests
-* schema
-* yara-python
-
-#### Note:
+### OS Specific Requirements
 
 * **Windows** users will need to have [Microsoft Visual C++ 14.0 Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools) installed in order to compile yara-python.
 
@@ -55,6 +46,16 @@ Linux Distribution | Command
 Amazon Linux/Centos/RHEL | `yum install python3-devel`
 Ubuntu | `apt-get install python3-dev`
 OpenSUSE/SUSE | `zypper install python3-devel`
+
+
+### Python Packages
+* argparse
+* cbapi
+* python-dateutil
+* pyyaml
+* requests
+* schema
+* yara-python
 
 ## Getting Started
 
@@ -113,9 +114,20 @@ You will need to fork the repo in order to create pull requests when submitting 
 ```
 git clone https://github.com/{fork-name}/cbc-binary-toolkit
 cd cbc-binary-toolkit
-pip install requirements.txt
+pip install -r requirements.txt
 ```
 
+If you want to test/execute the console scripts from the repo then install the toolkit with the following command. This will install the toolkit in editable mode so changes to the repo modify the installed package. See the [manual-tests](src/tests/manual-tests.md) document for more information on testing from a fresh install.
+
+```
+pip install -e .
+```
+
+**Note: The above command needs to be run from the base folder of the repo**
+
+### Running the Analysis tool
+
+If you want to execute the analysis tool without installing the package you can run the tool directly using the `analysis_util.py` script in `src/cbc_binary_toolkit_examples/tools`
 
 ### Running the Toolkit tests
 
