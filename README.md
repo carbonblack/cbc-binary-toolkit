@@ -125,6 +125,9 @@ pip install -e .
 
 **Note: The above command needs to be run from the base folder of the repo**
 
+### Running the Analysis tool
+
+If you want to execute the analysis tool without installing the package you can run the tool directly using the `analysis_util.py` script in `src/cbc_binary_toolkit_examples/tools`
 
 ### Running the Toolkit tests
 
