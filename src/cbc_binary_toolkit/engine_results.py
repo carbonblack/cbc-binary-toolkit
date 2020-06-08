@@ -204,7 +204,7 @@ class EngineResults:
         try:
             # if there are no reports in self.iocs, there's nothing to send
             if all([not report for report in self.iocs]):
-                log.error("No reports to send")
+                log.info("No reports to send")
                 return False
             for sev in range(self.SEVERITY_RANGE):
                 if len(self.iocs[sev]) > 0:
