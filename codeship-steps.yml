@@ -6,10 +6,10 @@
   steps:
   - name: testingpython36
     service: testingpython36
-    command: coverage run -m pytest --ignore=functional
+    command: coverage run -m pytest --ignore=src/tests/functional
   - name: testingpython37
     service: testingpython37
-    command: coverage run -m pytest --ignore=functional
+    command: coverage run -m pytest --ignore=src/tests/functional
   - name: testingpython38
     service: testingpython38
     command: bin/tests_n_reports.sh
