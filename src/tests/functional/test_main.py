@@ -22,7 +22,6 @@ import subprocess
 import sys
 import os
 import requests
-from cbc_binary_toolkit.config import Config
 
 
 if sys.platform.startswith("win32"):
@@ -72,7 +71,9 @@ def _create_feed(auth_token):
     # Feed Creation
     url = "https://defense-dev01.cbdtest.io/threathunter/feedmgr/v2/orgs/J7G6DTLN/feeds"
 
-    payload = "{\"feedinfo\": {\"name\": \"BATFuncTest\", \"owner\": \"DevRel\", \"provider_url\": \"some_url\", \"summary\": \"BAT functional testing\", \"category\": \"None\"},\n \"reports\": []}\n\n\n"
+    payload = ("{\"feedinfo\": {\"name\": \"BATFuncTest\", \"owner\": \"DevRel\","
+               "\"provider_url\": \"some_url\", \"summary\": \"BAT functional testing\","
+               "\"category\": \"None\"},\n \"reports\": []}\n\n\n")
     headers = {
         'X-Auth-Token': f'{auth_token}',
         'Content-type': 'application/json',
@@ -128,9 +129,10 @@ class TestUserHandling:
     def test_analyze(self, create_and_write_config, auth_token):
         """Test analyze command"""
         with open(LOG_FILE, "a+") as log:
-            subprocess.call([pycommand, 'setup.py', 'clean', '--all', 'install'])
-
-            subprocess.call(['cbc-binary-analysis', '-c', 'config/functional_config.yml', 'analyze', '-l ["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4"]'], stdout=log, stderr=log)
+            # subprocess.call([pycommand, 'setup.py', 'clean', '--all', 'install'])
+            subprocess.call(['cbc-binary-analysis', '-c', 'config/functional_config.yml',
+                             'analyze', '-l ["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4"]'],
+                            stdout=log, stderr=log)
         reports = get_reports_from_feed(auth_token, create_and_write_config)
         assert len(reports) == 1
         delete_feed(auth_token, create_and_write_config)
