@@ -14,6 +14,6 @@ testingpython38:
 
 functionalTesting:
   build:
-    dockerfile: ./docker/python3.8/Dockerfile
+    dockerfile: ./docker/functionalTesting/Dockerfile
   encrypted_env_file:
     - env.encrypted
