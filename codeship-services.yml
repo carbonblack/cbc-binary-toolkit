@@ -12,8 +12,8 @@ testingpython38:
   encrypted_env_file:
     - env.encrypted
 
-functionalTesting:
+functionaltesting:
   build:
-    dockerfile: ./docker/functionalTesting/Dockerfile
+    dockerfile: ./docker/functionaltesting/Dockerfile
   encrypted_env_file:
-    - env.encrypted
+    - auth.encrypted
