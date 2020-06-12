@@ -4,6 +4,7 @@ MAINTAINER cb-developer-network@vmware.com
 COPY . /app
 WORKDIR /app
 
+
 RUN yum -y install python3-devel
 RUN yum -y install centos-release-scl
 RUN yum -y install devtoolset-9
