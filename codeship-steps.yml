@@ -18,4 +18,4 @@
     command: /bin/sh -c 'coverage run -m pytest src/tests/functional/test_main.py --token $CBC_AUTH_TOKEN'
   - name: functionalcentos
     service: functionalcentos
-    command: echo 'test'
+    command: /bin/sh -c 'coverage run -m pytest src/tests/functional/test_main.py --token $CBC_AUTH_TOKEN'

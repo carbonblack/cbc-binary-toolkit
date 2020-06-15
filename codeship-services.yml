@@ -21,4 +21,5 @@ functionaltesting:
 functionalcentos:
   build:
     dockerfile: ./docker/functionalcentos/Dockerfile
-    
+  encrypted_env_file:
+    - auth.encrypted
