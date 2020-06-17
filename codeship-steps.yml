@@ -15,7 +15,7 @@
     command: bin/tests_n_reports.sh
 
 - name: functionaltests
-  type: series
+  type: serial
   steps:
   - name: functionaltesting
     service: functionaltesting
