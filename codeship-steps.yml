@@ -13,6 +13,10 @@
   - name: testingpython38
     service: testingpython38
     command: bin/tests_n_reports.sh
+
+- name: functionaltests
+  type: series
+  steps:
   - name: functionaltesting
     service: functionaltesting
     command: /bin/sh -c 'coverage run -m pytest src/tests/functional/test_main.py --token $CBC_AUTH_TOKEN'
