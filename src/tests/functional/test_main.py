@@ -24,7 +24,6 @@ import os
 import requests
 import csv
 
-
 if sys.platform.startswith("win32"):
     pycommand = "python"
 else:
@@ -103,7 +102,6 @@ def get_reports_from_feed(auth_token, feed_id):
     }
 
     response = requests.request("GET", url, headers=headers)
-    print("REPORTS RESPONSE:", response.json())
     return response.json()
 
 
@@ -115,15 +113,12 @@ def delete_feed(auth_token, feed_id):
     headers = {
         'X-Auth-Token': f'{auth_token}'
     }
-    response = requests.request("DELETE", url, headers=headers, data=payload)
-    print(response.text.encode('utf8'))
+    requests.request("DELETE", url, headers=headers, data=payload)
 
 
 def write_hashes_to_csv(hashes):
     """Writes hash(es) to a CSV file for testing"""
     num_hashes = str(len(hashes))
-    print(type(hashes))
-    print(hashes[0])
     with open(num_hashes + "_hashes.csv", "w", newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerows(hashes)
@@ -134,53 +129,80 @@ def write_hashes_to_csv(hashes):
 @pytest.mark.incremental
 class TestUserHandling:
     """Test users experience interacting with binary analysis commandline"""
-
-    def test_analyze_cli_one_hash(self, create_and_write_config, auth_token):
+    @pytest.mark.parametrize(["input_list", "num_hashes"], [
+        (['[]', 0]),
+        (['["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4"]', 1]),
+        (['["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4",'
+          '"00a16c806ff694b64e566886bba5122655eff89b45226cddc8651df7860e4524"]', 2])
+    ])
+    def test_analyze_cli(self, create_and_write_config, auth_token, input_list, num_hashes):
         """Test analyze command"""
         with open(LOG_FILE, "a+") as log:
             subprocess.call(['cbc-binary-analysis', '-c', 'config/functional_config.yml',
-                             'analyze', '-l ["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4"]'],
+                             'analyze', '-l', input_list],
                             stdout=log, stderr=log)
         reports = get_reports_from_feed(auth_token, create_and_write_config)
-        assert len(reports['results'][0]["iocs_v2"]) == 1
+        if num_hashes == 0:
+            assert len(reports['results']) == 0
+        else:
+            assert len(reports['results'][0]["iocs_v2"]) == num_hashes
         delete_feed(auth_token, create_and_write_config)
 
-    def test_analyze_file_one_hash(self, create_and_write_config, auth_token):
+    @pytest.mark.parametrize(["input_list", "num_hashes"], [
+        ([[[]], 0]),
+        ([[["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4"]], 1]),
+        ([[["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4"],
+          ["00a16c806ff694b64e566886bba5122655eff89b45226cddc8651df7860e4524"]], 2])
+    ])
+    def test_analyze_file(self, create_and_write_config, auth_token, input_list, num_hashes):
         """Test analyze command"""
-        filename = write_hashes_to_csv([["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4"]])
+        filename = write_hashes_to_csv(input_list)
         with open(LOG_FILE, "a+") as log:
             subprocess.call(['cbc-binary-analysis', '-c', 'config/functional_config.yml',
                              'analyze', '-f', filename],
                             stdout=log, stderr=log)
         reports = get_reports_from_feed(auth_token, create_and_write_config)
-        assert len(reports['results'][0]["iocs_v2"]) == 1
+        if num_hashes == 0:
+            assert len(reports['results']) == 0
+        else:
+            assert len(reports['results'][0]["iocs_v2"]) == num_hashes
         delete_feed(auth_token, create_and_write_config)
 
-    def test_analyze_cli_two_hashes(self, create_and_write_config, auth_token):
-        """Test analyze command with two valid hashes"""
+    @pytest.mark.parametrize(["input_file", "num_hashes"], [
+        (["src/tests/functional/fixtures/hashes.csv", 112])
+    ])
+    def test_analyze_file_large(self, create_and_write_config, auth_token, input_file, num_hashes):
+        """Test analyze command"""
+        # filename = write_hashes_to_csv(input_file)
         with open(LOG_FILE, "a+") as log:
             subprocess.call(['cbc-binary-analysis', '-c', 'config/functional_config.yml',
-                             'analyze', '-l', '["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4",'
-                                              '"00a16c806ff694b64e566886bba5122655eff89b45226cddc8651df7860e4524"]'],
+                             'analyze', '-f', input_file],
                             stdout=log, stderr=log)
         reports = get_reports_from_feed(auth_token, create_and_write_config)
-        assert len(reports['results'][0]["iocs_v2"]) == 2
+        assert len(reports['results'][0]["iocs_v2"]) == num_hashes
         delete_feed(auth_token, create_and_write_config)
 
-    def test_analyze_file_two_hashes(self, create_and_write_config, auth_token):
-        """Test analyze command with two valid hashes"""
-        filename = write_hashes_to_csv([["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4"],
-                                        ["00a16c806ff694b64e566886bba5122655eff89b45226cddc8651df7860e4524"]])
+    @pytest.mark.parametrize(["input_list", "num_hashes"], [
+        (['["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4"]', 1]),
+        (['["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4",'
+          '"00a16c806ff694b64e566886bba5122655eff89b45226cddc8651df7860e4524"]', 2])
+    ])
+    def test_clear(self, create_and_write_config, auth_token, input_list, num_hashes):
+        """Test clear command. Feed should have two reports with `num_hashes` IOC_V2s"""
         with open(LOG_FILE, "a+") as log:
             subprocess.call(['cbc-binary-analysis', '-c', 'config/functional_config.yml',
-                             'analyze', '-f', filename],
+                             'analyze', '-l', input_list],
                             stdout=log, stderr=log)
         reports = get_reports_from_feed(auth_token, create_and_write_config)
-        assert len(reports['results'][0]["iocs_v2"]) == 2
+        assert len(reports['results'][0]["iocs_v2"]) == num_hashes
+        with open(LOG_FILE, "a+") as log:
+            subprocess.call(['cbc-binary-analysis', 'clear', '--force'], stdout=log, stderr=log)
+            subprocess.call(['cbc-binary-analysis', '-c', 'config/functional_config.yml',
+                             'analyze', '-l', input_list],
+                            stdout=log, stderr=log)
+        reports = get_reports_from_feed(auth_token, create_and_write_config)
+        num_reports = len(reports['results'])
+        for result in reports['results']:
+            assert len(result['iocs_v2']) == num_hashes
+        assert num_reports == 2
         delete_feed(auth_token, create_and_write_config)
-
-    def test_clear(self):
-        """Test clear command"""
-        # with open(LOG_FILE, "a+") as log:
-        # subprocess.call([pycommand, BIN, 'clear'], stdout=log, stderr=log)
-        pass
