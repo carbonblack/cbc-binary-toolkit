@@ -24,4 +24,5 @@
     service: functionalcentos
     command: /bin/sh -c 'coverage run -m pytest src/tests/functional/test_main.py --token $CBC_AUTH_TOKEN'
   - name: functionalubuntu
-    service: /bin/sh -c 'coverage run -m pytest src/tests/functional/test_main.py --token $CBC_AUTH_TOKEN'
+    service: functionalubuntu
+    command: /bin/sh -c 'coverage run -m pytest src/tests/functional/test_main.py --token $CBC_AUTH_TOKEN'
