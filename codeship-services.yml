@@ -23,3 +23,9 @@ functionalcentos:
     dockerfile: ./docker/functionalcentos/Dockerfile
   encrypted_env_file:
     - auth.encrypted
+
+functionalubuntu:
+  build:
+    dockerfile: ./docker/functionalubuntu/Dockerfile
+  encrypted_env_file:
+    - auth.encrypted
