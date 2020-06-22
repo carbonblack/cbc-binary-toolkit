@@ -29,3 +29,9 @@ functionalubuntu:
     dockerfile: ./docker/functionalubuntu/Dockerfile
   encrypted_env_file:
     - auth.encrypted
+
+functionalsuse:
+  build:
+    dockerfile: ./docker/functionalsuse/Dockerfile
+  encrypted_env_file:
+    - auth.encrypted

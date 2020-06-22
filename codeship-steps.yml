@@ -26,3 +26,6 @@
   - name: functionalubuntu
     service: functionalubuntu
     command: /bin/sh -c 'coverage run -m pytest src/tests/functional/test_main.py --token $CBC_AUTH_TOKEN'
+  - name: functionalsuse
+    service: functionalsuse
+    command: /bin/sh -c 'coverage run -m pytest src/tests/functional/test_main.py --token $CBC_AUTH_TOKEN'
