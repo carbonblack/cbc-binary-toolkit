@@ -19,21 +19,12 @@ This tests the input from the users experience
 
 import pytest
 import subprocess
-import sys
 import os
-import requests
-import csv
 
-if sys.platform.startswith("win32"):
-    pycommand = "python"
-else:
-    pycommand = "python3"
+from cbapi.psc.threathunter import Feed, CbThreatHunterAPI
 
 LOG_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), "log.txt")
 
-# BIN = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../../bin/cbc-binary-analysis")
-#
-# SRC = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../../")
 # Clear log file for each run
 open(LOG_FILE, "w").close()
 
@@ -90,19 +81,16 @@ engine:
 
 def _create_feed(auth_token):
     """Create a Feed to use for testing"""
+    cb = CbThreatHunterAPI(url="https://defense-eap01.conferdeploy.net",
+                           token=auth_token, org_key="WNEXFKQ7")
     # Feed Creation
-    url = "https://defense-eap01.conferdeploy.net/threathunter/feedmgr/v2/orgs/WNEXFKQ7/feeds"
-
-    payload = ("{\"feedinfo\": {\"name\": \"BATFuncTest\", \"owner\": \"DevRel\","
-               "\"provider_url\": \"some_url\", \"summary\": \"BAT functional testing\","
-               "\"category\": \"None\"},\n \"reports\": []}\n\n\n")
-    headers = {
-        'X-Auth-Token': f'{auth_token}',
-        'Content-type': 'application/json',
-        'Content-Type': 'text/plain'
-    }
-    response = requests.request("POST", url, headers=headers, data=payload)
-    return response.json()
+    feedinfo = {"name": "Temporary BAT Func Test Feed", "owner": "DevRel",
+                "provider_url": "https://developer.carbonblack.com", "summary": "BAT functional test feed",
+                "category": "None", "access": "private"}
+    feed_dict = {"feedinfo": feedinfo, "reports": []}
+    feed = cb.create(Feed, feed_dict)
+    feed.save()
+    return feed._info
 
 
 @pytest.fixture()
@@ -129,34 +117,19 @@ def create_and_write_invalid_config(auth_token):
 
 def get_reports_from_feed(auth_token, feed_id):
     """GET to /feed/{feed_id}/reports to verify reports were sent"""
-    url = f'https://defense-eap01.conferdeploy.net/threathunter/feedmgr/v1/feed/{feed_id}/report'
-    headers = {
-        'X-Auth-Token': f'{auth_token}'
-    }
-
-    response = requests.request("GET", url, headers=headers)
-    return response.json()
+    cb = CbThreatHunterAPI(url="https://defense-eap01.conferdeploy.net",
+                           token=auth_token, org_key="WNEXFKQ7")
+    feed = cb.select(Feed, feed_id)
+    results = {"results": [report._info for report in feed.reports]}
+    return results
 
 
 def delete_feed(auth_token, feed_id):
     """Delete Feed after it's used for testing"""
-    url = f"https://defense-eap01.conferdeploy.net/threathunter/feedmgr/v2/orgs/WNEXFKQ7/feeds/{feed_id}"
-
-    payload = {}
-    headers = {
-        'X-Auth-Token': f'{auth_token}'
-    }
-    requests.request("DELETE", url, headers=headers, data=payload)
-
-
-def write_hashes_to_csv(hashes):
-    """Writes hash(es) to a CSV file for testing"""
-    num_hashes = str(len(hashes))
-    with open(num_hashes + "_hashes.csv", "w", newline='') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerows(hashes)
-    # return file name that was created
-    return num_hashes + "_hashes.csv"
+    cb = CbThreatHunterAPI(url="https://defense-eap01.conferdeploy.net",
+                           token=auth_token, org_key="WNEXFKQ7")
+    feed = cb.select(Feed, feed_id)
+    feed.delete()
 
 
 @pytest.mark.incremental
@@ -172,7 +145,7 @@ class TestUserHandling:
         """Test analyze command"""
         with open(LOG_FILE, "a+") as log:
             subprocess.call(['cbc-binary-analysis', '-c', 'config/functional_config.yml',
-                             'analyze', '-l', input_list],
+                             '-ll', 'DEBUG', 'analyze', '-l', input_list],
                             stdout=log, stderr=log)
         reports = get_reports_from_feed(auth_token, create_and_write_config)
         if num_hashes == 0:
@@ -181,18 +154,16 @@ class TestUserHandling:
             assert len(reports['results'][0]["iocs_v2"]) == num_hashes
         delete_feed(auth_token, create_and_write_config)
 
-    @pytest.mark.parametrize(["input_list", "num_hashes"], [
-        ([[[]], 0]),
-        ([[["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4"]], 1]),
-        ([[["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4"],
-          ["00a16c806ff694b64e566886bba5122655eff89b45226cddc8651df7860e4524"]], 2])
+    @pytest.mark.parametrize(["filename", "num_hashes"], [
+        (["src/tests/functional/fixtures/empty.csv", 0]),
+        (["src/tests/functional/fixtures/one_hash.csv", 1]),
+        (["src/tests/functional/fixtures/two_hashes.csv", 2])
     ])
-    def test_analyze_file(self, create_and_write_config, auth_token, input_list, num_hashes):
+    def test_analyze_file(self, create_and_write_config, auth_token, filename, num_hashes):
         """Test analyze command"""
-        filename = write_hashes_to_csv(input_list)
         with open(LOG_FILE, "a+") as log:
             subprocess.call(['cbc-binary-analysis', '-c', 'config/functional_config.yml',
-                             'analyze', '-f', filename],
+                             '-ll', 'DEBUG', 'analyze', '-f', filename],
                             stdout=log, stderr=log)
         reports = get_reports_from_feed(auth_token, create_and_write_config)
         if num_hashes == 0:
@@ -202,14 +173,13 @@ class TestUserHandling:
         delete_feed(auth_token, create_and_write_config)
 
     @pytest.mark.parametrize(["input_file", "num_hashes"], [
-        (["src/tests/functional/fixtures/hashes.csv", 112])
+        (["src/tests/functional/fixtures/112_hashes.csv", 112])
     ])
     def test_analyze_file_large(self, create_and_write_config, auth_token, input_file, num_hashes):
         """Test analyze command"""
-        # filename = write_hashes_to_csv(input_file)
         with open(LOG_FILE, "a+") as log:
             subprocess.call(['cbc-binary-analysis', '-c', 'config/functional_config.yml',
-                             'analyze', '-f', input_file],
+                             '-ll', 'DEBUG', 'analyze', '-f', input_file],
                             stdout=log, stderr=log)
         reports = get_reports_from_feed(auth_token, create_and_write_config)
         assert len(reports['results'][0]["iocs_v2"]) == num_hashes
@@ -231,7 +201,7 @@ class TestUserHandling:
         with open(LOG_FILE, "a+") as log:
             subprocess.call(['cbc-binary-analysis', 'clear', '--force'], stdout=log, stderr=log)
             subprocess.call(['cbc-binary-analysis', '-c', 'config/functional_config.yml',
-                             'analyze', '-l', input_list],
+                             '-ll', 'DEBUG', 'analyze', '-l', input_list],
                             stdout=log, stderr=log)
         reports = get_reports_from_feed(auth_token, create_and_write_config)
         num_reports = len(reports['results'])
@@ -244,7 +214,8 @@ class TestUserHandling:
         """Test running cbc-binary-analysis with invalid config"""
         with open(LOG_FILE, "a+") as log:
             subprocess.call(['cbc-binary-analysis', '-c', 'config/nonexistant_file',
-                             'analyze', '-l', '["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4"]'],
+                             '-ll', 'DEBUG', 'analyze', '-l',
+                             '["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4"]'],
                             stdout=log, stderr=log)
 
         with open(LOG_FILE, "r") as log:
@@ -256,9 +227,13 @@ class TestUserHandling:
         """Test running cbc-binary-analysis with invalid config"""
         with open(LOG_FILE, "a+") as log:
             subprocess.call(['cbc-binary-analysis', '-c', 'config/functional_config.yml',
-                             'analyze', '-l', '["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4"]'],
+                             '-ll', 'DEBUG', 'analyze', '-l',
+                             '["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4"]'],
                             stdout=log, stderr=log)
         with open(LOG_FILE, "r") as log:
-            assert log.readlines()[-1].strip() == ("ERROR:cbc_binary_toolkit_examples.tools.analysis_util:Failed"
-                                                   " to create Local Engine Manager. Check your configuration")
+            log = log.readlines()
+            assert log[-3].strip() == ("cbc_binary_toolkit.errors.InitializationError")
+
+            assert log[-13].strip() == ("ERROR:cbc_binary_toolkit_examples.tools.analysis_util:Failed"
+                                        " to create Local Engine Manager. Check your configuration")
         delete_feed(auth_token, create_and_write_invalid_config)
