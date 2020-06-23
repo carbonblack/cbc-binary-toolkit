@@ -17,21 +17,25 @@ functionaltesting:
     dockerfile: ./docker/functionaltesting/Dockerfile
   encrypted_env_file:
     - auth.encrypted
+    - aws.encrypted
 
 functionalcentos:
   build:
     dockerfile: ./docker/functionalcentos/Dockerfile
   encrypted_env_file:
     - auth.encrypted
+    - aws.encrypted
 
 functionalubuntu:
   build:
     dockerfile: ./docker/functionalubuntu/Dockerfile
   encrypted_env_file:
     - auth.encrypted
+    - aws.encrypted
 
 functionalsuse:
   build:
     dockerfile: ./docker/functionalsuse/Dockerfile
   encrypted_env_file:
     - auth.encrypted
+    - aws.encrypted
