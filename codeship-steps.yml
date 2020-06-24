@@ -1,36 +1,39 @@
-# - name: linters
-#   service: testingpython38
-#   command: bin/linters.sh
-# - name: tests
-#   type: parallel
-#   steps:
-#   - name: testingpython36
-#     service: testingpython36
-#     command: coverage run -m pytest --ignore=src/tests/functional
-#   - name: testingpython37
-#     service: testingpython37
-#     command: coverage run -m pytest --ignore=src/tests/functional
-#   - name: testingpython38
-#     service: testingpython38
-#     command: bin/tests_n_reports.sh
+- name: linters
+  service: testingpython38
+  command: bin/linters.sh
+- name: tests
+  type: parallel
+  steps:
+  - name: testing python 3.6
+    service: testingpython36
+    command: coverage run -m pytest --ignore=src/tests/functional
+  - name: testing python 3.7
+    service: testingpython37
+    command: coverage run -m pytest --ignore=src/tests/functional
+  - name: testing python 3.8
+    service: testingpython38
+    command: bin/tests_n_reports.sh
 
 - name: functional tests
   type: serial
   steps:
   - name: functional python
     service: functionaltesting
-    command: pytest src/tests/functional/test_main.py --token $CBC_AUTH_TOKEN
-    command: cat /app/log.txt
-    command: aws s3 cp /app/log.txt s3://binarytoolkit-functional-tests/python.zip
-  # - name: functional centos
-  #   service: functionalcentos
-  #   command: /bin/sh -c 'pytest src/tests/functional/test_main.py --token $CBC_AUTH_TOKEN'
-  #   command: /bin/sh -c 'aws s3 cp ./log.txt s3://binarytoolkit-functional-tests/centos.zip'
-  # - name: functional ubuntu
-  #   service: functionalubuntu
-  #   command: /bin/sh -c 'pytest src/tests/functional/test_main.py --token $CBC_AUTH_TOKEN'
-  #   command: /bin/sh -c 'aws s3 cp ./log.txt s3://binarytoolkit-functional-tests/ubuntu.zip'
-  # - name: functional suse
-  #   service: functionalsuse
-  #   command: /bin/sh -c 'pytest src/tests/functional/test_main.py --token $CBC_AUTH_TOKEN'
-  #   command: /bin/sh -c 'aws s3 cp ./log.txt s3://binarytoolkit-functional-tests/suse.zip'
+    command: /bin/sh -c 'pytest src/tests/functional/test_main.py --token $CBC_AUTH_TOKEN'
+    on_fail:
+      - command: /bin/sh -c 'aws s3 cp /app/src/tests/functional/log.txt s3://binarytoolkit-functional-tests/$CI_TIMESTAMP.python.log.txt'
+  - name: functional centos
+    service: functionalcentos
+    command: /bin/sh -c 'pytest src/tests/functional/test_main.py --token $CBC_AUTH_TOKEN'
+    on_fail:
+      - command: /bin/sh -c 'aws s3 cp /app/src/tests/functional/log.txt s3://binarytoolkit-functional-tests/$CI_TIMESTAMP.centos.log.txt'
+  - name: functional ubuntu
+    service: functionalubuntu
+    command: /bin/sh -c 'pytest src/tests/functional/test_main.py --token $CBC_AUTH_TOKEN'
+    on_fail:
+      - command: /bin/sh -c 'aws s3 cp /app/src/tests/functional/log.txt s3://binarytoolkit-functional-tests/$CI_TIMESTAMP.ubuntu.log.txt'
+  - name: functional suse
+    service: functionalsuse
+    command: /bin/sh -c 'pytest src/tests/functional/test_main.py --token $CBC_AUTH_TOKEN'
+    on_fail:
+      - command: /bin/sh -c 'aws s3 cp /app/src/tests/functional/log.txt s3://binarytoolkit-functional-tests/$CI_TIMESTAMP.suse.log.txt'
