@@ -155,86 +155,86 @@ class TestUserHandling:
             assert len(reports['results'][0]["iocs_v2"]) == num_hashes
         delete_feed(auth_token, create_and_write_config)
 
-    @pytest.mark.parametrize(["filename", "num_hashes"], [
-        (["src/tests/functional/fixtures/empty.csv", 0]),
-        (["src/tests/functional/fixtures/one_hash.csv", 1]),
-        (["src/tests/functional/fixtures/two_hashes.csv", 2])
-    ])
-    def test_analyze_file(self, create_and_write_config, auth_token, filename, num_hashes):
-        """Test analyze command"""
-        with open(LOG_FILE, "a+") as log:
-            subprocess.call(['cbc-binary-analysis', '-c', 'config/functional_config.yml',
-                             '-ll', 'DEBUG', 'analyze', '-f', filename],
-                            stdout=log, stderr=log)
-        reports = get_reports_from_feed(auth_token, create_and_write_config)
-        if num_hashes == 0:
-            assert len(reports['results']) == 0
-        else:
-            assert len(reports['results'][0]["iocs_v2"]) == num_hashes
-        delete_feed(auth_token, create_and_write_config)
-
-    @pytest.mark.parametrize(["input_file", "num_hashes"], [
-        (["src/tests/functional/fixtures/112_hashes.csv", 112])
-    ])
-    def test_analyze_file_large(self, create_and_write_config, auth_token, input_file, num_hashes):
-        """Test analyze command"""
-        with open(LOG_FILE, "a+") as log:
-            subprocess.call(['cbc-binary-analysis', '-c', 'config/functional_config.yml',
-                             '-ll', 'DEBUG', 'analyze', '-f', input_file],
-                            stdout=log, stderr=log)
-        reports = get_reports_from_feed(auth_token, create_and_write_config)
-        assert len(reports['results'][0]["iocs_v2"]) == num_hashes
-        delete_feed(auth_token, create_and_write_config)
-
-    @pytest.mark.parametrize(["input_list", "num_hashes"], [
-        (['["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4"]', 1]),
-        (['["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4",'
-          '"00a16c806ff694b64e566886bba5122655eff89b45226cddc8651df7860e4524"]', 2])
-    ])
-    def test_clear(self, create_and_write_config, auth_token, input_list, num_hashes):
-        """Test clear command. Feed should have two reports with `num_hashes` IOC_V2s"""
-        with open(LOG_FILE, "a+") as log:
-            subprocess.call(['cbc-binary-analysis', '-c', 'config/functional_config.yml',
-                             'analyze', '-l', input_list],
-                            stdout=log, stderr=log)
-        reports = get_reports_from_feed(auth_token, create_and_write_config)
-        assert len(reports['results'][0]["iocs_v2"]) == num_hashes
-        with open(LOG_FILE, "a+") as log:
-            subprocess.call(['cbc-binary-analysis', 'clear', '--force'], stdout=log, stderr=log)
-            subprocess.call(['cbc-binary-analysis', '-c', 'config/functional_config.yml',
-                             '-ll', 'DEBUG', 'analyze', '-l', input_list],
-                            stdout=log, stderr=log)
-        reports = get_reports_from_feed(auth_token, create_and_write_config)
-        num_reports = len(reports['results'])
-        for result in reports['results']:
-            assert len(result['iocs_v2']) == num_hashes
-        assert num_reports == 2
-        delete_feed(auth_token, create_and_write_config)
-
-    def test_invalid_configuration(self, create_and_write_invalid_config, auth_token):
-        """Test running cbc-binary-analysis with invalid config"""
-        with open(LOG_FILE, "a+") as log:
-            subprocess.call(['cbc-binary-analysis', '-c', 'config/nonexistant_file',
-                             '-ll', 'DEBUG', 'analyze', '-l',
-                             '["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4"]'],
-                            stdout=log, stderr=log)
-
-        with open(LOG_FILE, "r") as log:
-            assert log.readlines()[-2].strip() == ("FileNotFoundError: [Errno 2] No such"
-                                                   " file or directory: 'config/nonexistant_file'")
-        delete_feed(auth_token, create_and_write_invalid_config)
-
-    def test_invalid_configuration_1(self, create_and_write_invalid_config, auth_token):
-        """Test running cbc-binary-analysis with invalid config"""
-        with open(LOG_FILE, "a+") as log:
-            subprocess.call(['cbc-binary-analysis', '-c', 'config/functional_config.yml',
-                             '-ll', 'DEBUG', 'analyze', '-l',
-                             '["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4"]'],
-                            stdout=log, stderr=log)
-        with open(LOG_FILE, "r") as log:
-            log = log.readlines()
-            assert log[-3].strip() == ("cbc_binary_toolkit.errors.InitializationError")
-
-            assert log[-13].strip() == ("ERROR:cbc_binary_toolkit_examples.tools.analysis_util:Failed"
-                                        " to create Local Engine Manager. Check your configuration")
-        delete_feed(auth_token, create_and_write_invalid_config)
+    # @pytest.mark.parametrize(["filename", "num_hashes"], [
+    #     (["src/tests/functional/fixtures/empty.csv", 0]),
+    #     (["src/tests/functional/fixtures/one_hash.csv", 1]),
+    #     (["src/tests/functional/fixtures/two_hashes.csv", 2])
+    # ])
+    # def test_analyze_file(self, create_and_write_config, auth_token, filename, num_hashes):
+    #     """Test analyze command"""
+    #     with open(LOG_FILE, "a+") as log:
+    #         subprocess.call(['cbc-binary-analysis', '-c', 'config/functional_config.yml',
+    #                          '-ll', 'DEBUG', 'analyze', '-f', filename],
+    #                         stdout=log, stderr=log)
+    #     reports = get_reports_from_feed(auth_token, create_and_write_config)
+    #     if num_hashes == 0:
+    #         assert len(reports['results']) == 0
+    #     else:
+    #         assert len(reports['results'][0]["iocs_v2"]) == num_hashes
+    #     delete_feed(auth_token, create_and_write_config)
+    #
+    # @pytest.mark.parametrize(["input_file", "num_hashes"], [
+    #     (["src/tests/functional/fixtures/112_hashes.csv", 112])
+    # ])
+    # def test_analyze_file_large(self, create_and_write_config, auth_token, input_file, num_hashes):
+    #     """Test analyze command"""
+    #     with open(LOG_FILE, "a+") as log:
+    #         subprocess.call(['cbc-binary-analysis', '-c', 'config/functional_config.yml',
+    #                          '-ll', 'DEBUG', 'analyze', '-f', input_file],
+    #                         stdout=log, stderr=log)
+    #     reports = get_reports_from_feed(auth_token, create_and_write_config)
+    #     assert len(reports['results'][0]["iocs_v2"]) == num_hashes
+    #     delete_feed(auth_token, create_and_write_config)
+    #
+    # @pytest.mark.parametrize(["input_list", "num_hashes"], [
+    #     (['["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4"]', 1]),
+    #     (['["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4",'
+    #       '"00a16c806ff694b64e566886bba5122655eff89b45226cddc8651df7860e4524"]', 2])
+    # ])
+    # def test_clear(self, create_and_write_config, auth_token, input_list, num_hashes):
+    #     """Test clear command. Feed should have two reports with `num_hashes` IOC_V2s"""
+    #     with open(LOG_FILE, "a+") as log:
+    #         subprocess.call(['cbc-binary-analysis', '-c', 'config/functional_config.yml',
+    #                          'analyze', '-l', input_list],
+    #                         stdout=log, stderr=log)
+    #     reports = get_reports_from_feed(auth_token, create_and_write_config)
+    #     assert len(reports['results'][0]["iocs_v2"]) == num_hashes
+    #     with open(LOG_FILE, "a+") as log:
+    #         subprocess.call(['cbc-binary-analysis', 'clear', '--force'], stdout=log, stderr=log)
+    #         subprocess.call(['cbc-binary-analysis', '-c', 'config/functional_config.yml',
+    #                          '-ll', 'DEBUG', 'analyze', '-l', input_list],
+    #                         stdout=log, stderr=log)
+    #     reports = get_reports_from_feed(auth_token, create_and_write_config)
+    #     num_reports = len(reports['results'])
+    #     for result in reports['results']:
+    #         assert len(result['iocs_v2']) == num_hashes
+    #     assert num_reports == 2
+    #     delete_feed(auth_token, create_and_write_config)
+    #
+    # def test_invalid_configuration(self, create_and_write_invalid_config, auth_token):
+    #     """Test running cbc-binary-analysis with invalid config"""
+    #     with open(LOG_FILE, "a+") as log:
+    #         subprocess.call(['cbc-binary-analysis', '-c', 'config/nonexistant_file',
+    #                          '-ll', 'DEBUG', 'analyze', '-l',
+    #                          '["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4"]'],
+    #                         stdout=log, stderr=log)
+    #
+    #     with open(LOG_FILE, "r") as log:
+    #         assert log.readlines()[-2].strip() == ("FileNotFoundError: [Errno 2] No such"
+    #                                                " file or directory: 'config/nonexistant_file'")
+    #     delete_feed(auth_token, create_and_write_invalid_config)
+    #
+    # def test_invalid_configuration_1(self, create_and_write_invalid_config, auth_token):
+    #     """Test running cbc-binary-analysis with invalid config"""
+    #     with open(LOG_FILE, "a+") as log:
+    #         subprocess.call(['cbc-binary-analysis', '-c', 'config/functional_config.yml',
+    #                          '-ll', 'DEBUG', 'analyze', '-l',
+    #                          '["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4"]'],
+    #                         stdout=log, stderr=log)
+    #     with open(LOG_FILE, "r") as log:
+    #         log = log.readlines()
+    #         assert log[-3].strip() == ("cbc_binary_toolkit.errors.InitializationError")
+    #
+    #         assert log[-13].strip() == ("ERROR:cbc_binary_toolkit_examples.tools.analysis_util:Failed"
+    #                                     " to create Local Engine Manager. Check your configuration")
+    #     delete_feed(auth_token, create_and_write_invalid_config)

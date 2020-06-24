@@ -20,16 +20,17 @@
   - name: functional python
     service: functionaltesting
     command: /bin/sh -c 'pytest src/tests/functional/test_main.py --token $CBC_AUTH_TOKEN'
-    command: /bin/sh -c 'aws s3 cp ./log.txt s3://binarytoolkit-functional-tests/python.zip'
-  - name: functional centos
-    service: functionalcentos
-    command: /bin/sh -c 'pytest src/tests/functional/test_main.py --token $CBC_AUTH_TOKEN'
-    command: /bin/sh -c 'aws s3 cp ./log.txt s3://binarytoolkit-functional-tests/centos.zip'
-  - name: functional ubuntu
-    service: functionalubuntu
-    command: /bin/sh -c 'pytest src/tests/functional/test_main.py --token $CBC_AUTH_TOKEN'
-    command: /bin/sh -c 'aws s3 cp ./log.txt s3://binarytoolkit-functional-tests/ubuntu.zip'
-  - name: functional suse
-    service: functionalsuse
-    command: /bin/sh -c 'pytest src/tests/functional/test_main.py --token $CBC_AUTH_TOKEN'
-    command: /bin/sh -c 'aws s3 cp ./log.txt s3://binarytoolkit-functional-tests/suse.zip'
+    command: /bin/sh -c 'pwd; ls'
+    command: /bin/sh -c 'aws s3 cp /app/src/tests/functional/log.txt s3://binarytoolkit-functional-tests/python.zip'
+  # - name: functional centos
+  #   service: functionalcentos
+  #   command: /bin/sh -c 'pytest src/tests/functional/test_main.py --token $CBC_AUTH_TOKEN'
+  #   command: /bin/sh -c 'aws s3 cp ./log.txt s3://binarytoolkit-functional-tests/centos.zip'
+  # - name: functional ubuntu
+  #   service: functionalubuntu
+  #   command: /bin/sh -c 'pytest src/tests/functional/test_main.py --token $CBC_AUTH_TOKEN'
+  #   command: /bin/sh -c 'aws s3 cp ./log.txt s3://binarytoolkit-functional-tests/ubuntu.zip'
+  # - name: functional suse
+  #   service: functionalsuse
+  #   command: /bin/sh -c 'pytest src/tests/functional/test_main.py --token $CBC_AUTH_TOKEN'
+  #   command: /bin/sh -c 'aws s3 cp ./log.txt s3://binarytoolkit-functional-tests/suse.zip'
