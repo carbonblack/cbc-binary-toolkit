@@ -242,3 +242,4 @@ class TestUserHandling:
 
             assert log[-13].strip() == ("ERROR:cbc_binary_toolkit_examples.tools.analysis_util:Failed"
                                         " to create Local Engine Manager. Check your configuration")
+            assert False
