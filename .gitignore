@@ -123,3 +123,4 @@ config/binary-analysis-config.yaml
 .coverage
 codeship.aes
 env
+*.decrypted

@@ -19,9 +19,9 @@
   steps:
   - name: functional python
     service: functionaltesting
-    command: /bin/sh -c 'pytest src/tests/functional/test_main.py --token $CBC_AUTH_TOKEN'
-    command: /bin/sh -c 'pwd; ls -l ./src/tests/functional'
-    command: /bin/sh -c 'aws s3 cp /app/src/tests/functional/log.txt s3://binarytoolkit-functional-tests/python.zip'
+    command: pytest src/tests/functional/test_main.py --token $CBC_AUTH_TOKEN
+    command: cat /app/log.txt
+    command: aws s3 cp /app/log.txt s3://binarytoolkit-functional-tests/python.zip
   # - name: functional centos
   #   service: functionalcentos
   #   command: /bin/sh -c 'pytest src/tests/functional/test_main.py --token $CBC_AUTH_TOKEN'
