@@ -19,11 +19,12 @@ This tests the input from the users experience
 
 import pytest
 import subprocess
-import os
+# import os
 
 from cbapi.psc.threathunter import Feed, CbThreatHunterAPI
 
-LOG_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), "log.txt")
+# LOG_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), "log.txt")
+LOG_FILE = "./log.txt"
 
 # Clear log file for each run
 open(LOG_FILE, "w").close()
