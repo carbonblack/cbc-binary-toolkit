@@ -154,7 +154,6 @@ class TestUserHandling:
             assert len(reports['results']) == 0
         else:
             assert len(reports['results'][0]["iocs_v2"]) == num_hashes
-        assert False
 
     @pytest.mark.parametrize(["filename", "num_hashes"], [
         (["src/tests/functional/fixtures/empty.csv", 0]),
@@ -169,11 +168,11 @@ class TestUserHandling:
                             stdout=log, stderr=log)
             log.close()
         reports = get_reports_from_feed(auth_token, create_and_write_config)
+        delete_feed(auth_token, create_and_write_config)
         if num_hashes == 0:
             assert len(reports['results']) == 0
         else:
             assert len(reports['results'][0]["iocs_v2"]) == num_hashes
-        delete_feed(auth_token, create_and_write_config)
 
     @pytest.mark.parametrize(["input_file", "num_hashes"], [
         (["src/tests/functional/fixtures/112_hashes.csv", 112])
@@ -186,8 +185,8 @@ class TestUserHandling:
                             stdout=log, stderr=log)
             log.close()
         reports = get_reports_from_feed(auth_token, create_and_write_config)
-        assert len(reports['results'][0]["iocs_v2"]) == num_hashes
         delete_feed(auth_token, create_and_write_config)
+        assert len(reports['results'][0]["iocs_v2"]) == num_hashes
 
     @pytest.mark.parametrize(["input_list", "num_hashes"], [
         (['["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4"]', 1]),
@@ -223,10 +222,10 @@ class TestUserHandling:
                              '["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4"]'],
                             stdout=log, stderr=log)
             log.close()
+        delete_feed(auth_token, create_and_write_invalid_config)
         with open(LOG_FILE, "r") as log:
             assert log.readlines()[-2].strip() == ("FileNotFoundError: [Errno 2] No such"
                                                    " file or directory: 'config/nonexistant_file'")
-        delete_feed(auth_token, create_and_write_invalid_config)
 
     def test_invalid_configuration_1(self, create_and_write_invalid_config, auth_token):
         """Test running cbc-binary-analysis with invalid config"""
@@ -236,10 +235,10 @@ class TestUserHandling:
                              '["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4"]'],
                             stdout=log, stderr=log)
             log.close()
+        delete_feed(auth_token, create_and_write_invalid_config)
         with open(LOG_FILE, "r") as log:
             log = log.readlines()
             assert log[-3].strip() == ("cbc_binary_toolkit.errors.InitializationError")
 
             assert log[-13].strip() == ("ERROR:cbc_binary_toolkit_examples.tools.analysis_util:Failed"
                                         " to create Local Engine Manager. Check your configuration")
-        delete_feed(auth_token, create_and_write_invalid_config)
