@@ -35,3 +35,4 @@ def pytest_runtest_setup(item):
 def pytest_addoption(parser):
     """Add auth token command line arg for functional testing"""
     parser.addoption("--token", action="store")
+    parser.addoption("--useshell", action="store")
