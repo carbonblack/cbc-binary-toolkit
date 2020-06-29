@@ -2,8 +2,6 @@
 [![Coverage Status](https://coveralls.io/repos/github/carbonblack/cbc-binary-toolkit/badge.svg?branch=develop)](https://coveralls.io/github/carbonblack/cbc-binary-toolkit?branch=develop)
 # Carbon Black Cloud Binary Toolkit
 
-#### \*\*Disclaimer: This is an ALPHA release\*\*
-
 **Latest Version:** 1.0a2
 <br>
 **Release Date:** 05/11/2020
