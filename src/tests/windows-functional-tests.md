@@ -59,9 +59,9 @@ pip install .
 This will ensure that all required scripts are installed.
 
 ### Set Necessary Environment Variable
-You will need to set the `CBC_AUTH_TOKEN` environment variable to the authentication
-token you will be using to access the Carbon Black Cloud.  This is done with a command
-such as:
+You will need to set the `CBC_AUTH_TOKEN` environment variable to the connector ID
+and secret key you will be using to access the Carbon Black Cloud.  This is done with
+a command such as:
 
 ```
 set CBC_AUTH_TOKEN=Z123456789ABCDEFGHIJKLMN/ABCDEFGHIJ
