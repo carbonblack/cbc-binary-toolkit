@@ -16,7 +16,8 @@
     command: bin/tests_n_reports.sh
 
 - name: functional tests
-  type: manual
+  type: parallel
+  tag: ^develop
   steps:
   - name: functional python
     service: functionaltesting
