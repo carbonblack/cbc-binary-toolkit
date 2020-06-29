@@ -1,5 +1,5 @@
 [![Codeship Status for carbonblack/cb-binary-analysis](https://app.codeship.com/projects/6a7a91c0-2a8b-0138-4f71-1610ceb87095/status?branch=develop)](https://app.codeship.com/projects/384255)
-[![Coverage Status](https://coveralls.io/repos/github/carbonblack/cbc-binary-toolkit/badge.svg?branch=develop&t=rhX4tc)](https://coveralls.io/github/carbonblack/cbc-binary-toolkit?branch=develop)
+[![Coverage Status](https://coveralls.io/repos/github/carbonblack/cbc-binary-toolkit/badge.svg?branch=develop)](https://coveralls.io/github/carbonblack/cbc-binary-toolkit?branch=develop)
 # Carbon Black Cloud Binary Toolkit
 
 #### \*\*Disclaimer: This is an ALPHA release\*\*
