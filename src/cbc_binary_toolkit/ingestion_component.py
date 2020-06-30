@@ -57,8 +57,11 @@ class IngestionComponent:
 
         """
         engine_name = self.config.string("engine.name")
-        unfinished_hashes = self.state_manager.get_unfinished_hashes(engine_name)
-
+        unfinished_states = self.state_manager.get_unfinished_hashes(engine_name)
+        unfinished_hashes = []
+        for state in unfinished_states:
+            if state[1] == "INGESTED":
+                unfinished_hashes.append(state[0])
         return self.fetch_metadata(unfinished_hashes)
 
     def fetch_metadata(self, hashes):
