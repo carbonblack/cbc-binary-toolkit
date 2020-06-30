@@ -16,7 +16,7 @@
     command: bin/tests_n_reports.sh
 
 - name: functional tests
-  type: parallel
+  type: serial
   tag: ^develop
   steps:
   - name: functional python
