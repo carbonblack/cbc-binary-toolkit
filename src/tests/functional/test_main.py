@@ -22,6 +22,7 @@ import subprocess
 import os
 
 from cbapi.psc.threathunter import Feed, CbThreatHunterAPI
+from cbapi.errors import ServerError
 
 LOG_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), "log.txt")
 
@@ -86,7 +87,8 @@ engine:
     """)
 
 
-def _create_feed(auth_token):
+@pytest.fixture()
+def feed(auth_token):
     """Create a Feed to use for testing"""
     cb = CbThreatHunterAPI(url="https://defense-eap01.conferdeploy.net",
                            token=auth_token, org_key="WNEXFKQ7")
@@ -95,15 +97,23 @@ def _create_feed(auth_token):
                 "provider_url": "https://developer.carbonblack.com", "summary": "BAT functional test feed",
                 "category": "None", "access": "private"}
     feed_dict = {"feedinfo": feedinfo, "reports": []}
-    feed = cb.create(Feed, feed_dict)
-    feed.save()
-    return feed._info
+    test_feed = cb.create(Feed, feed_dict)
+    try:
+        test_feed.save()
+    except ServerError:
+        for feed in cb.select(Feed):
+            if feed.name == feedinfo["name"]:
+                feed.delete()
+
+        test_feed.save()
+    yield test_feed
+    delete_feed(auth_token, test_feed._info["id"])
 
 
 @pytest.fixture()
-def create_and_write_config(auth_token):
+def create_and_write_config(auth_token, feed):
     """Generate and write the test config to file"""
-    feed_info = _create_feed(auth_token)
+    feed_info = feed._info
     feed_id = feed_info["id"]
     with open("config/functional_config.yml", "w") as f:
         config_text = _format_config(auth_token, feed_id)
@@ -112,9 +122,9 @@ def create_and_write_config(auth_token):
 
 
 @pytest.fixture()
-def create_and_write_invalid_config(auth_token):
+def create_and_write_invalid_config(auth_token, feed):
     """Generate and write the test config to file"""
-    feed_info = _create_feed(auth_token)
+    feed_info = feed._info
     feed_id = feed_info["id"]
     with open("config/functional_config.yml", "w") as f:
         config_text = _format_invalid_config(auth_token, feed_id)
@@ -156,7 +166,6 @@ class TestUserHandling:
                             shell=use_shell, stdout=log, stderr=log)
             log.close()
         reports = get_reports_from_feed(auth_token, create_and_write_config)
-        delete_feed(auth_token, create_and_write_config)
         if num_hashes == 0:
             assert len(reports['results']) == 0
         else:
@@ -175,7 +184,6 @@ class TestUserHandling:
                             shell=use_shell, stdout=log, stderr=log)
             log.close()
         reports = get_reports_from_feed(auth_token, create_and_write_config)
-        delete_feed(auth_token, create_and_write_config)
         if num_hashes == 0:
             assert len(reports['results']) == 0
         else:
@@ -192,7 +200,6 @@ class TestUserHandling:
                             shell=use_shell, stdout=log, stderr=log)
             log.close()
         reports = get_reports_from_feed(auth_token, create_and_write_config)
-        delete_feed(auth_token, create_and_write_config)
         assert len(reports['results'][0]["iocs_v2"]) == num_hashes
 
     @pytest.mark.parametrize(["input_list", "num_hashes"], [
@@ -219,7 +226,6 @@ class TestUserHandling:
         for result in reports['results']:
             assert len(result['iocs_v2']) == num_hashes
         assert num_reports == 2
-        delete_feed(auth_token, create_and_write_config)
 
     def test_invalid_configuration(self, create_and_write_invalid_config, auth_token, use_shell):
         """Test running cbc-binary-analysis with invalid config"""
@@ -229,7 +235,6 @@ class TestUserHandling:
                              '["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4"]'],
                             shell=use_shell, stdout=log, stderr=log)
             log.close()
-        delete_feed(auth_token, create_and_write_invalid_config)
         with open(LOG_FILE, "r") as log:
             assert log.readlines()[-2].strip() == ("FileNotFoundError: [Errno 2] No such"
                                                    " file or directory: 'config/nonexistant_file'")
@@ -242,7 +247,6 @@ class TestUserHandling:
                              '["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4"]'],
                             shell=use_shell, stdout=log, stderr=log)
             log.close()
-        delete_feed(auth_token, create_and_write_invalid_config)
         with open(LOG_FILE, "r") as log:
             log = log.readlines()
             assert log[-3].strip() == ("cbc_binary_toolkit.errors.InitializationError")
