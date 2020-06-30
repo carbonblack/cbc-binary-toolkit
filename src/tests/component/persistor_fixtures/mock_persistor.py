@@ -54,7 +54,7 @@ class MockPersistor(BasePersistor):
         unfinished = []
         for key in self.db.keys():
             if self.db[key]["engine_name"] == engine and self.db[key].get("checkpoint_name", None) != "DONE":
-                unfinished.append(key)
+                unfinished.append((key, self.db[key].get("checkpoint_name", None)))
         return unfinished
 
     def prune(self, timestamp):

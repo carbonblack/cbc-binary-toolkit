@@ -30,3 +30,9 @@ def pytest_runtest_setup(item):
         previousfailed = getattr(item.parent, "_previousfailed", None)
         if previousfailed is not None:
             pytest.xfail("previous test failed ({})".format(previousfailed.name))
+
+
+def pytest_addoption(parser):
+    """Add auth token command line arg for functional testing"""
+    parser.addoption("--token", action="store")
+    parser.addoption("--useshell", action="store")

@@ -1,12 +1,10 @@
 [![Codeship Status for carbonblack/cb-binary-analysis](https://app.codeship.com/projects/6a7a91c0-2a8b-0138-4f71-1610ceb87095/status?branch=develop)](https://app.codeship.com/projects/384255)
-[![Coverage Status](https://coveralls.io/repos/github/carbonblack/cb-binary-analysis/badge.svg?branch=develop&t=rhX4tc)](https://coveralls.io/github/carbonblack/cb-binary-analysis?branch=develop)
+[![Coverage Status](https://coveralls.io/repos/github/carbonblack/cbc-binary-toolkit/badge.svg?branch=develop)](https://coveralls.io/github/carbonblack/cbc-binary-toolkit?branch=develop)
 # Carbon Black Cloud Binary Toolkit
 
-#### \*\*Disclaimer: This is an ALPHA release\*\*
-
-**Latest Version:** 1.0a2
+**Latest Version:** 1.0.0
 <br>
-**Release Date:** 05/11/2020
+**Release Date:** 06/30/2020
 
 The Carbon Black Cloud Binary Toolkit provides a system of processing incoming SHA256 hashes by integrating with the Unified Binary Store (UBS) on the Carbon Black Cloud (CBC).
 
@@ -30,10 +28,23 @@ Use of the Carbon Black API is governed by the license found in [LICENSE](LICENS
 
 The Carbon Black Cloud Binary Toolkit is design to work on Python 3.6 and above.
 
-All requirements are installed as part of `pip install` or if you're planning on pushing changes to the Carbon Black Cloud Binary Toolkit, the following can be used after cloning the repo `pip install requirements.txt`
+All requirements are installed as part of `pip install cbc-binary-toolkit` or if you're planning on pushing changes to the Carbon Black Cloud Binary Toolkit, the following can be used after cloning the repo `pip install -r requirements.txt`
 
 ### Carbon Black Cloud
 * Enterprise EDR
+
+### OS Specific Requirements
+
+* **Windows** users will need to have [Microsoft Visual C++ 14.0 Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools) installed in order to compile yara-python.
+
+* **Linux** users will need to have the python developer package installed in order to compile yara-python. If you receive compile errors, make sure you are on the latest gcc compiler version.
+
+Linux Distribution | Command
+---- | ----
+Amazon Linux/Centos/RHEL | `yum install python3-devel`
+Ubuntu | `apt-get install python3-dev`
+OpenSUSE/SUSE | `zypper install python3-devel`
+
 
 ### Python Packages
 * argparse
@@ -44,17 +55,11 @@ All requirements are installed as part of `pip install` or if you're planning on
 * schema
 * yara-python
 
-#### Note:
+## Performance Metrics
 
-* **Windows** users will need to have [Microsoft Visual C++ 14.0 Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools) installed in order to compile yara-python.
+For details on the expected performance for the CBC Binary Toolkit see the Performance Metrics wiki page [here](https://github.com/carbonblack/cbc-binary-toolkit/wiki/Performance-Metrics).
 
-* **Linux** users will need to have the python developer package installed in order to compile yara-python. If you receive compile errors, make sure you are on the latest gcc compiler version
-
-Linux Distribution | Command
----- | ----
-Amazon Linux/Centos/RHEL | `yum install python3-devel`
-Ubuntu | `apt-get install python3-dev`
-OpenSUSE/SUSE | `zypper install python3-devel`
+The wiki page will be updated with any changes or additional tests that may be run in the future.
 
 ## Getting Started
 
@@ -91,12 +96,12 @@ optional arguments:
                         The base log level (default INFO)
 ```
 
-**Note: Run --help on any of the commands for up to date arguments**
+**Note:** Run --help on any of the commands for up to date arguments.
 
 
 ### Using the Toolkit to develop your own tools
 
-The following python code snippet will allow you to begin developing with the Carbon Black Cloud Binary toolkit. For more information see the [Developer Guide](https://github.com/carbonblack/cbc-binary-toolkit/wiki/Developer-Guide) wiki page.
+The following python code snippet allows you to begin developing with the Carbon Black Cloud Binary toolkit. For more information see the [Developer Guide](https://github.com/carbonblack/cbc-binary-toolkit/wiki/Developer-Guide).
 ```
 from cbc_binary_toolkit import *
 ```
@@ -104,32 +109,69 @@ from cbc_binary_toolkit import *
 
 ## Developing Improvements for the Carbon Black Cloud Binary Toolkit
 
-If you want to provide additional examples, fix a bug, or add a feature to the Toolkit the following steps will get you started.
+Use the following steps if you want to provide additional examples, fix a bug, or add a feature to the Toolkit.
 
 ### Installing for Toolkit development
 
-You will need to fork the repo in order to create pull requests when submitting code for review. For details on forking a repo, see [here](https://help.github.com/en/github/getting-started-with-github/fork-a-repo)
+You will need to fork the repo in order to create pull requests when submitting code for review. For details on forking a repo, see [here](https://help.github.com/en/github/getting-started-with-github/fork-a-repo).
 
 ```
 git clone https://github.com/{fork-name}/cbc-binary-toolkit
 cd cbc-binary-toolkit
-pip install requirements.txt
+pip install -r requirements.txt
 ```
 
+If you want to test/execute the console scripts from the repo then install the toolkit with the following command. This will install the toolkit in editable mode so changes to the repo modify the installed package. See the [manual-tests](src/tests/manual-tests.md) document for more information on testing from a fresh install.
+
+```
+pip install -e .
+```
+
+**Note: The above command needs to be run from the base folder of the repo**
+
+### Running the Analysis tool
+
+If you want to execute the analysis tool without installing the package you can run the tool directly using the `analysis_util.py` script in `src/cbc_binary_toolkit_examples/tools`
 
 ### Running the Toolkit tests
 
-To check if your code changes didn't break any use cases the following command will run all the tests:
+To check that your code changes didn't break any use cases, or fail our linters, the following will show you how to set up and run our tests:
+
+Install one or all of these versions of Python: `Python 3.6.X, Python 3.7.X or Python 3.8.X` and make sure it is accessible to this project.
+
+For managing different versions of python, an easy solution is: [pyenv(for UNIX based systems)](https://github.com/pyenv/pyenv#basic-github-checkout), or [pyenv-win(for Windows based systems)](https://github.com/pyenv-win/pyenv-win).
+
+Install [tox](https://tox.readthedocs.io/en/latest/install.html) (e.g. `pip install tox` or `brew install tox`)
+
+Run the command `tox -e <the environment you want to run>` from anywhere in the directory to run the tests and linter.
+
+The `tox.ini` file shows that the tests are run against python versions `3.6.x, 3.7.x and 3.8.x` as `py36, py37, py38`.
+
+**Example:** If you just run `tox -e py37`, it will run the tests against the `Python 3.7.X` version installed locally.
+
+But if `tox` is run, it will try to run against all the versions listed in the `tox.ini` file (currently py36, py37, and py38).
+If a version is not installed locally, it will just throw an error of:
+
 ```
-pytest
-  Optional args:
-    -s Logs streamed to stdout
-    -k {test or file} Selectively runs test matching string or file
+ERROR:  pyXX: InterpreterNotFound: pythonX.X
+
 ```
+It will continue running against the versions that are installed.
+
+
+If there are any changes, you need to recreate the virtualenv that tox built. Just run `tox --recreate -e <the environment you want to run>` or `tox --recreate` for all environments.
+
+If this error is thrown:
+```
+ERROR: cowardly refusing to delete `envdir` (it does not look like a virtualenv):
+
+```
+Delete the python env directory (py37) from .tox directory
+and rerun `tox --recreate`.
 
 ### Development Flow
 
-To begin a code change start by creating a branch off of the develop branch.
+To begin a code change, start by creating a branch off of the develop branch.
 ```
 git checkout develop
 git checkout -b {branch-name}
@@ -140,10 +182,10 @@ When the feature or bug fix is finished you will need to create a pull request t
 git push {remote} {branch-name}
 ```
 
-If your branch is behind the develop branch then you will need to rebase.
+If your branch is behind the develop branch, you will need to rebase.
 ```
 git checkout {branch-name}
 git rebase develop
 ```
 
-Note if your develop branch is out of sync with the CarbonBlack repo then you will need to sync your fork. For information on syncing your fork, see [here](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork)
+**Note:** if your develop branch is out of sync with the CarbonBlack repo then you will need to sync your fork. For information on syncing your fork, see [here](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork).

@@ -104,6 +104,10 @@ venv.bak/
 /.pydevproject
 /.settings
 
+# IntelliJ IDEA
+/.idea
+*.iml
+
 # macOS
 .DS_Store
 
@@ -119,3 +123,4 @@ config/binary-analysis-config.yaml
 .coverage
 codeship.aes
 env
+*.decrypted

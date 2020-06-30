@@ -31,9 +31,7 @@ class SQLiteBasedPersistor(BasePersistor):
         self._cursor_factory = sqlite3.Cursor
 
     def force_close(self):
-        """
-        Forces the persistor to close. This should only be called from test code.
-        """
+        """Forces the persistor to close. This should only be called from test code."""
         self._conn.close()
         self._conn = None
 

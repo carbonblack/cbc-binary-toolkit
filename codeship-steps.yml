@@ -1,6 +1,33 @@
 - name: linters
-  service: testing
+  service: testingpython38
   command: bin/linters.sh
+
 - name: tests
-  service: testing
-  command: bin/tests_n_reports.sh
+  type: parallel
+  steps:
+  - name: testing python 3.6
+    service: testingpython36
+    command: coverage run -m pytest --ignore=src/tests/functional  --ignore=src/tests/load
+  - name: testing python 3.7
+    service: testingpython37
+    command: coverage run -m pytest --ignore=src/tests/functional  --ignore=src/tests/load
+  - name: testing python 3.8
+    service: testingpython38
+    command: bin/tests_n_reports.sh
+
+- name: functional tests
+  type: serial
+  tag: ^develop
+  steps:
+  - name: functional python
+    service: functionaltesting
+    command: bin/codeship_func_tests.sh python
+  - name: functional centos
+    service: functionalcentos
+    command: bin/codeship_func_tests.sh centos
+  - name: functional ubuntu
+    service: functionalubuntu
+    command: bin/codeship_func_tests.sh ubuntu
+  - name: functional suse
+    service: functionalsuse
+    command: bin/codeship_func_tests.sh suse
