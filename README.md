@@ -57,6 +57,12 @@ OpenSUSE/SUSE | `zypper install python3-devel`
 * schema
 * yara-python
 
+## Performance Metrics
+
+For details on the expected performance for the CBC Binary Toolkit see the Performance Metrics wiki page [here](https://github.com/carbonblack/cbc-binary-toolkit/wiki/Performance-Metrics).
+
+The wiki page will be updated with any changes or additional tests that may be run in the future.
+
 ## Getting Started
 
 There are two ways to use the Carbon Black Cloud Binary Toolkit. You can either run the Binary Analysis Tool using out-of-the-box functionality, or you can use the Toolkit to develop your own tool for processing binaries.
