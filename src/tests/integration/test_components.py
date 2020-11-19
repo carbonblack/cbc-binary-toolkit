@@ -68,9 +68,9 @@ def state_manager(config):
 def cbc_cloud_api():
     """Create CBCloudAPI singleton"""
     return CBCloudAPI(url="https://example.com",
-                             org_key="test",
-                             token="abcd/1234",
-                             ssl_verify=False)
+                      org_key="test",
+                      token="abcd/1234",
+                      ssl_verify=False)
 
 
 def mock_downloads(url, body, **kwargs):

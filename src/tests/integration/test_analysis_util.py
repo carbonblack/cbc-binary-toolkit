@@ -165,7 +165,7 @@ def test_analyze_command(cbcloud_api_mock, config):
     sut.cbc_api = cbcloud_api_mock.api
     hash = METADATA_VALID["sha256"]
     cbcloud_api_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download",
-                            {"found": [{"sha256": hash, "url": "DUMMY_URL"}], "not_found": [], "error": []})
+                                  {"found": [{"sha256": hash, "url": "DUMMY_URL"}], "not_found": [], "error": []})
     cbcloud_api_mock.mock_request("GET", f"/ubs/v1/orgs/test/sha256/{hash}/metadata", METADATA_VALID)
     cbcloud_api_mock.mock_request("PUT", f"/threathunter/feedmgr/v2/orgs/test/feeds/{FEED_ID}/reports/.*", None)
 
@@ -192,7 +192,7 @@ def test_analyze_command_with_not_found(cbcloud_api_mock, config):
     sut.cbc_api = cbcloud_api_mock.api
     hash = METADATA_VALID["sha256"]
     cbcloud_api_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download",
-                            {"found": [], "not_found": [hash], "error": []})
+                                  {"found": [], "not_found": [hash], "error": []})
 
     components = sut._init_components()
 
@@ -213,7 +213,7 @@ def test_analyze_command_without_feed(cbcloud_api_mock, config3):
     sut.cbc_api = cbcloud_api_mock.api
     hash = METADATA_VALID["sha256"]
     cbcloud_api_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download",
-                            {"found": [{"sha256": hash, "url": "DUMMY_URL"}], "not_found": [], "error": []})
+                                  {"found": [{"sha256": hash, "url": "DUMMY_URL"}], "not_found": [], "error": []})
     cbcloud_api_mock.mock_request("GET", f"/ubs/v1/orgs/test/sha256/{hash}/metadata", METADATA_VALID)
 
     components = sut._init_components()
@@ -238,7 +238,7 @@ def test_restart_command(cbcloud_api_mock, config):
     sut.cbc_api = cbcloud_api_mock.api
     hash = METADATA_VALID["sha256"]
     cbcloud_api_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download",
-                            {"found": [{"sha256": hash, "url": "DUMMY_URL"}], "not_found": [], "error": []})
+                                  {"found": [{"sha256": hash, "url": "DUMMY_URL"}], "not_found": [], "error": []})
     cbcloud_api_mock.mock_request("GET", f"/ubs/v1/orgs/test/sha256/{hash}/metadata", METADATA_VALID)
     cbcloud_api_mock.mock_request("PUT", f"/threathunter/feedmgr/v2/orgs/test/feeds/{FEED_ID}/reports/.*", None)
 

@@ -59,9 +59,9 @@ def config():
 def cbc_cloud_api():
     """Create CBCloudAPI singleton."""
     return CBCloudAPI(url="https://example.com",
-                             org_key="test",
-                             token="abcd/1234",
-                             ssl_verify=False)
+                      org_key="test",
+                      token="abcd/1234",
+                      ssl_verify=False)
 
 
 @pytest.fixture(scope="function")
@@ -346,7 +346,8 @@ def test_send_reports_invalid(cbcloud_api_mock, state_manager, engine_results, i
 def test_send_reports_exception(cbcloud_api_mock, state_manager, engine_results, input):
     """Test sending reports and an Exception being caught"""
     engine_results._accept_report(ENGINE_NAME, input)
-    cbcloud_api_mock.mock_request("PUT", f"/threathunter/feedmgr/v2/orgs/test/feeds/{'FAKE_FEED_ID'}/reports/.*", Exception)
+    cbcloud_api_mock.mock_request("PUT", f"/threathunter/feedmgr/v2/orgs/test/feeds/{'FAKE_FEED_ID'}/reports/.*",
+                                  Exception)
     sent = engine_results.send_reports('FAKE_FEED_ID')
     assert not sent
 
@@ -360,8 +361,8 @@ def test_send_reports_404(cbcloud_api_mock, state_manager, engine_results, input
     """Test receiving a 404 ObjectNotFoundError from CBCloudAPI"""
     engine_results._accept_report(ENGINE_NAME, input)
     cbcloud_api_mock.mock_request("PUT",
-                            f"/threathunter/feedmgr/v2/orgs/test/feeds/{'FAKE_FEED_ID'}/reports/.*",
-                            ObjectNotFoundError)
+                                  f"/threathunter/feedmgr/v2/orgs/test/feeds/{'FAKE_FEED_ID'}/reports/.*",
+                                  ObjectNotFoundError)
     sent = engine_results.send_reports('FAKE_FEED_ID')
     assert not sent
 

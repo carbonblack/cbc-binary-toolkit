@@ -133,7 +133,7 @@ def test_download_binary_metadata(cbcloud_api_mock, hashes):
     hash_dl = _download_hashes(cbcloud_api_mock.api, hashes, 60)
     found_hashes, redownload_found_hashes = _validate_download(cbcloud_api_mock.api, hash_dl, 60)
     cbcloud_api_mock.mock_request("GET", f"/ubs/v1/orgs/test/sha256/{found_hashes[0]['sha256']}/metadata",
-                            METADATA_DOWNLOAD_RESP[found_hashes[0]['sha256']])
+                                  METADATA_DOWNLOAD_RESP[found_hashes[0]['sha256']])
     metadata = _download_binary_metadata(cbcloud_api_mock.api, found_hashes[0])
     assert type(metadata) == dict
     for key in METADATA_VALID.keys():
@@ -207,7 +207,7 @@ def test_download_metadata(cbcloud_api_mock, hashes):
     cbcloud_api_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download", FILE_DOWNLOAD_RESP)
     found_hashes = download_hashes(cbcloud_api_mock.api, hashes)
     cbcloud_api_mock.mock_request("GET", f"/ubs/v1/orgs/test/sha256/{found_hashes[0]['sha256']}/metadata",
-                            METADATA_DOWNLOAD_RESP[found_hashes[0]['sha256']])
+                                  METADATA_DOWNLOAD_RESP[found_hashes[0]['sha256']])
     metadata = _download_binary_metadata(cbcloud_api_mock.api, found_hashes[0])
     assert isinstance(metadata, dict)
     for key in METADATA_VALID.keys():
@@ -224,7 +224,7 @@ def test_get_metadata(cbcloud_api_mock, hashes):
     cbcloud_api_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download", FILE_DOWNLOAD_RESP)
     found_hashes = download_hashes(cbcloud_api_mock.api, hashes)
     cbcloud_api_mock.mock_request("GET", f"/ubs/v1/orgs/test/sha256/{found_hashes[0]['sha256']}/metadata",
-                            METADATA_DOWNLOAD_RESP[found_hashes[0]['sha256']])
+                                  METADATA_DOWNLOAD_RESP[found_hashes[0]['sha256']])
     metadata = get_metadata(cbcloud_api_mock.api, found_hashes[0])
     assert isinstance(metadata, dict)
     for key in METADATA_VALID.keys():
