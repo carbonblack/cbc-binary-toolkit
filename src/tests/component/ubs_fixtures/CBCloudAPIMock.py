@@ -11,14 +11,14 @@
 # * WARRANTIES OR CONDITIONS OF MERCHANTABILITY, SATISFACTORY QUALITY,
 # * NON-INFRINGEMENT AND FITNESS FOR A PARTICULAR PURPOSE.
 
-"""CBAPI Mock Framework"""
+"""CBCloudAPI Mock Framework"""
 
 import pytest
 import re
 import copy
 
 
-class CBAPIMock:
+class CBCloudAPIMock:
     """Mock framework for unit tests that need to fetch Carbon Black Cloud data"""
     def __init__(self, monkeypatch, api):
         """Initializes monkey patch for HTTP VERB requests"""

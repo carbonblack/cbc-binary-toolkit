@@ -32,7 +32,7 @@ class IngestionComponent:
 
     Args:
         config (Config): Config object.
-        cb_threat_hunter (cbapi.CbThreatHunterAPI): Carbon Black ThreatHunter API object.
+        cbc_api (cbc_sdk.CBCloudAPI): Carbon Black Cloud API object.
         state_manager (cbc_binary_toolkit.state.builtin.SQLiteBasedPersistor): State management object.
 
     Attributes:
@@ -42,10 +42,10 @@ class IngestionComponent:
     """
     DEFAULT_EXPIRATION = 3600
 
-    def __init__(self, config, cb_threat_hunter, state_manager):
+    def __init__(self, config, cbc_api, state_manager):
         """Constructor"""
         self.config = config
-        self.cb_threat_hunter = cb_threat_hunter
+        self.cbc_api = cbc_api
         self.state_manager = state_manager
 
     def reload(self):
@@ -107,7 +107,7 @@ class IngestionComponent:
         hashes_copy = copy.deepcopy(hashes)
         # Fetch download url from UBS
         while hashes_copy != []:
-            found.extend(download_hashes(self.cb_threat_hunter,
+            found.extend(download_hashes(self.cbc_api,
                                          hashes_copy[:100],
                                          self.config.get("carbonblackcloud.expiration_seconds",
                                                          self.DEFAULT_EXPIRATION)))
@@ -118,7 +118,7 @@ class IngestionComponent:
 
         # Fetch metadata from UBS
         for download_data in found:
-            metadata = get_metadata(self.cb_threat_hunter, download_data)
+            metadata = get_metadata(self.cbc_api, download_data)
 
             # Save hash entry to state manager
             if metadata:

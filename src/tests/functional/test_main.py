@@ -21,8 +21,9 @@ import pytest
 import subprocess
 import os
 
-from cbapi.psc.threathunter import Feed, CbThreatHunterAPI
-from cbapi.errors import ServerError
+from cbc_sdk import CBCloudAPI
+from cbc_sdk.enterprise_edr import Feed
+from cbc_sdk.errors import ServerError
 
 LOG_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), "log.txt")
 
@@ -90,7 +91,7 @@ engine:
 @pytest.fixture()
 def feed(auth_token):
     """Create a Feed to use for testing"""
-    cb = CbThreatHunterAPI(url="https://defense-eap01.conferdeploy.net",
+    cb = CBCloudAPI(url="https://defense-eap01.conferdeploy.net",
                            token=auth_token, org_key="WNEXFKQ7")
     # Feed Creation
     feedinfo = {"name": "Temporary BAT Func Test Feed", "owner": "DevRel",
@@ -134,7 +135,7 @@ def create_and_write_invalid_config(auth_token, feed):
 
 def get_reports_from_feed(auth_token, feed_id):
     """GET to /feed/{feed_id}/reports to verify reports were sent"""
-    cb = CbThreatHunterAPI(url="https://defense-eap01.conferdeploy.net",
+    cb = CBCloudAPI(url="https://defense-eap01.conferdeploy.net",
                            token=auth_token, org_key="WNEXFKQ7")
     feed = cb.select(Feed, feed_id)
     results = {"results": [report._info for report in feed.reports]}
@@ -143,7 +144,7 @@ def get_reports_from_feed(auth_token, feed_id):
 
 def delete_feed(auth_token, feed_id):
     """Delete Feed after it's used for testing"""
-    cb = CbThreatHunterAPI(url="https://defense-eap01.conferdeploy.net",
+    cb = CBCloudAPI(url="https://defense-eap01.conferdeploy.net",
                            token=auth_token, org_key="WNEXFKQ7")
     feed = cb.select(Feed, feed_id)
     feed.delete()

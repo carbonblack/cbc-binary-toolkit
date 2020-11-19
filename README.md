@@ -48,7 +48,7 @@ OpenSUSE/SUSE | `zypper install python3-devel`
 
 ### Python Packages
 * argparse
-* cbapi
+* carbon-black-cloud-sdk
 * python-dateutil
 * pyyaml
 * requests

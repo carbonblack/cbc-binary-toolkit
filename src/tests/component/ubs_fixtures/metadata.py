@@ -13,7 +13,7 @@
 
 """Binary Metadata"""
 
-from cbapi.errors import ObjectNotFoundError
+from cbc_sdk.errors import ObjectNotFoundError
 
 METADATA_VALID = {
     'sha256': '0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc',
