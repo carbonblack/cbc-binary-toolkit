@@ -143,7 +143,7 @@ def _validate_download(cbc_api, download, expiration_seconds):
 
     Args:
         cbc_api (cbc_sdk.CBCloudAPI): Carbon Black Cloud API object.
-        download (ThreatHunter.Downloads): May contain found, not_found, and error attributes.
+        download (cbc_sdk.enterprise_edr.Downloads): May contain found, not_found, and error attributes.
         expiration_seconds (int): Desired timeout for AWS links to binaries.
 
     Returns:
@@ -218,7 +218,7 @@ def get_metadata(cbc_api, binary):
     Initiates download of binary metadata from Unified Binary Store.
 
     Args:
-        cbc_api (cbc_sdk.CBCloudAPI): Carbon Black ThreatHunter object.
+        cbc_api (cbc_sdk.CBCloudAPI): Carbon Black Cloud API object.
         binary (Dict): Dictionary with "sha256" and "url" values.
 
     Returns:
