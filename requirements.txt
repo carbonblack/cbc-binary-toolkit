@@ -1,5 +1,5 @@
 # Package dependencies
-cbapi
+carbon-black-cloud-sdk
 python-dateutil
 pyyaml
 requests

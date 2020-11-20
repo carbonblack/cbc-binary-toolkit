@@ -24,8 +24,8 @@ import uuid
 
 from schema import SchemaError
 from .schemas import EngineResponseSchema, IOCv2SEVSchema
-from cbapi.psc.threathunter import Report
-from cbapi.errors import ObjectNotFoundError
+from cbc_sdk.enterprise_edr import Report
+from cbc_sdk.errors import ObjectNotFoundError
 
 log = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ class EngineResults:
     Require Properties:
         engine_name (str): The name of the engine analysis is coming from
         state_manager (cbc_binary_toolkit.state.manager): State management component
-        cbth (CbThreatHunterAPI): CBAPI ThreatHunter API to push reports to Carbon Black Cloud
+        cbc_api (cbc_sdk.CBCloudAPI): Carbon Black Cloud API to push reports to Carbon Black Cloud
 
     Description:
         Validates an EngineResponse
@@ -52,7 +52,7 @@ class EngineResults:
     Args:
         engine_name (str): The name of the engine analysis is coming from.
         state_manager (cbc_binary_toolkit.state.builtin.SQLiteBasedPersistor): State management object.
-        cbth (cbapi.CbThreatHunterAPI): CBAPI ThreatHunter API to push reports to Carbon Black Cloud.
+        cbc_api (cbc_sdk.CBCloudAPI): Carbon Black Cloud API to push reports to Carbon Black Cloud.
 
     Attributes:
         SEVERITY_RANGE (int): Highest severity value expected from Analysis Engine for an IOC.
@@ -62,11 +62,11 @@ class EngineResults:
 
     SEVERITY_RANGE = 10
 
-    def __init__(self, engine_name, state_manager, cbth):
+    def __init__(self, engine_name, state_manager, cbc_api):
         """Engine Results Handler Constructor"""
         self.engine_name = engine_name
         self.state_manager = state_manager
-        self.cbth = cbth
+        self.cbc_api = cbc_api
         # Create range of report levels
         self.iocs = list(list() for i in range(self.SEVERITY_RANGE))
 
@@ -219,7 +219,7 @@ class EngineResults:
                         "iocs_v2": self.iocs[sev]
                     }
 
-                    report = Report(self.cbth, initial_data=report_meta, feed_id=feed_id)
+                    report = Report(self.cbc_api, initial_data=report_meta, feed_id=feed_id)
                     report.update()
                     log.info(f"Report ({report_meta['title']}) sent to feed {feed_id}")
                     # Clear report items from the database
