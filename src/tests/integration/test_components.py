@@ -15,7 +15,7 @@
 
 import pytest
 
-from cbapi.psc.threathunter import CbThreatHunterAPI
+from cbc_sdk import CBCloudAPI
 
 from cbc_binary_toolkit import DeduplicationComponent, EngineResults, IngestionComponent
 from cbc_binary_toolkit.cli_input import read_json
@@ -24,7 +24,7 @@ from cbc_binary_toolkit.engine import LocalEngineManager
 from cbc_binary_toolkit.state import StateManager
 from cbc_binary_toolkit.schemas import BinaryMetadataSchema, EngineResponseSchema, IOCv2Schema, ReportSchema
 
-from tests.component.ubs_fixtures.CBAPIMock import CBAPIMock
+from tests.component.ubs_fixtures.CBCloudAPIMock import CBCloudAPIMock
 from tests.component.ubs_fixtures.metadata import HASH_METADATA
 from tests.component.ubs_fixtures.filedownload import METADATA_DOWNLOAD_RESP
 from tests.component.engine_fixtures.messages import IOC_HASH
@@ -65,12 +65,12 @@ def state_manager(config):
 
 
 @pytest.fixture(scope="session")
-def cb_threat_hunter():
-    """Create CbThreatHunterAPI singleton"""
-    return CbThreatHunterAPI(url="https://example.com",
-                             org_key="test",
-                             token="abcd/1234",
-                             ssl_verify=False)
+def cbc_cloud_api():
+    """Create CBCloudAPI singleton"""
+    return CBCloudAPI(url="https://example.com",
+                      org_key="test",
+                      token="abcd/1234",
+                      ssl_verify=False)
 
 
 def mock_downloads(url, body, **kwargs):
@@ -90,9 +90,9 @@ def mock_downloads(url, body, **kwargs):
 
 
 @pytest.fixture(scope="function")
-def cbapi_mock(monkeypatch, cb_threat_hunter):
-    """Mocks CBAPI for unit tests"""
-    cbapi_mock = CBAPIMock(monkeypatch, cb_threat_hunter)
+def cbcloud_api_mock(monkeypatch, cbc_cloud_api):
+    """Mocks CBCloudAPI for unit tests"""
+    cbcloud_api_mock = CBCloudAPIMock(monkeypatch, cbc_cloud_api)
 
     hashes = [
         "405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4",
@@ -101,11 +101,11 @@ def cbapi_mock(monkeypatch, cb_threat_hunter):
     ]
 
     for hash in hashes:
-        cbapi_mock.mock_request("GET", f"/ubs/v1/orgs/test/sha256/{hash}/metadata", HASH_METADATA[hash])
+        cbcloud_api_mock.mock_request("GET", f"/ubs/v1/orgs/test/sha256/{hash}/metadata", HASH_METADATA[hash])
 
-    cbapi_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download", mock_downloads)
-    cbapi_mock.mock_request("PUT", f"/threathunter/feedmgr/v2/orgs/test/feeds/{FEED_ID}/reports/.*", None)
-    return cbapi_mock
+    cbcloud_api_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download", mock_downloads)
+    cbcloud_api_mock.mock_request("PUT", f"/threathunter/feedmgr/v2/orgs/test/feeds/{FEED_ID}/reports/.*", None)
+    return cbcloud_api_mock
 
 
 # ==================================== Components ====================================
@@ -117,9 +117,9 @@ def deduplication_component(config, state_manager):
 
 
 @pytest.fixture(scope="function")
-def ingestion_component(config, cb_threat_hunter, state_manager):
+def ingestion_component(config, cbc_cloud_api, state_manager):
     """Creates the ingestion_component to integration test"""
-    return IngestionComponent(config, cb_threat_hunter, state_manager)
+    return IngestionComponent(config, cbc_cloud_api, state_manager)
 
 
 @pytest.fixture(scope="function")
@@ -132,14 +132,14 @@ def local_engine_manager(config):
 
 
 @pytest.fixture(scope="function")
-def engine_results(state_manager, cb_threat_hunter):
+def engine_results(state_manager, cbc_cloud_api):
     """Create engine results component."""
-    return EngineResults(ENGINE_NAME, state_manager, cb_threat_hunter)
+    return EngineResults(ENGINE_NAME, state_manager, cbc_cloud_api)
 
 
 # ==================================== TESTS BELOW ====================================
 
-def test_integration_ingest(cbapi_mock, deduplication_component, ingestion_component, state_manager):
+def test_integration_ingest(cbcloud_api_mock, deduplication_component, ingestion_component, state_manager):
     """Test input to ingestion"""
     input = read_json('["31132832bc0f3ce4a15601dc190c98b9a40a9aba1d87dae59b217610175bdfde", \
                         "405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4", \
@@ -158,7 +158,7 @@ def test_integration_ingest(cbapi_mock, deduplication_component, ingestion_compo
     assert db["e02d9989cbe295518350ed3f5a04a713ece692406a9ee354785c2a4078466dcd"]["checkpoint_name"] == "DONE"
 
 
-def test_integration_analyze(cbapi_mock, ingestion_component, local_engine_manager):
+def test_integration_analyze(cbcloud_api_mock, ingestion_component, local_engine_manager):
     """Test ingest to local engine manager"""
     metadata_list = ingestion_component.fetch_metadata([
         "405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4",
@@ -169,7 +169,7 @@ def test_integration_analyze(cbapi_mock, ingestion_component, local_engine_manag
         assert EngineResponseSchema.validate(local_engine_manager.analyze(item))
 
 
-def test_integration_results(cbapi_mock, local_engine_manager, engine_results, state_manager):
+def test_integration_results(cbcloud_api_mock, local_engine_manager, engine_results, state_manager):
     """Test local engine manager to engine_results"""
     result = local_engine_manager.analyze(
         METADATA_DOWNLOAD_RESP["405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4"])
@@ -178,4 +178,4 @@ def test_integration_results(cbapi_mock, local_engine_manager, engine_results, s
     assert IOCv2Schema.validate(state_manager._persistor.iocs[0][ENGINE_NAME][0])
 
     engine_results.send_reports(FEED_ID)
-    assert ReportSchema.validate(cbapi_mock._last_request_data)
+    assert ReportSchema.validate(cbcloud_api_mock._last_request_data)

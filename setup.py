@@ -11,7 +11,7 @@ def read(fname):
 
 
 install_reqs = [
-    "cbapi",
+    "carbon-black-cloud-sdk",
     "python-dateutil",
     "pyyaml",
     "requests",

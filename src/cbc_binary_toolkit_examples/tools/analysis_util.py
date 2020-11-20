@@ -33,7 +33,7 @@ from cbc_binary_toolkit.ingestion_component import IngestionComponent
 from cbc_binary_toolkit.engine import LocalEngineManager
 from cbc_binary_toolkit.state import StateManager
 
-from cbapi import CbThreatHunterAPI
+from cbc_sdk import CBCloudAPI
 
 DEFAULT_LOG_LEVEL = "INFO"
 
@@ -54,7 +54,7 @@ class AnalysisUtility:
         """Constructor for the analysis utility class"""
         self.default_install = default_install
         self.config = None
-        self.cbapi = None
+        self.cbc_api = None
 
         # Create argument parser
         self._parser = argparse.ArgumentParser()
@@ -98,17 +98,17 @@ class AnalysisUtility:
             log.debug(traceback.format_exc())
             state_manager = None
 
-        cbth = self.cbapi
-        if cbth is None:
-            cbth = CbThreatHunterAPI(url=self.config.get("carbonblackcloud.url"),
-                                     org_key=self.config.get("carbonblackcloud.org_key"),
-                                     token=self.config.get("carbonblackcloud.api_token"),
-                                     ssl_verify=self.config.get("carbonblackcloud.ssl_verify"))
+        cbc_api = self.cbc_api
+        if cbc_api is None:
+            cbc_api = CBCloudAPI(url=self.config.get("carbonblackcloud.url"),
+                              org_key=self.config.get("carbonblackcloud.org_key"),
+                              token=self.config.get("carbonblackcloud.api_token"),
+                              ssl_verify=self.config.get("carbonblackcloud.ssl_verify"))
 
         deduplicate = DeduplicationComponent(self.config, state_manager)
-        ingest = IngestionComponent(self.config, cbth, state_manager)
+        ingest = IngestionComponent(self.config, cbc_api, state_manager)
 
-        results_engine = EngineResults(self.config.get("engine.name"), state_manager, cbth)
+        results_engine = EngineResults(self.config.get("engine.name"), state_manager, cbc_api)
         if self.config.get("engine.type") == "local":
             try:
                 engine_manager = LocalEngineManager(self.config)
