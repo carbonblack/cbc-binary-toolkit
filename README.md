@@ -2,9 +2,9 @@
 [![Coverage Status](https://coveralls.io/repos/github/carbonblack/cbc-binary-toolkit/badge.svg?branch=develop)](https://coveralls.io/github/carbonblack/cbc-binary-toolkit?branch=develop)
 # Carbon Black Cloud Binary Toolkit
 
-**Latest Version:** 1.0.0
+**Latest Version:** 1.1.0
 <br>
-**Release Date:** 06/30/2020
+**Release Date:** 11/20/2020
 
 The Carbon Black Cloud Binary Toolkit provides a system of processing incoming SHA256 hashes by integrating with the Unified Binary Store (UBS) on the Carbon Black Cloud (CBC).
 
@@ -26,7 +26,7 @@ Use of the Carbon Black API is governed by the license found in [LICENSE](LICENS
 
 ## Requirements
 
-The Carbon Black Cloud Binary Toolkit is design to work on Python 3.6 and above.
+The Carbon Black Cloud Binary Toolkit is designed to work on Python 3.6 and above.
 
 All requirements are installed as part of `pip install cbc-binary-toolkit` or if you're planning on pushing changes to the Carbon Black Cloud Binary Toolkit, the following can be used after cloning the repo `pip install -r requirements.txt`
 
@@ -48,7 +48,7 @@ OpenSUSE/SUSE | `zypper install python3-devel`
 
 ### Python Packages
 * argparse
-* cbapi
+* carbon-black-cloud-sdk
 * python-dateutil
 * pyyaml
 * requests

@@ -13,7 +13,7 @@
 
 """Functions to retrieve binaries from Unified Binary Store"""
 
-from cbapi.psc.threathunter.models import Binary, Downloads
+from cbc_sdk.enterprise_edr import Binary, Downloads
 import logging
 import copy
 
@@ -25,7 +25,7 @@ class RedownloadHashes:
     Values and function to redownload any hashes that experienced an error during the initial download attempt.
 
     Args:
-        cbth (cbapi.CbThreatHunterAPI): Carbon Black ThreatHunter object.
+        cbc_api (cbc_sdk.CBCloudAPI): Carbon Black Cloud API object.
         shas (List[str]): hashes to be redownloaded.
         expiration_seconds (int): Desired timeout for AWS links to binaries.
 
@@ -40,9 +40,9 @@ class RedownloadHashes:
 
     RETRY_LIMIT = 5
 
-    def __init__(self, cbth, shas, expiration_seconds):
+    def __init__(self, cbc_api, shas, expiration_seconds):
         """Redownload Hashes constructor"""
-        self.cb = cbth
+        self.cbc_api = cbc_api
         self.shas = shas
         self.expiration_seconds = expiration_seconds
         self.found = []
@@ -55,8 +55,8 @@ class RedownloadHashes:
             "sha256": self.shas,
             "expiration_seconds": self.expiration_seconds,
         }
-        url = self.urlobject.format(self.cb.credentials.org_key)
-        download = self.cb.post_object(url, body).json()
+        url = self.urlobject.format(self.cbc_api.credentials.org_key)
+        download = self.cbc_api.post_object(url, body).json()
         self.attempt_num += 1
         # save any hashes found on the first retry
         if download["found"]:
@@ -67,7 +67,7 @@ class RedownloadHashes:
 
         while download["error"] and self.attempt_num < self.RETRY_LIMIT:
             body["sha256"] = copy.deepcopy(download["error"])
-            download = self.cb.post_object(url, body).json()
+            download = self.cbc_api.post_object(url, body).json()
 
             if download["found"]:
                 self.found.extend(copy.deepcopy(download["found"]))
@@ -85,12 +85,12 @@ class RedownloadHashes:
                         f"the Unified Binary Store: {self.not_found}")
 
 
-def _download_hashes(cbth, hashes, expiration_seconds):
+def _download_hashes(cbc_api, hashes, expiration_seconds):
     """
     Download hashes from Unified Binary Store.
 
     Args:
-        cbth (cbapi.CbThreatHunterAPI): Carbon Black ThreatHunter object.
+        cbc_api (cbc_sdk.CBCloudAPI): Carbon Black Cloud API object.
         hashes (List[str]): hashes to be downloaded from Unified Binary Store.
         expiration_seconds (int): Desired timeout for AWS links to binaries.
 
@@ -101,19 +101,19 @@ def _download_hashes(cbth, hashes, expiration_seconds):
     """
     try:
         log.debug("Downloading hashes from Unified Binary Store")
-        downloads = Downloads(cbth, hashes, expiration_seconds)
+        downloads = Downloads(cbc_api, hashes, expiration_seconds)
         return downloads
     except Exception as err:
         log.error(f"Error downloading hashes from Unified Binary Store: {err}")
         return None
 
 
-def _download_binary_metadata(cbth, found_binary):
+def _download_binary_metadata(cbc_api, found_binary):
     """
     Retrieve metadata for a binary found in the Unified Binary Store.
 
     Args:
-        cbth (cbapi.CbThreatHunterAPI): Carbon BlackThreatHunter object.
+        cbc_api (cbc_sdk.CBCloudAPI): Carbon Black Cloud API object.
         found_binary (Dict): Dictionary with "sha256" and "url" values.
 
     Returns:
@@ -125,7 +125,7 @@ def _download_binary_metadata(cbth, found_binary):
         try:
             log.debug("Downloading metadata information")
             binary_metadata = {"url": found_binary["url"]}
-            th_binary = cbth.select(Binary, found_binary["sha256"])
+            th_binary = cbc_api.select(Binary, found_binary["sha256"])
             if isinstance(th_binary, Binary):
                 binary_metadata.update(th_binary._info)
             return binary_metadata
@@ -137,13 +137,13 @@ def _download_binary_metadata(cbth, found_binary):
         return {}
 
 
-def _validate_download(cbth, download, expiration_seconds):
+def _validate_download(cbc_api, download, expiration_seconds):
     """
     Verifies the presence of Downloads.FoundItem. Retries downloading if there are errors during download.
 
     Args:
-        cbth (CbThreatHunterAPI): Carbon BlackThreatHunter object.
-        download (ThreatHunter.Downloads): May contain found, not_found, and error attributes.
+        cbc_api (cbc_sdk.CBCloudAPI): Carbon Black Cloud API object.
+        download (cbc_sdk.enterprise_edr.Downloads): May contain found, not_found, and error attributes.
         expiration_seconds (int): Desired timeout for AWS links to binaries.
 
     Returns:
@@ -167,7 +167,7 @@ def _validate_download(cbth, download, expiration_seconds):
         log.warning(f"{len(download.error)} hashes experienced an error while"
                     f" downloading: {download.error}. Retrying download.")
 
-        redownload = RedownloadHashes(cbth, [download.error], expiration_seconds)
+        redownload = RedownloadHashes(cbc_api, [download.error], expiration_seconds)
 
         redownload.redownload()
 
@@ -176,12 +176,12 @@ def _validate_download(cbth, download, expiration_seconds):
     return download_found, redownload
 
 
-def download_hashes(cbth, hashes, expiration_seconds=3600):
+def download_hashes(cbc_api, hashes, expiration_seconds=3600):
     """
     Initiates download of hashes
 
     Args:
-        cbth (cbapi.CbThreatHunterAPI): Carbon BlackThreatHunter object.
+        cbc_api (cbc_sdk.CBCloudAPI): Carbon Black Cloud API object.
         hashes (List[str]): hashes to be downloaded from Unified Binary Store.
         expiration_seconds (int, optional): Desired timeout for AWS links to binaries.
 
@@ -190,15 +190,15 @@ def download_hashes(cbth, hashes, expiration_seconds=3600):
         Empty list if an error occurred during download.
 
     Examples:
-        >>> download_hashes(cbth, ["0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc"])
+        >>> download_hashes(cbc_api, ["0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc"])
 
     """
     if not hashes:
         log.error("No hashes supplied to download_hashes.")
         return list()
-    download = _download_hashes(cbth, hashes, expiration_seconds)
+    download = _download_hashes(cbc_api, hashes, expiration_seconds)
 
-    checked_download, retried_download = _validate_download(cbth, download, expiration_seconds)
+    checked_download, retried_download = _validate_download(cbc_api, download, expiration_seconds)
 
     if not checked_download:
         log.error("Unable to retrieve binaries from the Unified Binary Store.")
@@ -213,12 +213,12 @@ def download_hashes(cbth, hashes, expiration_seconds=3600):
     return found_hashes
 
 
-def get_metadata(cbth, binary):
+def get_metadata(cbc_api, binary):
     """
     Initiates download of binary metadata from Unified Binary Store.
 
     Args:
-        cbth (cbapi.CbThreatHunterAPI): Carbon Black ThreatHunter object.
+        cbc_api (cbc_sdk.CBCloudAPI): Carbon Black Cloud API object.
         binary (Dict): Dictionary with "sha256" and "url" values.
 
     Returns:
@@ -230,7 +230,7 @@ def get_metadata(cbth, binary):
         return {}
     else:
         try:
-            return _download_binary_metadata(cbth, binary)
+            return _download_binary_metadata(cbc_api, binary)
         except Exception as err:
             log.error(f"Failed to download metadata: {err}")
             return {}

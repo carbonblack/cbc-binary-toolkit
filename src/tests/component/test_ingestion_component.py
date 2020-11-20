@@ -18,8 +18,8 @@ import pytest
 from cbc_binary_toolkit.ingestion_component import IngestionComponent
 from cbc_binary_toolkit.state import StateManager
 from cbc_binary_toolkit.config import Config
-from cbapi.psc.threathunter import CbThreatHunterAPI
-from tests.component.ubs_fixtures.CBAPIMock import CBAPIMock
+from cbc_sdk import CBCloudAPI
+from tests.component.ubs_fixtures.CBCloudAPIMock import CBCloudAPIMock
 from tests.component.ubs_fixtures.metadata import HASH_METADATA
 from tests.component.ubs_fixtures.filedownload import METADATA_DOWNLOAD_RESP
 
@@ -48,18 +48,18 @@ def state_manager(config):
 
 
 @pytest.fixture(scope="session")
-def cb_threat_hunter():
-    """Create CbThreatHunterAPI singleton"""
-    return CbThreatHunterAPI(url="https://example.com",
-                             org_key="test",
-                             token="abcd/1234",
-                             ssl_verify=False)
+def cbc_cloud_api():
+    """Create CBCloudAPI singleton"""
+    return CBCloudAPI(url="https://example.com",
+                      org_key="test",
+                      token="abcd/1234",
+                      ssl_verify=False)
 
 
 @pytest.fixture(scope="function")
-def component(config, cb_threat_hunter, state_manager):
+def component(config, cbc_cloud_api, state_manager):
     """Creates the component to unit test"""
-    return IngestionComponent(config, cb_threat_hunter, state_manager)
+    return IngestionComponent(config, cbc_cloud_api, state_manager)
 
 
 def mock_downloads(url, body, **kwargs):
@@ -79,9 +79,9 @@ def mock_downloads(url, body, **kwargs):
 
 
 @pytest.fixture(scope="function")
-def cbapi_mock(monkeypatch, cb_threat_hunter):
-    """Mocks CBAPI for unit tests"""
-    cbapi_mock = CBAPIMock(monkeypatch, cb_threat_hunter)
+def cbcloud_api_mock(monkeypatch, cbc_cloud_api):
+    """Mocks CBCloudAPI for unit tests"""
+    cbcloud_api_mock = CBCloudAPIMock(monkeypatch, cbc_cloud_api)
 
     hashes = [
         "405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4",
@@ -90,10 +90,10 @@ def cbapi_mock(monkeypatch, cb_threat_hunter):
     ]
 
     for hash in hashes:
-        cbapi_mock.mock_request("GET", f"/ubs/v1/orgs/test/sha256/{hash}/metadata", HASH_METADATA[hash])
+        cbcloud_api_mock.mock_request("GET", f"/ubs/v1/orgs/test/sha256/{hash}/metadata", HASH_METADATA[hash])
 
-    cbapi_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download", mock_downloads)
-    return cbapi_mock
+    cbcloud_api_mock.mock_request("POST", "/ubs/v1/orgs/test/file/_download", mock_downloads)
+    return cbcloud_api_mock
 
 
 # ==================================== Unit TESTS BELOW ====================================
@@ -106,7 +106,7 @@ def cbapi_mock(monkeypatch, cb_threat_hunter):
     ['405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4',
      '0995f71c34f613207bc39ed4fcc1bbbee396a543fa1739656f7ddf70419309fc']
 ])
-def test_fetch_metadata(component, cbapi_mock, state_manager, input):
+def test_fetch_metadata(component, cbcloud_api_mock, state_manager, input):
     """Test fetch metadata"""
     data = component.fetch_metadata(input)
     assert data != []
@@ -122,13 +122,13 @@ def test_fetch_metadata(component, cbapi_mock, state_manager, input):
     # Invalid hash
     ['INVALID']
 ])
-def test_hash_not_found(component, cbapi_mock, state_manager, input):
+def test_hash_not_found(component, cbcloud_api_mock, state_manager, input):
     """Test fetch_metadata with various failure points"""
     data = component.fetch_metadata(input)
     assert data == []
 
 
-def test_reload(component, cbapi_mock, state_manager):
+def test_reload(component, cbcloud_api_mock, state_manager):
     """Test restart command"""
     state_manager.set_checkpoint("405f03534be8b45185695f68deb47d4daf04dcd6df9d351ca6831d3721b1efc4",
                                  ENGINE_NAME,
