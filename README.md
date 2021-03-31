@@ -2,9 +2,9 @@
 [![Coverage Status](https://coveralls.io/repos/github/carbonblack/cbc-binary-toolkit/badge.svg?branch=develop)](https://coveralls.io/github/carbonblack/cbc-binary-toolkit?branch=develop)
 # Carbon Black Cloud Binary Toolkit
 
-**Latest Version:** 1.1.0
+**Latest Version:** 1.1.1
 <br>
-**Release Date:** 11/20/2020
+**Release Date:** 03/31/2021
 
 The Carbon Black Cloud Binary Toolkit provides a system of processing incoming SHA256 hashes by integrating with the Unified Binary Store (UBS) on the Carbon Black Cloud (CBC).
 
