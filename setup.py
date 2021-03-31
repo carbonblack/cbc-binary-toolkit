@@ -32,7 +32,7 @@ setup(
     long_description_content_type='text/markdown',
     platforms="any",
     classifiers=[
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "Intended Audience :: System Administrators",
         "Operating System :: OS Independent",
