@@ -22,11 +22,11 @@ install_reqs = [
 setup(
     name="cbc_binary_toolkit",
     version=read("VERSION"),
-    url="https://developer.carbonblack.com/",
+    url="https://github.com/carbonblack/cbc-binary-toolkit",
     license="MIT",
-    author="VMware Carbon Black",
+    author="Carbon Black",
     author_email="dev-support@carbonblack.com",
-    description="The VMware Carbon Black Cloud Binary Toolkit provides useful tools to process "
+    description="The Carbon Black Cloud Binary Toolkit provides useful tools to process "
                 "binaries and upload IOCs to your Feeds",
     long_description=read("README.md"),
     long_description_content_type='text/markdown',

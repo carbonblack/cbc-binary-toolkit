@@ -6,13 +6,12 @@
 <br>
 **Release Date:** 03/31/2021
 
-The Carbon Black Cloud Binary Toolkit provides a system of processing incoming SHA256 hashes by integrating with the Unified Binary Store (UBS) on the Carbon Black Cloud (CBC).
-
+The Carbon Black Cloud Binary Toolkit provides a system of processing incoming SHA256 hashes by integrating with the
+Unified Binary Store (UBS) on the Carbon Black Cloud (CBC).
 
 ## Recent updates
 
 View the latest release notes [here](https://github.com/carbonblack/cbc-binary-toolkit/releases).
-
 
 ## License
 
