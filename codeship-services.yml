@@ -12,6 +12,22 @@ testingpython38:
   encrypted_env_file:
     - env.encrypted
 
+testingpython39:
+  build:
+    dockerfile: ./docker/python3.9/Dockerfile
+
+testingpython310:
+  build:
+    dockerfile: ./docker/python3.10/Dockerfile
+
+testingpython311:
+  build:
+    dockerfile: ./docker/python3.11/Dockerfile
+
+testingpython312:
+  build:
+    dockerfile: ./docker/python3.12/Dockerfile
+
 functionaltesting:
   build:
     dockerfile: ./docker/functionaltesting/Dockerfile
