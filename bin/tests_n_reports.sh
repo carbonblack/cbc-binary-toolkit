@@ -15,5 +15,5 @@ set -e
 echo 'Running tests....'
 coverage run -m pytest --ignore=src/tests/functional --ignore=src/tests/load
 
-echo 'Running report....'
-coverage report -m
+echo 'Generating report....'
+coverage xml
