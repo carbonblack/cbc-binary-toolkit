@@ -103,7 +103,7 @@ class Config:
                 cur = self._data
             elt = s
         if suppress_exceptions:
-            return cur is None if None else cur.get(elt, None)
+            return None if cur is None else cur.get(elt, None)
 
         if cur is None:
             raise ConfigError('Invalid path: ' + path)
