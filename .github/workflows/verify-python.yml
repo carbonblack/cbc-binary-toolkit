@@ -157,8 +157,7 @@ jobs:
       with:
         fetch-depth: 20
     - run: |
-        zypper --non-interactive install python3-devel python3-pip gcc sqlite-devel
-        ./configure --enable-loadable-sqlite-extensions && make && make install
+        zypper --non-interactive install python3-devel python3-pip gcc sqlite-devel python311
         python3 -m venv env
         source env/bin/activate
         env/bin/pip3 install -r requirements.txt
