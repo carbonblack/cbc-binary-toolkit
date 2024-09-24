@@ -86,6 +86,9 @@ class Config:
         Returns:
             The configuration value, which may be of any type.
 
+        Raises:
+            ConfigError: Invalid path
+
         """
         cur = None
         elt = None
@@ -100,8 +103,12 @@ class Config:
                 cur = self._data
             elt = s
         if suppress_exceptions:
-            return cur.get(elt, None)
-        return cur[elt]
+            return None if cur is None else cur.get(elt, None)
+
+        if cur is None:
+            raise ConfigError('Invalid path: ' + path)
+        else:
+            return cur[elt]
 
     def string(self, path):
         """
