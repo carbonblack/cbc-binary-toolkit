@@ -7,7 +7,7 @@ schema>=0.7.4
 yara-python>=4.0.5
 
 # Dev dependencies
-pytest==7.2.1
+pytest==9.0.3
 coverage==5.1
 flake8==3.8.1
 flake8-colors==0.1.6
